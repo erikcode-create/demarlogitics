@@ -1,29 +1,21 @@
 
 
-## Bulk Rate Confirmation Creation
+## Contract Statistics Dashboard Widget
 
-### Overview
-Add a "Bulk Create" flow to the Contracts page that lets users select multiple booked loads and generate rate confirmations for all of them at once, with a single e-sign step.
+### What
+Add a new card to the Dashboard that shows contract statistics: total signed, expiring soon (within 30 days), and recently created (last 7 days), with a click-through to the Contracts page.
 
 ### Changes
 
-**New file: `src/pages/ContractBulkCreate.tsx`**
-- Page with 3 steps: Select Loads → Review → Sign All
-- Step 1: Checkbox table of all booked/in-transit loads that don't already have a rate confirmation. Show load number, origin → destination, carrier, and rate. "Select All" toggle at top.
-- Step 2: Summary list showing the generated title for each selected load (e.g., "Rate Confirmation — DT-2026-001"). Expandable preview of each contract's terms.
-- Step 3: Single e-sign (checkbox + name input) that applies to all contracts at once.
-- On sign: generate one `Contract` object per load using `generateRateConfirmation`, add all to context, show success toast with count, navigate to `/contracts`.
+**`src/pages/Dashboard.tsx`**
+- Import `FileText` icon from lucide-react
+- Add computed values from `contracts` array:
+  - `signedCount`: contracts with `status === 'signed'`
+  - `expiringSoonCount`: signed contracts where `expiresAt` is within 30 days from now
+  - `recentCount`: contracts created in the last 7 days
+- Add a new Contract Statistics card in the bottom row (change the grid from `lg:grid-cols-3` to `lg:grid-cols-4`, or insert a new card alongside Alerts). The card will be clickable → navigates to `/contracts`.
+- Display the three stats as labeled rows with counts and badges (e.g., warning badge for expiring soon).
 
-**`src/pages/Contracts.tsx`**
-- Add a "Bulk Create" button next to "New Contract" that links to `/contracts/bulk-create`.
-
-**`src/App.tsx`**
-- Add route `/contracts/bulk-create` → `ContractBulkCreate`.
-
-### Filtering Logic
-To avoid duplicates, the load selection table filters out loads that already have a rate confirmation contract (match by `loadId` in existing contracts).
-
-### Technical Notes
-- Reuses `generateRateConfirmation` from `contractTemplates.ts` — no template changes needed.
-- Each generated contract gets a unique ID (`ct${Date.now()}-${index}`), individual `terms`, and shares the same `signedByName`/`signedAt`/`expiresAt`.
+### Layout
+The Alerts + Recent Activity row currently uses `lg:grid-cols-3` (1 col alerts, 2 col activity). Update to `lg:grid-cols-4` — Alerts (1 col), Contracts (1 col), Recent Activity (2 col).
 
