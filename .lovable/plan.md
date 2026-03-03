@@ -1,42 +1,44 @@
 
 
-## Freight Brokerage Sales Page -- Implementation Plan
+## Sales Landing Page Enhancements -- Implementation Plan
 
-A new public-facing landing page at `/sales` (or `/`) that serves as a high-converting sales page for Demar Transportation. The page will be a single long-scroll page with all requested sections, and the lead capture form will integrate directly with the existing CRM by creating a Shipper record, triggering the 14-day cadence, and assigning sales stage = `prospect`.
+Six new features added to `src/pages/SalesLanding.tsx`, with one new utility file for the rate calculator and mock lane data for the heatmap.
 
-### Architecture
+---
 
-- **New file: `src/pages/SalesLanding.tsx`** -- Single component containing all sections (Hero, Problem, Solution, Services, Why Demar, Process, Trust, Lead Capture Form, Footer CTA)
-- **New route: `/sales-page`** added to `src/App.tsx` -- Rendered *outside* `AppLayout` (no sidebar/topbar) so it looks like a standalone marketing page
-- **CRM Integration** -- The lead capture form uses `useAppContext()` to:
-  - Check if a shipper with the same company name exists; if not, create one with `salesStage: 'prospect'`
-  - Call `triggerCadence(shipperId)` to fire the 14-day automation
-  - Log an activity noting the form submission
-  - Show a toast confirmation
+### 1. Downloadable Capability Statement PDF
 
-### Page Sections (top to bottom)
+A "Download Capability Statement" button in the Hero section. Since we cannot generate real PDFs client-side without a heavy library, this will create a styled HTML document opened in a new tab with `window.print()` triggered, allowing the user to save as PDF. The content will mirror the key sections: services, coverage area, compliance info, and contact details. Alternatively, a simpler approach: generate a Blob with the capability statement content and trigger a download. Will use a dedicated function `downloadCapabilityStatement()` that builds a formatted HTML string and opens it for print-to-PDF.
 
-1. **Hero** -- Full-width gradient/dark background. Headline, subheadline, two CTA buttons (scroll-to-form anchors). Truck/freight imagery via CSS gradients.
-2. **Problem** -- 4 bullet points with icons (Lucide icons: AlertTriangle, MapPin, MessageSquareOff, ShieldAlert)
-3. **Solution** -- 4 capability cards in a grid
-4. **Services** -- 6 service blocks (Dry Van, Reefer, Flatbed, Power-Only, Dedicated Lanes, Overflow) in a responsive grid with icons
-5. **Why Demar** -- 5 differentiators with check icons
-6. **Process** -- 4-step horizontal timeline (Request Quote → Capacity Secured → Live Tracking → On-Time Delivery)
-7. **Trust** -- 3 trust badges/icons
-8. **Lead Capture Form** -- React Hook Form with zod validation. Fields: Company Name, Contact Name, Email, Phone, Origin, Destination, Equipment Type (dropdown), Est. Weekly Volume, Message. On submit: creates shipper + triggers cadence
-9. **Footer CTA** -- Dark section with headline and "Get a Rate Now" button
+### 2. Lane Heatmap Visual
 
-### Technical Details
+A new section between Solution and Services showing a stylized visual grid/table of West Coast lanes with color-coded intensity. Since we cannot use actual map tiles without an API key, this will be a **lane matrix** -- a grid showing origin cities (rows) vs destination cities (columns) with colored cells indicating volume/demand level (hot/warm/cool). Data sourced from `mockData.ts` lanes plus hardcoded West Coast lane data. Uses Tailwind background colors (red/orange/yellow/green shades) for heat intensity.
 
-- **Routing**: The sales page route renders without `AppLayout` wrapping. All other CRM routes keep their layout. This requires restructuring `App.tsx` slightly -- the `AppLayout` wrapper moves inside the CRM routes, and `/sales-page` sits outside it.
-- **Form validation**: Uses zod schema for required fields (company, contact, email, phone, origin, destination, equipment type). Phone validated with regex. Email validated with `.email()`.
-- **Responsive**: Tailwind responsive classes throughout. Mobile-first grid layouts (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`).
-- **No new dependencies** -- uses existing Tailwind, Lucide icons, shadcn components (Button, Input, Select, Textarea, Card), react-hook-form + zod.
+### 3. Case Study Section
+
+A new section after "Why Demar" with 2-3 hardcoded case studies. Each card shows: industry, challenge, solution, and result with metrics (e.g., "Reduced transit time by 18%", "99.2% on-time delivery"). Uses the existing Card component.
+
+### 4. Rate Calculator Tool
+
+An interactive section with dropdowns for origin region, destination region, equipment type, and a mileage/weight input. Calculates an estimated rate range using a simple formula (base rate + per-mile rate by equipment type). Shows "Estimated Rate: $X,XXX - $X,XXX" with a CTA to get an exact quote. All client-side with hardcoded rate tables.
+
+### 5. Instant Chat Widget
+
+A floating chat bubble (bottom-right corner, fixed position) that expands into a small chat panel. Since there's no backend, this will be a **pre-chat form** that collects name, company, and question, then submits it as an Activity in the CRM context and shows a confirmation message ("A specialist will respond within 15 minutes"). Includes a few canned quick-reply buttons ("Get a rate quote", "Check capacity", "Speak to someone").
+
+### 6. Retargeting Pixel Placement
+
+Add a dedicated section in the component that renders `<script>` tags for common retargeting pixels (Google Ads, Meta/Facebook) using placeholder IDs. Wrapped in a `useEffect` that fires on mount. The pixel IDs will be clearly marked as placeholders (`YOUR_PIXEL_ID_HERE`) with comments explaining where to add real IDs.
+
+---
 
 ### Files Changed
 
 | File | Change |
 |------|--------|
-| `src/pages/SalesLanding.tsx` | New -- full landing page component |
-| `src/App.tsx` | Add `/sales-page` route outside AppLayout, restructure layout wrapping |
+| `src/pages/SalesLanding.tsx` | Add all 6 features: capability statement download button, lane heatmap section, case studies section, rate calculator section, chat widget, retargeting pixel useEffect |
+
+### Section Order (updated)
+
+Hero → Problem → Solution → **Lane Heatmap** → Services → Why Demar → **Case Studies** → Process → **Rate Calculator** → Trust → Lead Form → Footer CTA → **Chat Widget (floating)** → **Retargeting Pixels (invisible)**
 
