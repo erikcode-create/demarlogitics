@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download } from 'lucide-react';
+import { useRef, useCallback } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +18,25 @@ export default function ContractDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { contracts, shippers, carriers } = useAppContext();
+  const printRef = useRef<HTMLDivElement>(null);
 
   const contract = contracts.find(c => c.id === id);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!printRef.current) return;
+    const html2pdf = (await import('html2pdf.js')).default;
+    html2pdf()
+      .set({
+        margin: [10, 10],
+        filename: `${contract?.title?.replace(/\s+/g, '_') ?? 'contract'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      })
+      .from(printRef.current)
+      .save();
+  }, [contract?.title]);
+
   if (!contract) {
     return (
       <div className="text-center py-12">
@@ -36,10 +54,18 @@ export default function ContractDetail() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
-        <ArrowLeft className="h-4 w-4" /> Back to Contracts
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back to Contracts
+        </Button>
+        {contract.status === 'signed' && (
+          <Button variant="outline" onClick={handleExportPDF} className="gap-2">
+            <Download className="h-4 w-4" /> Export PDF
+          </Button>
+        )}
+      </div>
 
+      <div ref={printRef} className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{contract.title}</h1>
@@ -92,6 +118,7 @@ export default function ContractDetail() {
           <Link to={`/loads/${contract.loadId}`}>View Associated Load</Link>
         </Button>
       )}
+      </div>
     </div>
   );
 }
