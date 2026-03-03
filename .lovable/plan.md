@@ -1,32 +1,44 @@
 
 
-## Alerts System
+## Contracts Module
 
-### New Page & Route
-- Create `src/pages/Alerts.tsx` with route `/alerts`
-- Add "Alerts" nav item to `AppSidebar.tsx` with `Bell` icon
+### Data Layer
+Add to `src/types/index.ts`:
+- `ContractType`: `'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation'`
+- `ContractStatus`: `'draft' | 'sent' | 'signed' | 'expired'`
+- `Contract` interface with: `id`, `type`, `status`, `entityId`, `entityType` (shipper/carrier), `loadId?` (for rate confirmations), `title`, `terms`, `signedByName`, `signedAt`, `createdAt`, `expiresAt`
 
-### Alert Generation Logic
-Create `src/utils/alertEngine.ts` that derives alerts from existing data:
+Add `contracts` state array to `AppContext` with mock data.
 
-1. **Insurance Expiring** — scan carriers where `insuranceExpiry` is within 30 days (warning) or past (critical)
-2. **Missing Documents** — scan carriers where `w9Uploaded`, `insuranceCertUploaded`, or `carrierPacketUploaded` is false
-3. **Follow-up Reminders** — scan `followUps` where `completed === false` and `date` is today or past
-4. **AR Aging** — scan loads with status `invoiced` where `invoiceDate` is 30+ days old (warning) or 45+ days (critical)
+### Templates
+Create `src/utils/contractTemplates.ts` with three functions that auto-fill from CRM data:
+- **Shipper Agreement** — pulls company name, address, payment terms, credit limit
+- **Carrier Agreement** — pulls MC#, DOT#, insurance info, equipment types
+- **Rate Confirmation** — pulls load details (origin, dest, rates, dates) plus shipper/carrier info
 
-Each alert has: `id`, `type`, `severity` (critical/warning/info), `title`, `message`, `entityId`, `entityType`, `date`.
+Each returns structured sections (parties, terms, rates, liability, etc.) as template data.
 
-### Alerts Page UI
-- Filter tabs: All | Insurance | Documents | Follow-ups | AR Aging
-- Alert cards with severity color coding (red = critical, yellow = warning, blue = info)
-- Click-through links to the related carrier/shipper/load detail page
-- Dismiss/acknowledge action per alert (stored in local state)
-- Summary count badges on each tab
+### Pages & Routes
+1. **`/contracts`** — list view with tabs by type, status badges, search/filter
+2. **`/contracts/new`** — create contract: select type → select entity → review auto-filled template → checkbox e-sign → save
+3. **`/contracts/:id`** — view signed contract with signature details and status
 
-### Dashboard Integration
-- Add an alerts summary card to the Dashboard showing count by severity
-- Link to `/alerts` page
+### Checkbox E-Sign Flow
+- Review generated contract text
+- "I agree" checkbox + typed full name field
+- On submit: saves `signedByName` and `signedAt` timestamp, sets status to `signed`
 
-### Sidebar Badge
-- Show total active alert count as a badge on the Alerts nav item
+### Navigation
+Add `FileText` icon "Contracts" nav item to sidebar between Loads and Alerts.
+
+### Files to create/edit
+- `src/types/index.ts` — add contract types
+- `src/data/mockData.ts` — add mock contracts
+- `src/context/AppContext.tsx` — add contracts state
+- `src/utils/contractTemplates.ts` — template generators
+- `src/pages/Contracts.tsx` — list page
+- `src/pages/ContractNew.tsx` — create/sign flow
+- `src/pages/ContractDetail.tsx` — view signed contract
+- `src/components/layout/AppSidebar.tsx` — add nav item
+- `src/App.tsx` — add routes
 
