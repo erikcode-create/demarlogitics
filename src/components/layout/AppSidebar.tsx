@@ -1,4 +1,5 @@
 import { LayoutDashboard, Building2, Truck, Package, FileText, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp } from 'lucide-react';
+import demarLogo from '@/assets/demar-logo.png';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
@@ -40,12 +41,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground">DEMAR</h1>
-            <p className="text-xs text-muted-foreground">Transportation</p>
-          </div>
+          <img src={demarLogo} alt="Demar Transportation" className="h-9 w-auto" />
         ) : (
-          <span className="text-lg font-bold text-sidebar-primary">D</span>
+          <img src={demarLogo} alt="Demar" className="h-7 w-auto" />
         )}
       </SidebarHeader>
       <SidebarContent>

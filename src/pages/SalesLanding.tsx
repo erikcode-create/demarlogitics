@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import demarLogo from '@/assets/demar-logo.png';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -113,14 +114,14 @@ const regionDistances: Record<string, Record<string, number>> = {
 function downloadCapabilityStatement() {
   const html = `<!DOCTYPE html><html><head><title>Demar Transportation - Capability Statement</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;padding:40px 60px;max-width:900px;margin:0 auto}
-h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;color:#2563eb;margin:28px 0 12px;border-bottom:2px solid #2563eb;padding-bottom:4px}
+h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;color:#D97706;margin:28px 0 12px;border-bottom:2px solid #D97706;padding-bottom:4px}
 h3{font-size:14px;margin:12px 0 4px}p,li{font-size:13px;line-height:1.6;color:#333}ul{padding-left:20px;margin:6px 0}
-.header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #2563eb;padding-bottom:16px;margin-bottom:24px}
-.badge{background:#2563eb;color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:bold}
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #D97706;padding-bottom:16px;margin-bottom:24px}
+.badge{background:#D97706;color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:bold}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0}
 .card{border:1px solid #e2e8f0;border-radius:8px;padding:16px}
-.card h3{color:#2563eb;margin:0 0 6px}
-.stats{display:flex;gap:24px;margin:12px 0}.stat{text-align:center}.stat strong{font-size:24px;color:#2563eb;display:block}.stat span{font-size:11px;color:#666}
+.card h3{color:#D97706;margin:0 0 6px}
+.stats{display:flex;gap:24px;margin:12px 0}.stat{text-align:center}.stat strong{font-size:24px;color:#D97706;display:block}.stat span{font-size:11px;color:#666}
 .footer{margin-top:32px;border-top:2px solid #e2e8f0;padding-top:16px;font-size:12px;color:#666;text-align:center}
 @media print{body{padding:20px 40px}}</style></head>
 <body>
@@ -412,9 +413,7 @@ export default function SalesLanding() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-primary">DEMAR</span> TRANSPORTATION
-          </span>
+          <img src={demarLogo} alt="Demar Transportation" className="h-10 w-auto" />
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#services" className="hover:text-foreground transition-colors">Services</a>
             <a href="#case-studies" className="hover:text-foreground transition-colors">Results</a>
