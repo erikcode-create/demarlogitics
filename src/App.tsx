@@ -12,6 +12,7 @@ import Carriers from "./pages/Carriers";
 import CarrierDetail from "./pages/CarrierDetail";
 import Loads from "./pages/Loads";
 import LoadDetail from "./pages/LoadDetail";
+import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/carriers/:id" element={<CarrierDetail />} />
               <Route path="/loads" element={<Loads />} />
               <Route path="/loads/:id" element={<LoadDetail />} />
+              <Route path="/alerts" element={<Alerts />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
