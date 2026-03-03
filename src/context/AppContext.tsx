@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load } from '@/types';
-import { mockShippers, mockContacts, mockLanes, mockFollowUps, mockActivities, mockCarriers, mockLoads } from '@/data/mockData';
+import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract } from '@/types';
+import { mockShippers, mockContacts, mockLanes, mockFollowUps, mockActivities, mockCarriers, mockLoads, mockContracts } from '@/data/mockData';
 
 interface AppContextType {
   shippers: Shipper[];
@@ -17,6 +17,8 @@ interface AppContextType {
   setCarriers: React.Dispatch<React.SetStateAction<Carrier[]>>;
   loads: Load[];
   setLoads: React.Dispatch<React.SetStateAction<Load[]>>;
+  contracts: Contract[];
+  setContracts: React.Dispatch<React.SetStateAction<Contract[]>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -29,6 +31,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [activities, setActivities] = useState<Activity[]>(mockActivities);
   const [carriers, setCarriers] = useState<Carrier[]>(mockCarriers);
   const [loads, setLoads] = useState<Load[]>(mockLoads);
+  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
 
   return (
     <AppContext.Provider value={{
@@ -39,6 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       activities, setActivities,
       carriers, setCarriers,
       loads, setLoads,
+      contracts, setContracts,
     }}>
       {children}
     </AppContext.Provider>

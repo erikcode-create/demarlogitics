@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Truck, Package, Bell } from 'lucide-react';
+import { LayoutDashboard, Building2, Truck, Package, FileText, Bell } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
@@ -15,6 +15,7 @@ const navItems = [
   { title: 'Shippers', url: '/shippers', icon: Building2 },
   { title: 'Carriers', url: '/carriers', icon: Truck },
   { title: 'Loads', url: '/loads', icon: Package },
+  { title: 'Contracts', url: '/contracts', icon: FileText },
   { title: 'Alerts', url: '/alerts', icon: Bell },
 ];
 
