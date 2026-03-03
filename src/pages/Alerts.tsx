@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, ShieldAlert, FileWarning, CalendarClock, DollarSign, X, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, FileWarning, CalendarClock, DollarSign, FileText, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const tabConfig: { value: AlertType | 'all'; label: string; icon: React.ElementType }[] = [
@@ -14,6 +14,7 @@ const tabConfig: { value: AlertType | 'all'; label: string; icon: React.ElementT
   { value: 'documents', label: 'Documents', icon: FileWarning },
   { value: 'followup', label: 'Follow-ups', icon: CalendarClock },
   { value: 'ar_aging', label: 'AR Aging', icon: DollarSign },
+  { value: 'contract_expiry', label: 'Contracts', icon: FileText },
 ];
 
 const severityStyles: Record<string, string> = {
@@ -29,12 +30,12 @@ const severityBadge: Record<string, string> = {
 };
 
 const Alerts = () => {
-  const { carriers, followUps, loads } = useAppContext();
+  const { carriers, followUps, loads, contracts } = useAppContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<AlertType | 'all'>('all');
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  const allAlerts = useMemo(() => generateAlerts(carriers, followUps, loads), [carriers, followUps, loads]);
+  const allAlerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
 
   const activeAlerts = allAlerts.filter(a => !dismissed.has(a.id));
   const filtered = activeTab === 'all' ? activeAlerts : activeAlerts.filter(a => a.type === activeTab);
@@ -49,6 +50,7 @@ const Alerts = () => {
   const handleNavigate = (alert: Alert) => {
     const path = alert.entityType === 'carrier' ? `/carriers/${alert.entityId}`
       : alert.entityType === 'shipper' ? `/shippers/${alert.entityId}`
+      : alert.entityType === 'contract' ? `/contracts/${alert.entityId}`
       : `/loads/${alert.entityId}`;
     navigate(path);
   };

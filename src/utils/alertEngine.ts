@@ -1,7 +1,7 @@
-import { Carrier, FollowUp, Load } from '@/types';
+import { Carrier, FollowUp, Load, Contract } from '@/types';
 import { differenceInDays, parseISO, isToday, isPast } from 'date-fns';
 
-export type AlertType = 'insurance' | 'documents' | 'followup' | 'ar_aging';
+export type AlertType = 'insurance' | 'documents' | 'followup' | 'ar_aging' | 'contract_expiry';
 export type AlertSeverity = 'critical' | 'warning' | 'info';
 
 export interface Alert {
@@ -11,7 +11,7 @@ export interface Alert {
   title: string;
   message: string;
   entityId: string;
-  entityType: 'carrier' | 'shipper' | 'load';
+  entityType: 'carrier' | 'shipper' | 'load' | 'contract';
   date: string;
 }
 
@@ -19,6 +19,7 @@ export function generateAlerts(
   carriers: Carrier[],
   followUps: FollowUp[],
   loads: Load[],
+  contracts: Contract[] = [],
   today: Date = new Date()
 ): Alert[] {
   const alerts: Alert[] = [];
@@ -121,6 +122,37 @@ export function generateAlerts(
         entityId: load.id,
         entityType: 'load',
         date: load.invoiceDate,
+      });
+    }
+  });
+
+  // 5. Contract Expiration
+  contracts.forEach((contract) => {
+    if (contract.status !== 'signed' || !contract.expiresAt) return;
+    const expiry = parseISO(contract.expiresAt);
+    const daysUntil = differenceInDays(expiry, today);
+
+    if (daysUntil < 0) {
+      alerts.push({
+        id: `ct-exp-${contract.id}`,
+        type: 'contract_expiry',
+        severity: 'critical',
+        title: 'Contract Expired',
+        message: `${contract.title} expired ${Math.abs(daysUntil)} days ago.`,
+        entityId: contract.id,
+        entityType: 'contract',
+        date: contract.expiresAt,
+      });
+    } else if (daysUntil <= 30) {
+      alerts.push({
+        id: `ct-warn-${contract.id}`,
+        type: 'contract_expiry',
+        severity: 'warning',
+        title: 'Contract Expiring Soon',
+        message: `${contract.title} expires in ${daysUntil} days.`,
+        entityId: contract.id,
+        entityType: 'contract',
+        date: contract.expiresAt,
       });
     }
   });
