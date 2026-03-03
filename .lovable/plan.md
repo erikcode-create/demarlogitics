@@ -1,44 +1,25 @@
 
 
-## Contracts Module
+## Contract Expiration Alerts
 
-### Data Layer
-Add to `src/types/index.ts`:
-- `ContractType`: `'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation'`
-- `ContractStatus`: `'draft' | 'sent' | 'signed' | 'expired'`
-- `Contract` interface with: `id`, `type`, `status`, `entityId`, `entityType` (shipper/carrier), `loadId?` (for rate confirmations), `title`, `terms`, `signedByName`, `signedAt`, `createdAt`, `expiresAt`
+### Changes
 
-Add `contracts` state array to `AppContext` with mock data.
+**`src/utils/alertEngine.ts`**
+- Add `'contract_expiry'` to the `AlertType` union
+- Add `'contract'` to the `entityType` union in the `Alert` interface
+- Import `Contract` type
+- Accept `contracts: Contract[]` as a new parameter to `generateAlerts`
+- Add Section 5: scan signed contracts where `expiresAt` is past (critical) or within 30 days (warning)
 
-### Templates
-Create `src/utils/contractTemplates.ts` with three functions that auto-fill from CRM data:
-- **Shipper Agreement** — pulls company name, address, payment terms, credit limit
-- **Carrier Agreement** — pulls MC#, DOT#, insurance info, equipment types
-- **Rate Confirmation** — pulls load details (origin, dest, rates, dates) plus shipper/carrier info
+**`src/pages/Alerts.tsx`**
+- Add a "Contracts" tab to `tabConfig` with `FileText` icon
+- Update `useAppContext` to pull `contracts`
+- Pass `contracts` to `generateAlerts`
+- Handle `contract` entity type in `handleNavigate` → `/contracts/${id}`
 
-Each returns structured sections (parties, terms, rates, liability, etc.) as template data.
+**`src/components/layout/AppSidebar.tsx`**
+- Pass `contracts` to `generateAlerts` in the sidebar badge count
 
-### Pages & Routes
-1. **`/contracts`** — list view with tabs by type, status badges, search/filter
-2. **`/contracts/new`** — create contract: select type → select entity → review auto-filled template → checkbox e-sign → save
-3. **`/contracts/:id`** — view signed contract with signature details and status
-
-### Checkbox E-Sign Flow
-- Review generated contract text
-- "I agree" checkbox + typed full name field
-- On submit: saves `signedByName` and `signedAt` timestamp, sets status to `signed`
-
-### Navigation
-Add `FileText` icon "Contracts" nav item to sidebar between Loads and Alerts.
-
-### Files to create/edit
-- `src/types/index.ts` — add contract types
-- `src/data/mockData.ts` — add mock contracts
-- `src/context/AppContext.tsx` — add contracts state
-- `src/utils/contractTemplates.ts` — template generators
-- `src/pages/Contracts.tsx` — list page
-- `src/pages/ContractNew.tsx` — create/sign flow
-- `src/pages/ContractDetail.tsx` — view signed contract
-- `src/components/layout/AppSidebar.tsx` — add nav item
-- `src/App.tsx` — add routes
+**`src/pages/Dashboard.tsx`**
+- Pass `contracts` to `generateAlerts` in the dashboard alerts summary
 
