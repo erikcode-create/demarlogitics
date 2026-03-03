@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon } from 'lucide-react';
 import { salesStageLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Contact, Lane, FollowUp, Activity, SalesStage, EquipmentType, ActivityType } from '@/types';
 
@@ -28,6 +28,8 @@ const ShipperDetail = () => {
   const [newFollowUp, setNewFollowUp] = useState({ date: '', notes: '' });
   const [activityDialog, setActivityDialog] = useState(false);
   const [newActivity, setNewActivity] = useState({ type: 'call' as ActivityType, description: '' });
+  const [editing, setEditing] = useState(false);
+  const [editFields, setEditFields] = useState({ shippingManagerName: '', directPhone: '', email: '', estimatedMonthlyLoads: '', lastContactDate: '', nextFollowUp: '' });
 
   const shipper = shippers.find(s => s.id === id);
   if (!shipper) return <div className="p-6">Shipper not found. <Button variant="link" onClick={() => navigate('/shippers')}>Back</Button></div>;
@@ -66,6 +68,31 @@ const ShipperDetail = () => {
     setShippers(prev => prev.map(s => s.id === id ? { ...s, salesStage: stage } : s));
   };
 
+  const startEditing = () => {
+    setEditFields({
+      shippingManagerName: shipper.shippingManagerName || '',
+      directPhone: shipper.directPhone || '',
+      email: shipper.email || '',
+      estimatedMonthlyLoads: String(shipper.estimatedMonthlyLoads || 0),
+      lastContactDate: shipper.lastContactDate || '',
+      nextFollowUp: shipper.nextFollowUp || '',
+    });
+    setEditing(true);
+  };
+
+  const saveEditing = () => {
+    setShippers(prev => prev.map(s => s.id === id ? {
+      ...s,
+      shippingManagerName: editFields.shippingManagerName,
+      directPhone: editFields.directPhone,
+      email: editFields.email,
+      estimatedMonthlyLoads: Number(editFields.estimatedMonthlyLoads) || 0,
+      lastContactDate: editFields.lastContactDate,
+      nextFollowUp: editFields.nextFollowUp,
+    } : s));
+    setEditing(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -74,8 +101,8 @@ const ShipperDetail = () => {
           <h1 className="text-2xl font-bold">{shipper.companyName}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{shipper.city}, {shipper.state}</span>
-            <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{shipper.phone}</span>
-            <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{shipper.email}</span>
+            {shipper.directPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{shipper.directPhone}</span>}
+            {shipper.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{shipper.email}</span>}
           </div>
         </div>
         <Select value={shipper.salesStage} onValueChange={(v: SalesStage) => updateStage(v)}>
@@ -83,6 +110,59 @@ const ShipperDetail = () => {
           <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>
       </div>
+
+      {/* Key Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Shipping Manager</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-lg font-semibold">{shipper.shippingManagerName || <span className="text-muted-foreground italic">Not set</span>}</p>
+            {shipper.directPhone && <p className="text-sm text-muted-foreground">{shipper.directPhone}</p>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Est. Monthly Loads</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-xl font-bold">{shipper.estimatedMonthlyLoads || <span className="text-muted-foreground italic">—</span>}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Dates</CardTitle></CardHeader>
+          <CardContent>
+            <div className="text-sm space-y-1">
+              <p><span className="text-muted-foreground">Last Contact:</span> {shipper.lastContactDate ? new Date(shipper.lastContactDate).toLocaleDateString() : '—'}</p>
+              <p><span className="text-muted-foreground">Next Follow-Up:</span> {shipper.nextFollowUp ? new Date(shipper.nextFollowUp).toLocaleDateString() : '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Edit Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm">Shipper Details</CardTitle>
+          {!editing ? (
+            <Button size="sm" variant="outline" onClick={startEditing}>Edit Details</Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+              <Button size="sm" onClick={saveEditing}>Save</Button>
+            </div>
+          )}
+        </CardHeader>
+        {editing && (
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div><Label>Shipping Manager Name</Label><Input value={editFields.shippingManagerName} onChange={e => setEditFields(p => ({ ...p, shippingManagerName: e.target.value }))} /></div>
+              <div><Label>Direct Phone</Label><Input value={editFields.directPhone} onChange={e => setEditFields(p => ({ ...p, directPhone: e.target.value }))} /></div>
+              <div><Label>Email</Label><Input value={editFields.email} onChange={e => setEditFields(p => ({ ...p, email: e.target.value }))} /></div>
+              <div><Label>Est. Monthly Loads</Label><Input type="number" value={editFields.estimatedMonthlyLoads} onChange={e => setEditFields(p => ({ ...p, estimatedMonthlyLoads: e.target.value }))} /></div>
+              <div><Label>Last Contact Date</Label><Input type="date" value={editFields.lastContactDate} onChange={e => setEditFields(p => ({ ...p, lastContactDate: e.target.value }))} /></div>
+              <div><Label>Next Follow-Up</Label><Input type="date" value={editFields.nextFollowUp} onChange={e => setEditFields(p => ({ ...p, nextFollowUp: e.target.value }))} /></div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Credit Limit</CardTitle></CardHeader><CardContent><p className="text-xl font-bold">${shipper.creditLimit.toLocaleString()}</p></CardContent></Card>

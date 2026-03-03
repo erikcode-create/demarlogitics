@@ -21,6 +21,11 @@ export interface Shipper {
   paymentTerms: string;
   notes: string;
   createdAt: string;
+  shippingManagerName?: string;
+  directPhone?: string;
+  estimatedMonthlyLoads?: number;
+  lastContactDate?: string;
+  nextFollowUp?: string;
 }
 
 export interface Contact {
