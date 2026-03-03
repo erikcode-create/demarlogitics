@@ -28,10 +28,16 @@ const Shippers = () => {
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newShipper, setNewShipper] = useState({ companyName: '', city: '', state: '', phone: '', email: '', salesStage: 'lead' as SalesStage });
+  const [newShipper, setNewShipper] = useState({
+    companyName: '', city: '', state: '', phone: '', email: '',
+    salesStage: 'lead' as SalesStage,
+    shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '',
+  });
 
   const filtered = shippers.filter(s => {
-    const matchSearch = s.companyName.toLowerCase().includes(search.toLowerCase()) || s.city.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = s.companyName.toLowerCase().includes(search.toLowerCase()) ||
+      s.city.toLowerCase().includes(search.toLowerCase()) ||
+      (s.shippingManagerName || '').toLowerCase().includes(search.toLowerCase());
     const matchStage = stageFilter === 'all' || s.salesStage === stageFilter;
     return matchSearch && matchStage;
   });
@@ -39,17 +45,27 @@ const Shippers = () => {
   const handleAdd = () => {
     const shipper: Shipper = {
       id: `s${Date.now()}`,
-      ...newShipper,
+      companyName: newShipper.companyName,
+      city: newShipper.city,
+      state: newShipper.state,
+      phone: newShipper.phone,
+      email: newShipper.email,
+      salesStage: newShipper.salesStage,
       address: '',
       zip: '',
       creditLimit: 0,
       paymentTerms: 'Net 30',
       notes: '',
       createdAt: new Date().toISOString().split('T')[0],
+      shippingManagerName: newShipper.shippingManagerName,
+      directPhone: newShipper.directPhone,
+      estimatedMonthlyLoads: Number(newShipper.estimatedMonthlyLoads) || 0,
+      lastContactDate: '',
+      nextFollowUp: '',
     };
     setShippers(prev => [...prev, shipper]);
     setDialogOpen(false);
-    setNewShipper({ companyName: '', city: '', state: '', phone: '', email: '', salesStage: 'lead' });
+    setNewShipper({ companyName: '', city: '', state: '', phone: '', email: '', salesStage: 'lead', shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '' });
   };
 
   return (
@@ -60,7 +76,7 @@ const Shippers = () => {
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="mr-1 h-4 w-4" />Add Shipper</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>New Shipper</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div><Label>Company Name</Label><Input value={newShipper.companyName} onChange={e => setNewShipper(p => ({ ...p, companyName: e.target.value }))} /></div>
@@ -68,14 +84,20 @@ const Shippers = () => {
                 <div><Label>City</Label><Input value={newShipper.city} onChange={e => setNewShipper(p => ({ ...p, city: e.target.value }))} /></div>
                 <div><Label>State</Label><Input value={newShipper.state} onChange={e => setNewShipper(p => ({ ...p, state: e.target.value }))} /></div>
               </div>
-              <div><Label>Phone</Label><Input value={newShipper.phone} onChange={e => setNewShipper(p => ({ ...p, phone: e.target.value }))} /></div>
-              <div><Label>Email</Label><Input value={newShipper.email} onChange={e => setNewShipper(p => ({ ...p, email: e.target.value }))} /></div>
-              <div>
-                <Label>Sales Stage</Label>
-                <Select value={newShipper.salesStage} onValueChange={(v: SalesStage) => setNewShipper(p => ({ ...p, salesStage: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
-                </Select>
+              <div><Label>Shipping Manager Name</Label><Input value={newShipper.shippingManagerName} onChange={e => setNewShipper(p => ({ ...p, shippingManagerName: e.target.value }))} /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Direct Phone</Label><Input value={newShipper.directPhone} onChange={e => setNewShipper(p => ({ ...p, directPhone: e.target.value }))} /></div>
+                <div><Label>Email</Label><Input value={newShipper.email} onChange={e => setNewShipper(p => ({ ...p, email: e.target.value }))} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Est. Monthly Loads</Label><Input type="number" value={newShipper.estimatedMonthlyLoads} onChange={e => setNewShipper(p => ({ ...p, estimatedMonthlyLoads: e.target.value }))} /></div>
+                <div>
+                  <Label>Sales Stage</Label>
+                  <Select value={newShipper.salesStage} onValueChange={(v: SalesStage) => setNewShipper(p => ({ ...p, salesStage: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button onClick={handleAdd} className="w-full" disabled={!newShipper.companyName}>Create Shipper</Button>
             </div>
@@ -99,31 +121,41 @@ const Shippers = () => {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Stage</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Credit Limit</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map(s => (
-                <TableRow key={s.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/shippers/${s.id}`)}>
-                  <TableCell className="font-medium">{s.companyName}</TableCell>
-                  <TableCell>{s.city}, {s.state}</TableCell>
-                  <TableCell><Badge className={stageColors[s.salesStage]}>{salesStageLabels[s.salesStage]}</Badge></TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{s.email}</TableCell>
-                  <TableCell>${s.creditLimit.toLocaleString()}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Shipping Manager</TableHead>
+                  <TableHead>Direct Phone</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead className="text-center">Est. Monthly Loads</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Last Contact</TableHead>
+                  <TableHead>Next Follow-Up</TableHead>
                 </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No shippers found</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map(s => (
+                  <TableRow key={s.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/shippers/${s.id}`)}>
+                    <TableCell className="font-medium">{s.companyName}</TableCell>
+                    <TableCell>{s.city}, {s.state}</TableCell>
+                    <TableCell>{s.shippingManagerName || <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell>{s.directPhone || <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell className="text-sm">{s.email || <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell className="text-center">{s.estimatedMonthlyLoads || <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell><Badge className={stageColors[s.salesStage]}>{salesStageLabels[s.salesStage]}</Badge></TableCell>
+                    <TableCell className="text-sm">{s.lastContactDate ? new Date(s.lastContactDate).toLocaleDateString() : <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell className="text-sm">{s.nextFollowUp ? new Date(s.nextFollowUp).toLocaleDateString() : <span className="text-muted-foreground italic">—</span>}</TableCell>
+                  </TableRow>
+                ))}
+                {filtered.length === 0 && (
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No shippers found</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
