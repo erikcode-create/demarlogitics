@@ -12,6 +12,9 @@ import Carriers from "./pages/Carriers";
 import CarrierDetail from "./pages/CarrierDetail";
 import Loads from "./pages/Loads";
 import LoadDetail from "./pages/LoadDetail";
+import Contracts from "./pages/Contracts";
+import ContractNew from "./pages/ContractNew";
+import ContractDetail from "./pages/ContractDetail";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +36,9 @@ const App = () => (
               <Route path="/carriers/:id" element={<CarrierDetail />} />
               <Route path="/loads" element={<Loads />} />
               <Route path="/loads/:id" element={<LoadDetail />} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/new" element={<ContractNew />} />
+              <Route path="/contracts/:id" element={<ContractDetail />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

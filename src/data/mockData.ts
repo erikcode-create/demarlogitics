@@ -1,4 +1,4 @@
-import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load } from '@/types';
+import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract } from '@/types';
 
 export const mockShippers: Shipper[] = [
   { id: 's1', companyName: 'Midwest Manufacturing Co.', address: '1200 Industrial Blvd', city: 'Chicago', state: 'IL', zip: '60601', phone: '312-555-0100', email: 'shipping@midwestmfg.com', salesStage: 'active', creditLimit: 50000, paymentTerms: 'Net 30', notes: 'High-volume shipper, priority account', createdAt: '2024-01-15' },
@@ -100,3 +100,42 @@ export const paymentStatusLabels: Record<string, string> = {
   paid: 'Paid',
   overdue: 'Overdue',
 };
+
+export const contractTypeLabels: Record<string, string> = {
+  shipper_agreement: 'Shipper Agreement',
+  carrier_agreement: 'Carrier Agreement',
+  rate_confirmation: 'Rate Confirmation',
+};
+
+export const contractStatusLabels: Record<string, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  signed: 'Signed',
+  expired: 'Expired',
+};
+
+export const mockContracts: Contract[] = [
+  {
+    id: 'ct1', type: 'shipper_agreement', status: 'signed', entityId: 's1', entityType: 'shipper',
+    title: 'Shipper Agreement — Midwest Manufacturing Co.',
+    terms: 'Standard freight brokerage agreement for dry van shipments. Payment terms Net 30. Credit limit $50,000.',
+    signedByName: 'James Wilson', signedAt: '2026-01-20T10:30:00', createdAt: '2026-01-15', expiresAt: '2027-01-15',
+  },
+  {
+    id: 'ct2', type: 'carrier_agreement', status: 'signed', entityId: 'cr1', entityType: 'carrier',
+    title: 'Carrier Agreement — Eagle Express Trucking',
+    terms: 'Carrier broker agreement. MC-123456, DOT-7890123. Equipment: Dry Van, Reefer. Insurance via National Indemnity, expires 2026-06-15.',
+    signedByName: 'Tom Eagle', signedAt: '2026-01-22T14:00:00', createdAt: '2026-01-20', expiresAt: '2027-01-20',
+  },
+  {
+    id: 'ct3', type: 'rate_confirmation', status: 'signed', entityId: 'cr1', entityType: 'carrier', loadId: 'ld1',
+    title: 'Rate Confirmation — DT-2026-001',
+    terms: 'Rate confirmation for load DT-2026-001. Chicago, IL → Dallas, TX. Carrier rate: $2,200. Pickup: 03/03/2026, Delivery: 03/05/2026.',
+    signedByName: 'Tom Eagle', signedAt: '2026-02-28T09:00:00', createdAt: '2026-02-28', expiresAt: '2026-03-05',
+  },
+  {
+    id: 'ct4', type: 'shipper_agreement', status: 'draft', entityId: 's3', entityType: 'shipper',
+    title: 'Shipper Agreement — Southern Steel Works',
+    terms: '', signedByName: '', signedAt: '', createdAt: '2026-03-01', expiresAt: '2027-03-01',
+  },
+];

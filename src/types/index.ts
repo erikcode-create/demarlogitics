@@ -4,6 +4,8 @@ export type LoadStatus = 'available' | 'booked' | 'in_transit' | 'delivered' | '
 export type EquipmentType = 'dry_van' | 'reefer' | 'flatbed' | 'step_deck' | 'conestoga' | 'power_only';
 export type ActivityType = 'call' | 'email' | 'note' | 'meeting';
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
+export type ContractType = 'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation';
+export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired';
 
 export interface Shipper {
   id: string;
@@ -105,4 +107,19 @@ export interface Load {
   paymentStatus: PaymentStatus;
   notes: string;
   createdAt: string;
+}
+
+export interface Contract {
+  id: string;
+  type: ContractType;
+  status: ContractStatus;
+  entityId: string;
+  entityType: 'shipper' | 'carrier';
+  loadId?: string;
+  title: string;
+  terms: string;
+  signedByName: string;
+  signedAt: string;
+  createdAt: string;
+  expiresAt: string;
 }
