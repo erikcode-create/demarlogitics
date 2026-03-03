@@ -15,6 +15,7 @@ import LoadDetail from "./pages/LoadDetail";
 import Contracts from "./pages/Contracts";
 import ContractNew from "./pages/ContractNew";
 import ContractDetail from "./pages/ContractDetail";
+import ContractBulkCreate from "./pages/ContractBulkCreate";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/loads/:id" element={<LoadDetail />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/new" element={<ContractNew />} />
+              <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
               <Route path="/contracts/:id" element={<ContractDetail />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="*" element={<NotFound />} />
