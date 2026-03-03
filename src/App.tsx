@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/context/AppContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import SalesLanding from "./pages/SalesLanding";
 import Dashboard from "./pages/Dashboard";
 import Shippers from "./pages/Shippers";
 import ShipperDetail from "./pages/ShipperDetail";
@@ -34,29 +35,34 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/shippers" element={<Shippers />} />
-              <Route path="/shippers/:id" element={<ShipperDetail />} />
-              <Route path="/carriers" element={<Carriers />} />
-              <Route path="/carriers/:id" element={<CarrierDetail />} />
-              <Route path="/loads" element={<Loads />} />
-              <Route path="/loads/:id" element={<LoadDetail />} />
-              <Route path="/contracts" element={<Contracts />} />
-              <Route path="/contracts/new" element={<ContractNew />} />
-              <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
-              <Route path="/contracts/:id" element={<ContractDetail />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/sales/calls" element={<OutboundCalls />} />
-              <Route path="/sales/pipeline" element={<SalesPipeline />} />
-              <Route path="/sales/tasks" element={<SalesTasks />} />
-              <Route path="/sales/templates" element={<EmailTemplates />} />
-              <Route path="/sales/dashboard" element={<SalesDashboard />} />
-              <Route path="/sales/performance" element={<PerformanceTracker />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
+          <Routes>
+            <Route path="/sales-page" element={<SalesLanding />} />
+            <Route path="/*" element={
+              <AppLayout>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/shippers" element={<Shippers />} />
+                  <Route path="/shippers/:id" element={<ShipperDetail />} />
+                  <Route path="/carriers" element={<Carriers />} />
+                  <Route path="/carriers/:id" element={<CarrierDetail />} />
+                  <Route path="/loads" element={<Loads />} />
+                  <Route path="/loads/:id" element={<LoadDetail />} />
+                  <Route path="/contracts" element={<Contracts />} />
+                  <Route path="/contracts/new" element={<ContractNew />} />
+                  <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
+                  <Route path="/contracts/:id" element={<ContractDetail />} />
+                  <Route path="/alerts" element={<Alerts />} />
+                  <Route path="/sales/calls" element={<OutboundCalls />} />
+                  <Route path="/sales/pipeline" element={<SalesPipeline />} />
+                  <Route path="/sales/tasks" element={<SalesTasks />} />
+                  <Route path="/sales/templates" element={<EmailTemplates />} />
+                  <Route path="/sales/dashboard" element={<SalesDashboard />} />
+                  <Route path="/sales/performance" element={<PerformanceTracker />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AppLayout>
+            } />
+          </Routes>
         </BrowserRouter>
       </AppProvider>
     </TooltipProvider>
