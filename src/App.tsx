@@ -3,7 +3,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { AppProvider } from "@/context/AppContext";
+import { AppLayout } from "@/components/layout/AppLayout";
+import Dashboard from "./pages/Dashboard";
+import Shippers from "./pages/Shippers";
+import ShipperDetail from "./pages/ShipperDetail";
+import Carriers from "./pages/Carriers";
+import CarrierDetail from "./pages/CarrierDetail";
+import Loads from "./pages/Loads";
+import LoadDetail from "./pages/LoadDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -11,15 +19,24 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AppProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/shippers" element={<Shippers />} />
+              <Route path="/shippers/:id" element={<ShipperDetail />} />
+              <Route path="/carriers" element={<Carriers />} />
+              <Route path="/carriers/:id" element={<CarrierDetail />} />
+              <Route path="/loads" element={<Loads />} />
+              <Route path="/loads/:id" element={<LoadDetail />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </BrowserRouter>
+      </AppProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
