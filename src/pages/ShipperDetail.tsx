@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,14 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare } from 'lucide-react';
 import { salesStageLabels, equipmentTypeLabels } from '@/data/mockData';
+import { callOutcomeLabels, nextStepLabels } from '@/utils/cadenceEngine';
 import { Contact, Lane, FollowUp, Activity, SalesStage, EquipmentType, ActivityType } from '@/types';
 
 const ShipperDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, stageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence } = useAppContext();
 
   const [contactDialog, setContactDialog] = useState(false);
   const [newContact, setNewContact] = useState({ firstName: '', lastName: '', title: '', phone: '', email: '' });
@@ -30,6 +32,10 @@ const ShipperDetail = () => {
   const [newActivity, setNewActivity] = useState({ type: 'call' as ActivityType, description: '' });
   const [editing, setEditing] = useState(false);
   const [editFields, setEditFields] = useState({ shippingManagerName: '', directPhone: '', email: '', estimatedMonthlyLoads: '', lastContactDate: '', nextFollowUp: '' });
+
+  const shipperCalls = useMemo(() => outboundCalls.filter(c => c.shipperId === id).sort((a, b) => new Date(b.callDate).getTime() - new Date(a.callDate).getTime()), [outboundCalls, id]);
+  const shipperStageHistory = useMemo(() => stageChangeLogs.filter(l => l.shipperId === id).sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime()), [stageChangeLogs, id]);
+  const shipperTasks = useMemo(() => salesTasks.filter(t => t.shipperId === id).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [salesTasks, id]);
 
   const shipper = shippers.find(s => s.id === id);
   if (!shipper) return <div className="p-6">Shipper not found. <Button variant="link" onClick={() => navigate('/shippers')}>Back</Button></div>;
@@ -65,6 +71,7 @@ const ShipperDetail = () => {
   };
 
   const updateStage = (stage: SalesStage) => {
+    logStageChange(id!, shipper.salesStage, stage);
     setShippers(prev => prev.map(s => s.id === id ? { ...s, salesStage: stage } : s));
   };
 
@@ -93,6 +100,12 @@ const ShipperDetail = () => {
     setEditing(false);
   };
 
+  const toggleTask = (taskId: string) => {
+    setSalesTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : '' } : t));
+  };
+
+  const hasCadenceTasks = shipperTasks.some(t => t.cadenceDay);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -106,7 +119,7 @@ const ShipperDetail = () => {
           </div>
         </div>
         <Select value={shipper.salesStage} onValueChange={(v: SalesStage) => updateStage(v)}>
-          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>
       </div>
@@ -141,14 +154,19 @@ const ShipperDetail = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm">Shipper Details</CardTitle>
-          {!editing ? (
-            <Button size="sm" variant="outline" onClick={startEditing}>Edit Details</Button>
-          ) : (
-            <div className="flex gap-2">
-              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
-              <Button size="sm" onClick={saveEditing}>Save</Button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            {!hasCadenceTasks && ['prospect', 'lead'].includes(shipper.salesStage) && (
+              <Button size="sm" variant="outline" onClick={() => triggerCadence(id!)}>Start 14-Day Cadence</Button>
+            )}
+            {!editing ? (
+              <Button size="sm" variant="outline" onClick={startEditing}>Edit Details</Button>
+            ) : (
+              <>
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+                <Button size="sm" onClick={saveEditing}>Save</Button>
+              </>
+            )}
+          </div>
         </CardHeader>
         {editing && (
           <CardContent>
@@ -171,9 +189,12 @@ const ShipperDetail = () => {
       </div>
 
       <Tabs defaultValue="contacts">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="contacts">Contacts ({shipperContacts.length})</TabsTrigger>
           <TabsTrigger value="lanes">Lanes ({shipperLanes.length})</TabsTrigger>
+          <TabsTrigger value="calls">Call History ({shipperCalls.length})</TabsTrigger>
+          <TabsTrigger value="stages">Stage History ({shipperStageHistory.length})</TabsTrigger>
+          <TabsTrigger value="tasks">Tasks ({shipperTasks.length})</TabsTrigger>
           <TabsTrigger value="followups">Follow-ups ({shipperFollowUps.length})</TabsTrigger>
           <TabsTrigger value="activity">Activity ({shipperActivities.length})</TabsTrigger>
         </TabsList>
@@ -256,6 +277,86 @@ const ShipperDetail = () => {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Call History Tab */}
+        <TabsContent value="calls">
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Call History</CardTitle></CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Outcome</TableHead>
+                    <TableHead>Pain Point</TableHead>
+                    <TableHead>Next Step</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {shipperCalls.map(c => (
+                    <TableRow key={c.id}>
+                      <TableCell>{c.callAttemptNumber}</TableCell>
+                      <TableCell>{c.contactName}</TableCell>
+                      <TableCell><Badge variant="outline">{callOutcomeLabels[c.callOutcome]}</Badge></TableCell>
+                      <TableCell className="max-w-[200px] truncate">{c.painPoint || '—'}</TableCell>
+                      <TableCell>{nextStepLabels[c.nextStep]}</TableCell>
+                      <TableCell className="text-sm">{new Date(c.callDate).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {shipperCalls.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">No calls logged</TableCell></TableRow>}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Stage History Tab */}
+        <TabsContent value="stages">
+          <Card>
+            <CardHeader><CardTitle className="text-sm flex items-center gap-2"><History className="h-4 w-4" />Stage History</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {shipperStageHistory.map(l => (
+                  <div key={l.id} className="flex items-center gap-3 text-sm p-3 rounded-lg bg-accent/30">
+                    <Badge variant="outline">{salesStageLabels[l.fromStage]}</Badge>
+                    <span className="text-muted-foreground">→</span>
+                    <Badge>{salesStageLabels[l.toStage]}</Badge>
+                    <span className="flex-1" />
+                    <span className="text-xs text-muted-foreground">{l.changedBy} · {new Date(l.changedAt).toLocaleString()}</span>
+                  </div>
+                ))}
+                {shipperStageHistory.length === 0 && <p className="text-center text-muted-foreground py-6">No stage changes recorded</p>}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tasks Tab */}
+        <TabsContent value="tasks">
+          <Card>
+            <CardHeader><CardTitle className="text-sm flex items-center gap-2"><CheckSquare className="h-4 w-4" />Sales Tasks</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {shipperTasks.map(t => (
+                  <div key={t.id} className={`flex items-center gap-3 p-3 rounded-lg bg-accent/30 ${t.completed ? 'opacity-60' : ''}`}>
+                    <Checkbox checked={t.completed} onCheckedChange={() => toggleTask(t.id)} />
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium ${t.completed ? 'line-through' : ''}`}>{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">{new Date(t.dueDate).toLocaleDateString()}</p>
+                      {t.cadenceDay && <Badge variant="outline" className="text-[10px]">Day {t.cadenceDay}</Badge>}
+                    </div>
+                  </div>
+                ))}
+                {shipperTasks.length === 0 && <p className="text-center text-muted-foreground py-6">No tasks</p>}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

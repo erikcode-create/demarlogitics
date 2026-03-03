@@ -1,4 +1,4 @@
-export type SalesStage = 'lead' | 'prospect' | 'quoted' | 'active' | 'inactive';
+export type SalesStage = 'prospect' | 'contacted' | 'engaged' | 'lane_discussed' | 'quoting' | 'contract_sent' | 'active' | 'dormant' | 'closed_lost' | 'lead' | 'quoted' | 'inactive';
 export type CarrierPacketStatus = 'not_started' | 'in_progress' | 'complete' | 'expired';
 export type LoadStatus = 'available' | 'booked' | 'in_transit' | 'delivered' | 'invoiced' | 'paid';
 export type EquipmentType = 'dry_van' | 'reefer' | 'flatbed' | 'step_deck' | 'conestoga' | 'power_only';
@@ -6,6 +6,10 @@ export type ActivityType = 'call' | 'email' | 'note' | 'meeting';
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
 export type ContractType = 'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation';
 export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired';
+
+export type CallOutcome = 'no_answer' | 'left_voicemail' | 'gatekeeper' | 'spoke_not_interested' | 'spoke_send_info' | 'spoke_quote_requested';
+export type TaskNextStep = 'follow_up_call' | 'send_email' | 'quote_lane' | 'schedule_meeting' | 'close';
+export type CadenceTaskType = 'call' | 'email' | 'linkedin_reminder';
 
 export interface Shipper {
   id: string;
@@ -127,4 +131,53 @@ export interface Contract {
   signedAt: string;
   createdAt: string;
   expiresAt: string;
+}
+
+export interface OutboundCall {
+  id: string;
+  shipperId: string;
+  contactName: string;
+  contactTitle: string;
+  directPhone: string;
+  email: string;
+  callAttemptNumber: number;
+  callDate: string;
+  callOutcome: CallOutcome;
+  painPoint: string;
+  notes: string;
+  nextStep: TaskNextStep;
+  nextFollowUpDate: string;
+  assignedSalesRep: string;
+  createdAt: string;
+}
+
+export interface SalesTask {
+  id: string;
+  shipperId: string;
+  type: CadenceTaskType;
+  title: string;
+  description: string;
+  dueDate: string;
+  completed: boolean;
+  completedAt: string;
+  templateId?: string;
+  cadenceDay?: number;
+  createdAt: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface StageChangeLog {
+  id: string;
+  shipperId: string;
+  fromStage: SalesStage;
+  toStage: SalesStage;
+  changedAt: string;
+  changedBy: string;
 }
