@@ -1,21 +1,37 @@
 
 
-## Contract Statistics Dashboard Widget
+## Import Shipper Prospect Data
 
 ### What
-Add a new card to the Dashboard that shows contract statistics: total signed, expiring soon (within 30 days), and recently created (last 7 days), with a click-through to the Contracts page.
+Add the 82 companies from the provided CSV as new shipper records in the mock data, and add corresponding lanes based on their freight/equipment info.
+
+### Data Mapping
+The CSV fields map to the `Shipper` type as follows:
+- `Company` → `companyName`
+- `City` → `city`
+- `State` → `state`
+- `Industry`, `Primary_Freight_Type`, `Region` → combined into `notes` (e.g., "Region: Reno | Industry: Automotive Manufacturing | Freight: Components & Batteries")
+- `salesStage` → `'lead'` for all (these are prospects to pursue)
+- `address`, `zip`, `phone`, `email` → empty/placeholder defaults
+- `creditLimit` → `0`, `paymentTerms` → `'TBD'`
+- `Equipment_Type` → mapped to the closest `EquipmentType` enum value and stored in a lane record per shipper
 
 ### Changes
 
-**`src/pages/Dashboard.tsx`**
-- Import `FileText` icon from lucide-react
-- Add computed values from `contracts` array:
-  - `signedCount`: contracts with `status === 'signed'`
-  - `expiringSoonCount`: signed contracts where `expiresAt` is within 30 days from now
-  - `recentCount`: contracts created in the last 7 days
-- Add a new Contract Statistics card in the bottom row (change the grid from `lg:grid-cols-3` to `lg:grid-cols-4`, or insert a new card alongside Alerts). The card will be clickable → navigates to `/contracts`.
-- Display the three stats as labeled rows with counts and badges (e.g., warning badge for expiring soon).
+**`src/data/mockData.ts`**
+- Append 82 new `Shipper` entries (IDs `s100`–`s181`) to `mockShippers`
+- Append one `Lane` per shipper to `mockLanes` with origin set to `"{City}, {State}"`, empty destination, rate `0`, and the mapped equipment type. For entries with dual equipment (e.g., "Dry Van / Reefer"), create two lanes.
 
-### Layout
-The Alerts + Recent Activity row currently uses `lg:grid-cols-3` (1 col alerts, 2 col activity). Update to `lg:grid-cols-4` — Alerts (1 col), Contracts (1 col), Recent Activity (2 col).
+### Equipment Mapping
+| CSV Value | Mapped `EquipmentType` |
+|---|---|
+| Dry Van | `dry_van` |
+| Reefer | `reefer` |
+| Flatbed | `flatbed` |
+| Power Only | `power_only` |
+| Dry Van / Power Only | two lanes: `dry_van` + `power_only` |
+| Dry Van / Reefer | two lanes: `dry_van` + `reefer` |
+
+### No Type Changes
+All data fits into the existing `Shipper` and `Lane` types — no schema modifications needed. Industry/region metadata is preserved in the `notes` field for searchability.
 
