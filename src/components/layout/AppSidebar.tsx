@@ -41,9 +41,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
-          <img src={demarLogo} alt="Demar Transportation" className="max-h-28 w-auto object-contain" />
+          <a href="/sales-page"><img src={demarLogo} alt="Demar Transportation" className="max-h-28 w-auto object-contain cursor-pointer" /></a>
         ) : (
-          <img src={demarLogo} alt="Demar" className="max-h-20 w-auto object-contain" />
+          <a href="/sales-page"><img src={demarLogo} alt="Demar" className="max-h-20 w-auto object-contain cursor-pointer" /></a>
         )}
       </SidebarHeader>
       <SidebarContent>
