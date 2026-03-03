@@ -23,8 +23,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { carriers, followUps, loads } = useAppContext();
-  const alertCount = useMemo(() => generateAlerts(carriers, followUps, loads).length, [carriers, followUps, loads]);
+  const { carriers, followUps, loads, contracts } = useAppContext();
+  const alertCount = useMemo(() => generateAlerts(carriers, followUps, loads, contracts).length, [carriers, followUps, loads, contracts]);
 
   return (
     <Sidebar collapsible="icon">

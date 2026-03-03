@@ -10,9 +10,9 @@ import { loadStatusLabels } from '@/data/mockData';
 import { generateAlerts } from '@/utils/alertEngine';
 
 const Dashboard = () => {
-  const { loads, shippers, carriers, activities, followUps } = useAppContext();
+  const { loads, shippers, carriers, activities, followUps, contracts } = useAppContext();
   const navigate = useNavigate();
-  const alerts = useMemo(() => generateAlerts(carriers, followUps, loads), [carriers, followUps, loads]);
+  const alerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
   const criticalCount = alerts.filter(a => a.severity === 'critical').length;
   const warningCount = alerts.filter(a => a.severity === 'warning').length;
   const infoCount = alerts.filter(a => a.severity === 'info').length;
