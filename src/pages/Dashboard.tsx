@@ -3,11 +3,12 @@ import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp, Package, Clock, Plus, Building2, Truck, AlertTriangle } from 'lucide-react';
+import { DollarSign, TrendingUp, Package, Clock, Plus, Building2, Truck, AlertTriangle, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { loadStatusLabels } from '@/data/mockData';
 import { generateAlerts } from '@/utils/alertEngine';
+import { addDays, isAfter, isBefore, subDays } from 'date-fns';
 
 const Dashboard = () => {
   const { loads, shippers, carriers, activities, followUps, contracts } = useAppContext();
@@ -37,6 +38,12 @@ const Dashboard = () => {
   const pieColors = ['hsl(174, 60%, 45%)', 'hsl(199, 60%, 50%)', 'hsl(38, 92%, 50%)', 'hsl(142, 71%, 45%)', 'hsl(270, 60%, 50%)', 'hsl(0, 63%, 50%)'];
 
   const recentActivities = [...activities].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5);
+
+  // Contract statistics
+  const now = new Date();
+  const signedCount = contracts.filter(c => c.status === 'signed').length;
+  const expiringSoonCount = contracts.filter(c => c.status === 'signed' && c.expiresAt && isBefore(new Date(c.expiresAt), addDays(now, 30)) && isAfter(new Date(c.expiresAt), now)).length;
+  const recentCount = contracts.filter(c => isAfter(new Date(c.createdAt), subDays(now, 7))).length;
 
   return (
     <div className="space-y-6">
@@ -126,7 +133,7 @@ const Dashboard = () => {
       </div>
 
       {/* Alerts Summary + Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate('/alerts')}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm">Alerts</CardTitle>
@@ -138,6 +145,32 @@ const Dashboard = () => {
               {criticalCount > 0 && <Badge variant="destructive" className="text-[10px]">{criticalCount} Critical</Badge>}
               {warningCount > 0 && <Badge className="bg-warning text-warning-foreground text-[10px]">{warningCount} Warning</Badge>}
               {infoCount > 0 && <Badge variant="secondary" className="text-[10px]">{infoCount} Info</Badge>}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate('/contracts')}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm">Contracts</CardTitle>
+            <FileText className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{contracts.length}</div>
+            <div className="space-y-1 mt-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Signed</span>
+                <Badge variant="secondary" className="text-[10px]">{signedCount}</Badge>
+              </div>
+              {expiringSoonCount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Expiring soon</span>
+                  <Badge className="bg-warning text-warning-foreground text-[10px]">{expiringSoonCount}</Badge>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">New (7d)</span>
+                <Badge variant="outline" className="text-[10px]">{recentCount}</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
