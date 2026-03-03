@@ -22,19 +22,22 @@ export default function ContractDetail() {
 
   const contract = contracts.find(c => c.id === id);
 
-  const handleExportPDF = useCallback(async () => {
+  const handleExportPDF = useCallback(() => {
     if (!printRef.current) return;
-    const html2pdf = (await import('html2pdf.js')).default;
-    html2pdf()
-      .set({
-        margin: [10, 10],
-        filename: `${contract?.title?.replace(/\s+/g, '_') ?? 'contract'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      })
-      .from(printRef.current)
-      .save();
+    const printContent = printRef.current.innerHTML;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html><head><title>${contract?.title ?? 'Contract'}</title>
+      <style>body{font-family:system-ui,sans-serif;padding:20mm;color:#111}
+      @media print{body{padding:10mm}}</style></head>
+      <body>${printContent}</body></html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }, [contract?.title]);
 
   if (!contract) {
