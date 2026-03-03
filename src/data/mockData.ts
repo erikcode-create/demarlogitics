@@ -1,4 +1,4 @@
-import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract } from '@/types';
+import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, EmailTemplate } from '@/types';
 
 export const mockShippers: Shipper[] = [
   { id: 's1', companyName: 'Midwest Manufacturing Co.', address: '1200 Industrial Blvd', city: 'Chicago', state: 'IL', zip: '60601', phone: '312-555-0100', email: 'shipping@midwestmfg.com', salesStage: 'active', creditLimit: 50000, paymentTerms: 'Net 30', notes: 'High-volume shipper, priority account', createdAt: '2024-01-15', shippingManagerName: 'James Wilson', directPhone: '312-555-0101', estimatedMonthlyLoads: 40, lastContactDate: '2026-02-28', nextFollowUp: '2026-03-10' },
@@ -243,10 +243,48 @@ export const equipmentTypeLabels: Record<string, string> = {
 export const salesStageLabels: Record<string, string> = {
   lead: 'Lead',
   prospect: 'Prospect',
-  quoted: 'Quoted',
+  contacted: 'Contacted',
+  engaged: 'Engaged',
+  lane_discussed: 'Lane Discussed',
+  quoting: 'Quoting',
+  contract_sent: 'Contract Sent',
   active: 'Active',
+  dormant: 'Dormant',
+  closed_lost: 'Closed – Lost',
+  quoted: 'Quoted',
   inactive: 'Inactive',
 };
+
+export const mockEmailTemplates: EmailTemplate[] = [
+  {
+    id: 'tpl1',
+    name: 'Intro – Regional West Coast Capacity',
+    subject: 'Regional Capacity Support for {{Company_Name}}',
+    body: `Hi {{Contact_Name}},\n\nI'm reaching out from Demar Transportation — we specialize in {{Equipment_Type}} freight across the {{Region}} region.\n\nWe're currently offering dedicated capacity for shippers in your area and wanted to see if you have any lanes we could support.\n\nWould you have a few minutes this week to discuss your freight needs?\n\nBest regards,\nMike Demar\nDemar Transportation`,
+    createdAt: '2026-03-01',
+  },
+  {
+    id: 'tpl2',
+    name: 'Lane Question',
+    subject: 'Quick question about your {{Region}} lanes',
+    body: `Hi {{Contact_Name}},\n\nFollowing up on my earlier note. I wanted to ask — do you have any consistent lanes running out of {{Region}} that you'd like a competitive quote on?\n\nWe have strong carrier coverage for {{Equipment_Type}} in your area and can turn quotes around same-day.\n\nLet me know if I can send over a rate.\n\nBest,\nMike Demar`,
+    createdAt: '2026-03-01',
+  },
+  {
+    id: 'tpl3',
+    name: 'Backup Capacity Option',
+    subject: 'Backup capacity for {{Company_Name}}',
+    body: `Hi {{Contact_Name}},\n\nI know finding reliable carriers in {{Region}} can be challenging, especially during peak season.\n\nWe've helped companies like yours by serving as a backup option — so when your primary carriers fall through, you have a reliable partner ready to go.\n\nWould it make sense to set us up as a backup option? No commitment needed.\n\nBest,\nMike Demar`,
+    createdAt: '2026-03-01',
+  },
+  {
+    id: 'tpl4',
+    name: 'Close the Loop',
+    subject: 'Closing the loop – {{Company_Name}}',
+    body: `Hi {{Contact_Name}},\n\nI've reached out a few times and wanted to close the loop. If freight brokerage support isn't a priority right now, no worries at all.\n\nIf anything changes down the road, I'd be happy to help with {{Equipment_Type}} capacity in the {{Region}} region.\n\nWishing you and the team all the best.\n\nMike Demar\nDemar Transportation`,
+    createdAt: '2026-03-01',
+  },
+];
 
 export const loadStatusLabels: Record<string, string> = {
   available: 'Available',

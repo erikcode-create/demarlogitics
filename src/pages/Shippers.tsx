@@ -17,8 +17,15 @@ import { Shipper, SalesStage } from '@/types';
 const stageColors: Record<string, string> = {
   lead: 'bg-muted text-muted-foreground',
   prospect: 'bg-blue-500/20 text-blue-400',
+  contacted: 'bg-cyan-500/20 text-cyan-400',
+  engaged: 'bg-primary/20 text-primary',
+  lane_discussed: 'bg-warning/20 text-warning',
+  quoting: 'bg-orange-500/20 text-orange-400',
+  contract_sent: 'bg-purple-500/20 text-purple-400',
   quoted: 'bg-warning/20 text-warning',
   active: 'bg-success/20 text-success',
+  dormant: 'bg-muted text-muted-foreground',
+  closed_lost: 'bg-destructive/20 text-destructive',
   inactive: 'bg-destructive/20 text-destructive',
 };
 

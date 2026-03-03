@@ -17,6 +17,12 @@ import ContractNew from "./pages/ContractNew";
 import ContractDetail from "./pages/ContractDetail";
 import ContractBulkCreate from "./pages/ContractBulkCreate";
 import Alerts from "./pages/Alerts";
+import OutboundCalls from "./pages/OutboundCalls";
+import SalesPipeline from "./pages/SalesPipeline";
+import SalesTasks from "./pages/SalesTasks";
+import EmailTemplates from "./pages/EmailTemplates";
+import SalesDashboard from "./pages/SalesDashboard";
+import PerformanceTracker from "./pages/PerformanceTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +48,12 @@ const App = () => (
               <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
               <Route path="/contracts/:id" element={<ContractDetail />} />
               <Route path="/alerts" element={<Alerts />} />
+              <Route path="/sales/calls" element={<OutboundCalls />} />
+              <Route path="/sales/pipeline" element={<SalesPipeline />} />
+              <Route path="/sales/tasks" element={<SalesTasks />} />
+              <Route path="/sales/templates" element={<EmailTemplates />} />
+              <Route path="/sales/dashboard" element={<SalesDashboard />} />
+              <Route path="/sales/performance" element={<PerformanceTracker />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
