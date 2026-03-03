@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Plus, Search } from 'lucide-react';
+import { FileText, Layers, Plus, Search } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
@@ -51,9 +51,14 @@ export default function Contracts() {
           <h1 className="text-2xl font-bold text-foreground">Contracts</h1>
           <p className="text-muted-foreground">Manage agreements and rate confirmations</p>
         </div>
-        <Button asChild>
-          <Link to="/contracts/new"><Plus className="mr-2 h-4 w-4" /> New Contract</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/contracts/bulk-create"><Layers className="mr-2 h-4 w-4" /> Bulk Create</Link>
+          </Button>
+          <Button asChild>
+            <Link to="/contracts/new"><Plus className="mr-2 h-4 w-4" /> New Contract</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="relative max-w-sm">
