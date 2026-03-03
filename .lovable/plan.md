@@ -1,61 +1,32 @@
 
 
-# Demar Transportation — Freight Brokerage CRM + TMS (Phase 1)
+## Alerts System
 
-## Design
-- Dark professional theme: navy/charcoal backgrounds, white text, blue/teal accent colors
-- Sidebar navigation with collapsible sections
-- Clean data tables, card-based dashboards, modern form layouts
+### New Page & Route
+- Create `src/pages/Alerts.tsx` with route `/alerts`
+- Add "Alerts" nav item to `AppSidebar.tsx` with `Bell` icon
 
-## Phase 1 Scope
+### Alert Generation Logic
+Create `src/utils/alertEngine.ts` that derives alerts from existing data:
 
-### 1. App Shell & Navigation
-- Sidebar with sections: Dashboard, Shippers, Carriers, Loads
-- Top bar with user avatar, notifications bell, search
-- Responsive layout
+1. **Insurance Expiring** — scan carriers where `insuranceExpiry` is within 30 days (warning) or past (critical)
+2. **Missing Documents** — scan carriers where `w9Uploaded`, `insuranceCertUploaded`, or `carrierPacketUploaded` is false
+3. **Follow-up Reminders** — scan `followUps` where `completed === false` and `date` is today or past
+4. **AR Aging** — scan loads with status `invoiced` where `invoiceDate` is 30+ days old (warning) or 45+ days (critical)
 
-### 2. Dashboard
-- Revenue & margin summary cards
-- Load pipeline chart (by status)
-- AR/AP aging overview
-- Recent activity feed
-- Quick-action buttons (New Load, New Shipper, New Carrier)
+Each alert has: `id`, `type`, `severity` (critical/warning/info), `title`, `message`, `entityId`, `entityType`, `date`.
 
-### 3. Shipper CRM
-- **List view**: Searchable/filterable table of shippers
-- **Company profile page**: Company info, contacts, sales stage, notes
-- **Contact management**: Add/edit contacts per shipper
-- **Sales stages**: Lead → Prospect → Quoted → Active → Inactive
-- **Lane tracking**: Origin/destination lanes with rates per shipper
-- **Follow-up scheduling**: Date picker + reminder notes
-- **Activity log**: Timestamped log of calls, emails, notes
+### Alerts Page UI
+- Filter tabs: All | Insurance | Documents | Follow-ups | AR Aging
+- Alert cards with severity color coding (red = critical, yellow = warning, blue = info)
+- Click-through links to the related carrier/shipper/load detail page
+- Dismiss/acknowledge action per alert (stored in local state)
+- Summary count badges on each tab
 
-### 4. Carrier CRM
-- **List view**: Searchable/filterable table of carriers
-- **Carrier profile page**: MC#, DOT#, insurance info, equipment types
-- **Insurance tracking**: Expiration dates with visual indicators (green/yellow/red)
-- **Document uploads**: Upload area for W9, insurance cert, carrier packet docs
-- **Carrier packet status**: Not Started → In Progress → Complete → Expired
-- **Factoring info**: Factoring company, remit-to details
+### Dashboard Integration
+- Add an alerts summary card to the Dashboard showing count by severity
+- Link to `/alerts` page
 
-### 5. Load Management
-- **Load board**: Table/kanban of all loads with status filters
-- **Load creation form**: Origin, destination, pickup/delivery dates, rate, weight, equipment type
-- **Assign shipper & carrier**: Select from CRM data
-- **Auto-calculated margin**: Shipper rate minus carrier rate, shown as $ and %
-- **Status tracking**: Available → Booked → In Transit → Delivered → Invoiced → Paid
-- **POD upload**: File upload for proof of delivery
-- **Invoice & payment tracking**: Invoice #, date, amount, payment status
-
-### 6. Data Layer (Mock/Local State)
-- All data stored in React state/context with realistic mock data
-- Structured to mirror a relational database (shippers, contacts, carriers, loads, etc.)
-- Ready for future Supabase integration
-
-## What's Deferred to Phase 2
-- User authentication & role-based access
-- Contracts module (templates, auto-fill, e-sign)
-- Alerts system (insurance, documents, follow-ups, AR aging)
-- Sales rep performance metrics
-- Database backend (Supabase)
+### Sidebar Badge
+- Show total active alert count as a badge on the Alerts nav item
 
