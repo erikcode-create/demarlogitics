@@ -96,7 +96,7 @@ export default function ContractNew() {
 
   const handleSign = () => {
     const newContract: Contract = {
-      id: draft?.id ?? `ct${Date.now()}`,
+      id: draft?.id ?? crypto.randomUUID(),
       type: contractType as ContractType,
       status: 'signed',
       entityId: contractType === 'rate_confirmation' ? (loads.find(l => l.id === loadId)?.carrierId ?? entityId) : entityId,
