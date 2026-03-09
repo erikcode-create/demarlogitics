@@ -53,7 +53,7 @@ const ShipperDetail = () => {
   };
 
   const addLane = () => {
-    setLanes(prev => [...prev, { id: `l${Date.now()}`, shipperId: id!, origin: newLane.origin, destination: newLane.destination, rate: Number(newLane.rate), equipmentType: newLane.equipmentType, notes: '' }]);
+    setLanes(prev => [...prev, { id: crypto.randomUUID(), shipperId: id!, origin: newLane.origin, destination: newLane.destination, rate: Number(newLane.rate), equipmentType: newLane.equipmentType, notes: '' }]);
     setLaneDialog(false);
     setNewLane({ origin: '', destination: '', rate: '', equipmentType: 'dry_van' });
   };
