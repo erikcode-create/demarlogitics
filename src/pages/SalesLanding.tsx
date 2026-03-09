@@ -178,7 +178,7 @@ function ChatWidget() {
     const finalMsg = msg || chatMessage;
     if (!finalMsg.trim()) return;
     setActivities(prev => [...prev, {
-      id: `act_chat_${Date.now()}`,
+      id: crypto.randomUUID(),
       entityId: 'website_chat',
       entityType: 'shipper',
       type: 'note',
