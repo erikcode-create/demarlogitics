@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, OutboundCall, SalesTask, EmailTemplate, StageChangeLog, SalesStage } from '@/types';
-import { mockShippers, mockContacts, mockLanes, mockFollowUps, mockActivities, mockCarriers, mockLoads, mockContracts, mockEmailTemplates } from '@/data/mockData';
 import { generateCadenceTasks } from '@/utils/cadenceEngine';
+import { supabase } from '@/integrations/supabase/client';
+import { rowsToFrontend, frontendToRow } from '@/utils/supabaseHelpers';
 
 interface AppContextType {
   shippers: Shipper[];
@@ -34,23 +35,148 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const db = {
+  from: (table: string) => supabase.from(table as any),
+};
+
+function syncToSupabase<T extends { id: string }>(
+  table: string,
+  prev: T[],
+  next: T[]
+) {
+  const prevIds = new Set(prev.map(i => i.id));
+  const nextIds = new Set(next.map(i => i.id));
+  const prevMap = new Map(prev.map(i => [i.id, i]));
+
+  // Inserts
+  const inserts = next.filter(i => !prevIds.has(i.id));
+  if (inserts.length > 0) {
+    const rows = inserts.map(i => frontendToRow(i as any));
+    db.from(table).insert(rows).then(({ error }: any) => {
+      if (error) console.error(`Insert error (${table}):`, error);
+    });
+  }
+
+  // Updates
+  for (const item of next) {
+    if (prevIds.has(item.id)) {
+      const old = prevMap.get(item.id);
+      if (JSON.stringify(old) !== JSON.stringify(item)) {
+        const row = frontendToRow(item as any);
+        const { id, ...rest } = row;
+        db.from(table).update(rest).eq('id', id).then(({ error }: any) => {
+          if (error) console.error(`Update error (${table}):`, error);
+        });
+      }
+    }
+  }
+
+  // Deletes
+  const deletes = prev.filter(i => !nextIds.has(i.id));
+  for (const item of deletes) {
+    db.from(table).delete().eq('id', item.id).then(({ error }: any) => {
+      if (error) console.error(`Delete error (${table}):`, error);
+    });
+  }
+}
+
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [shippers, setShippers] = useState<Shipper[]>(mockShippers);
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts);
-  const [lanes, setLanes] = useState<Lane[]>(mockLanes);
-  const [followUps, setFollowUps] = useState<FollowUp[]>(mockFollowUps);
-  const [activities, setActivities] = useState<Activity[]>(mockActivities);
-  const [carriers, setCarriers] = useState<Carrier[]>(mockCarriers);
-  const [loads, setLoads] = useState<Load[]>(mockLoads);
-  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
-  const [outboundCalls, setOutboundCalls] = useState<OutboundCall[]>([]);
-  const [salesTasks, setSalesTasks] = useState<SalesTask[]>([]);
-  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>(mockEmailTemplates);
-  const [stageChangeLogs, setStageChangeLogs] = useState<StageChangeLog[]>([]);
+  const [shippers, setShippersRaw] = useState<Shipper[]>([]);
+  const [contacts, setContactsRaw] = useState<Contact[]>([]);
+  const [lanes, setLanesRaw] = useState<Lane[]>([]);
+  const [followUps, setFollowUpsRaw] = useState<FollowUp[]>([]);
+  const [activities, setActivitiesRaw] = useState<Activity[]>([]);
+  const [carriers, setCarriersRaw] = useState<Carrier[]>([]);
+  const [loads, setLoadsRaw] = useState<Load[]>([]);
+  const [contracts, setContractsRaw] = useState<Contract[]>([]);
+  const [outboundCalls, setOutboundCallsRaw] = useState<OutboundCall[]>([]);
+  const [salesTasks, setSalesTasksRaw] = useState<SalesTask[]>([]);
+  const [emailTemplates, setEmailTemplatesRaw] = useState<EmailTemplate[]>([]);
+  const [stageChangeLogs, setStageChangeLogsRaw] = useState<StageChangeLog[]>([]);
+
+  const readyRef = useRef(false);
+
+  // Create synced setters
+  const makeSynced = <T extends { id: string }>(
+    table: string,
+    rawSetter: React.Dispatch<React.SetStateAction<T[]>>
+  ): React.Dispatch<React.SetStateAction<T[]>> => {
+    return (action: React.SetStateAction<T[]>) => {
+      rawSetter(prev => {
+        const next = typeof action === 'function' ? (action as (p: T[]) => T[])(prev) : action;
+        if (readyRef.current) {
+          syncToSupabase(table, prev, next);
+        }
+        return next;
+      });
+    };
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setShippers = useCallback(makeSynced<Shipper>('shippers', setShippersRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setContacts = useCallback(makeSynced<Contact>('contacts', setContactsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setLanes = useCallback(makeSynced<Lane>('lanes', setLanesRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setFollowUps = useCallback(makeSynced<FollowUp>('follow_ups', setFollowUpsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setActivities = useCallback(makeSynced<Activity>('activities', setActivitiesRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setCarriers = useCallback(makeSynced<Carrier>('carriers', setCarriersRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setLoads = useCallback(makeSynced<Load>('loads', setLoadsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setContracts = useCallback(makeSynced<Contract>('contracts', setContractsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setOutboundCalls = useCallback(makeSynced<OutboundCall>('outbound_calls', setOutboundCallsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setSalesTasks = useCallback(makeSynced<SalesTask>('sales_tasks', setSalesTasksRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setEmailTemplates = useCallback(makeSynced<EmailTemplate>('email_templates', setEmailTemplatesRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setStageChangeLogs = useCallback(makeSynced<StageChangeLog>('stage_change_logs', setStageChangeLogsRaw), []);
+
+  // Load all data from Supabase on mount
+  useEffect(() => {
+    async function loadAll() {
+      const tableConfigs: { table: string; setter: React.Dispatch<React.SetStateAction<any[]>> }[] = [
+        { table: 'shippers', setter: setShippersRaw },
+        { table: 'contacts', setter: setContactsRaw },
+        { table: 'lanes', setter: setLanesRaw },
+        { table: 'follow_ups', setter: setFollowUpsRaw },
+        { table: 'activities', setter: setActivitiesRaw },
+        { table: 'carriers', setter: setCarriersRaw },
+        { table: 'loads', setter: setLoadsRaw },
+        { table: 'contracts', setter: setContractsRaw },
+        { table: 'outbound_calls', setter: setOutboundCallsRaw },
+        { table: 'sales_tasks', setter: setSalesTasksRaw },
+        { table: 'email_templates', setter: setEmailTemplatesRaw },
+        { table: 'stage_change_logs', setter: setStageChangeLogsRaw },
+      ];
+
+      const results = await Promise.all(
+        tableConfigs.map(({ table }) => db.from(table).select('*'))
+      );
+
+      results.forEach((result: any, i) => {
+        if (result.error) {
+          console.error(`Error loading ${tableConfigs[i].table}:`, result.error);
+          return;
+        }
+        const frontendData = rowsToFrontend(result.data || []);
+        tableConfigs[i].setter(frontendData);
+      });
+
+      // Enable sync after initial load
+      readyRef.current = true;
+    }
+    loadAll();
+  }, []);
 
   const logStageChange = useCallback((shipperId: string, fromStage: SalesStage, toStage: SalesStage) => {
     const log: StageChangeLog = {
-      id: `scl_${Date.now()}`,
+      id: crypto.randomUUID(),
       shipperId,
       fromStage,
       toStage,
@@ -58,12 +184,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       changedBy: 'Mike Demar',
     };
     setStageChangeLogs(prev => [...prev, log]);
-  }, []);
+  }, [setStageChangeLogs]);
 
   const triggerCadence = useCallback((shipperId: string) => {
     const tasks = generateCadenceTasks(shipperId);
     setSalesTasks(prev => [...prev, ...tasks]);
-  }, []);
+  }, [setSalesTasks]);
 
   return (
     <AppContext.Provider value={{

@@ -47,25 +47,25 @@ const ShipperDetail = () => {
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const addContact = () => {
-    setContacts(prev => [...prev, { id: `c${Date.now()}`, shipperId: id!, ...newContact, isPrimary: shipperContacts.length === 0 }]);
+    setContacts(prev => [...prev, { id: crypto.randomUUID(), shipperId: id!, ...newContact, isPrimary: shipperContacts.length === 0 }]);
     setContactDialog(false);
     setNewContact({ firstName: '', lastName: '', title: '', phone: '', email: '' });
   };
 
   const addLane = () => {
-    setLanes(prev => [...prev, { id: `l${Date.now()}`, shipperId: id!, origin: newLane.origin, destination: newLane.destination, rate: Number(newLane.rate), equipmentType: newLane.equipmentType, notes: '' }]);
+    setLanes(prev => [...prev, { id: crypto.randomUUID(), shipperId: id!, origin: newLane.origin, destination: newLane.destination, rate: Number(newLane.rate), equipmentType: newLane.equipmentType, notes: '' }]);
     setLaneDialog(false);
     setNewLane({ origin: '', destination: '', rate: '', equipmentType: 'dry_van' });
   };
 
   const addFollowUp = () => {
-    setFollowUps(prev => [...prev, { id: `f${Date.now()}`, shipperId: id!, date: newFollowUp.date, notes: newFollowUp.notes, completed: false }]);
+    setFollowUps(prev => [...prev, { id: crypto.randomUUID(), shipperId: id!, date: newFollowUp.date, notes: newFollowUp.notes, completed: false }]);
     setFollowUpDialog(false);
     setNewFollowUp({ date: '', notes: '' });
   };
 
   const addActivity = () => {
-    setActivities(prev => [...prev, { id: `a${Date.now()}`, entityId: id!, entityType: 'shipper', type: newActivity.type, description: newActivity.description, timestamp: new Date().toISOString(), user: 'Mike Demar' }]);
+    setActivities(prev => [...prev, { id: crypto.randomUUID(), entityId: id!, entityType: 'shipper', type: newActivity.type, description: newActivity.description, timestamp: new Date().toISOString(), user: 'Mike Demar' }]);
     setActivityDialog(false);
     setNewActivity({ type: 'call', description: '' });
   };

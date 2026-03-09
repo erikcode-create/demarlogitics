@@ -51,7 +51,7 @@ const Shippers = () => {
 
   const handleAdd = () => {
     const shipper: Shipper = {
-      id: `s${Date.now()}`,
+      id: crypto.randomUUID(),
       companyName: newShipper.companyName,
       city: newShipper.city,
       state: newShipper.state,

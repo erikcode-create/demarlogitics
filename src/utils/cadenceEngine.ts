@@ -13,7 +13,7 @@ const cadenceSchedule: { day: number; type: 'call' | 'email' | 'linkedin_reminde
 
 export function generateCadenceTasks(shipperId: string, startDate: Date = new Date()): SalesTask[] {
   return cadenceSchedule.map((item, i) => ({
-    id: `st_${shipperId}_${Date.now()}_${i}`,
+    id: crypto.randomUUID(),
     shipperId,
     type: item.type,
     title: item.title,
@@ -49,7 +49,7 @@ export function evaluateAutomationRules(
     if (shipperCalls.length > 0 && shipperCalls[0].callOutcome === 'spoke_quote_requested' && shipper.salesStage !== 'quoting') {
       result.stageChanges.push({ shipperId: shipper.id, newStage: 'quoting' });
       result.newTasks.push({
-        id: `st_auto_${shipper.id}_${Date.now()}`,
+        id: crypto.randomUUID(),
         shipperId: shipper.id,
         type: 'call',
         title: '24-Hour Quote Follow-Up',
@@ -66,7 +66,7 @@ export function evaluateAutomationRules(
       const existingFutureTasks = salesTasks.filter(t => t.shipperId === shipper.id && !t.completed && isAfter(new Date(t.dueDate), now));
       if (existingFutureTasks.length === 0) {
         result.newTasks.push({
-          id: `st_recur_${shipper.id}_${Date.now()}`,
+          id: crypto.randomUUID(),
           shipperId: shipper.id,
           type: 'call',
           title: 'Relationship Follow-Up',
@@ -98,7 +98,7 @@ export function evaluateAutomationRules(
       for (const c of sentContracts) {
         if (differenceInDays(now, new Date(c.createdAt)) >= 5) {
           result.newTasks.push({
-            id: `st_contract_${shipper.id}_${Date.now()}`,
+            id: crypto.randomUUID(),
             shipperId: shipper.id,
             type: 'call',
             title: 'Contract Follow-Up Reminder',

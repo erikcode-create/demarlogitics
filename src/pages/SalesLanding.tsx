@@ -178,7 +178,7 @@ function ChatWidget() {
     const finalMsg = msg || chatMessage;
     if (!finalMsg.trim()) return;
     setActivities(prev => [...prev, {
-      id: `act_chat_${Date.now()}`,
+      id: crypto.randomUUID(),
       entityId: 'website_chat',
       entityType: 'shipper',
       type: 'note',
@@ -380,7 +380,7 @@ export default function SalesLanding() {
         setShippers(prev => prev.map(s => s.id === shipperId ? { ...s, salesStage: 'prospect' as const } : s));
       }
     } else {
-      shipperId = `ship_${Date.now()}`;
+      shipperId = crypto.randomUUID();
       const newShipper = {
         id: shipperId,
         companyName: data.companyName,
@@ -397,7 +397,7 @@ export default function SalesLanding() {
     }
 
     setActivities(prev => [...prev, {
-      id: `act_${Date.now()}`,
+      id: crypto.randomUUID(),
       entityId: shipperId, entityType: 'shipper', type: 'note',
       description: `Website lead form submitted. ${data.origin} → ${data.destination}, ${data.equipmentType}`,
       timestamp: new Date().toISOString(), user: 'Website',

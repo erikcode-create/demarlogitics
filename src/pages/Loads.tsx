@@ -46,7 +46,7 @@ const Loads = () => {
   const handleAdd = () => {
     const loadNum = `DT-2026-${String(loads.length + 1).padStart(3, '0')}`;
     const load: Load = {
-      id: `ld${Date.now()}`, loadNumber: loadNum, shipperId: newLoad.shipperId, carrierId: null,
+      id: crypto.randomUUID(), loadNumber: loadNum, shipperId: newLoad.shipperId, carrierId: null,
       origin: newLoad.origin, destination: newLoad.destination,
       pickupDate: newLoad.pickupDate, deliveryDate: newLoad.deliveryDate,
       shipperRate: Number(newLoad.shipperRate), carrierRate: 0, weight: Number(newLoad.weight),
