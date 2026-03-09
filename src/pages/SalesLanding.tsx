@@ -380,7 +380,7 @@ export default function SalesLanding() {
         setShippers(prev => prev.map(s => s.id === shipperId ? { ...s, salesStage: 'prospect' as const } : s));
       }
     } else {
-      shipperId = `ship_${Date.now()}`;
+      shipperId = crypto.randomUUID();
       const newShipper = {
         id: shipperId,
         companyName: data.companyName,
