@@ -14,7 +14,582 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activities: {
+        Row: {
+          description: string
+          entity_id: string
+          entity_type: string
+          id: string
+          timestamp: string
+          type: string
+          user: string
+        }
+        Insert: {
+          description?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          timestamp?: string
+          type?: string
+          user?: string
+        }
+        Update: {
+          description?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          timestamp?: string
+          type?: string
+          user?: string
+        }
+        Relationships: []
+      }
+      carriers: {
+        Row: {
+          address: string
+          carrier_packet_uploaded: boolean
+          city: string
+          company_name: string
+          created_at: string
+          dot_number: string
+          email: string
+          equipment_types: string[]
+          factoring_company: string
+          factoring_remit_to: string
+          id: string
+          insurance_cert_uploaded: boolean
+          insurance_expiry: string
+          insurance_provider: string
+          mc_number: string
+          notes: string
+          packet_status: string
+          phone: string
+          state: string
+          w9_uploaded: boolean
+          zip: string
+        }
+        Insert: {
+          address?: string
+          carrier_packet_uploaded?: boolean
+          city?: string
+          company_name: string
+          created_at?: string
+          dot_number?: string
+          email?: string
+          equipment_types?: string[]
+          factoring_company?: string
+          factoring_remit_to?: string
+          id?: string
+          insurance_cert_uploaded?: boolean
+          insurance_expiry?: string
+          insurance_provider?: string
+          mc_number?: string
+          notes?: string
+          packet_status?: string
+          phone?: string
+          state?: string
+          w9_uploaded?: boolean
+          zip?: string
+        }
+        Update: {
+          address?: string
+          carrier_packet_uploaded?: boolean
+          city?: string
+          company_name?: string
+          created_at?: string
+          dot_number?: string
+          email?: string
+          equipment_types?: string[]
+          factoring_company?: string
+          factoring_remit_to?: string
+          id?: string
+          insurance_cert_uploaded?: boolean
+          insurance_expiry?: string
+          insurance_provider?: string
+          mc_number?: string
+          notes?: string
+          packet_status?: string
+          phone?: string
+          state?: string
+          w9_uploaded?: boolean
+          zip?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          email: string
+          first_name: string
+          id: string
+          is_primary: boolean
+          last_name: string
+          phone: string
+          shipper_id: string
+          title: string
+        }
+        Insert: {
+          email?: string
+          first_name?: string
+          id?: string
+          is_primary?: boolean
+          last_name?: string
+          phone?: string
+          shipper_id: string
+          title?: string
+        }
+        Update: {
+          email?: string
+          first_name?: string
+          id?: string
+          is_primary?: boolean
+          last_name?: string
+          phone?: string
+          shipper_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          expires_at: string
+          id: string
+          load_id: string | null
+          signed_at: string
+          signed_by_name: string
+          status: string
+          terms: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string
+          id?: string
+          load_id?: string | null
+          signed_at?: string
+          signed_by_name?: string
+          status?: string
+          terms?: string
+          title?: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string
+          id?: string
+          load_id?: string | null
+          signed_at?: string
+          signed_by_name?: string
+          status?: string
+          terms?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          name: string
+          subject: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      follow_ups: {
+        Row: {
+          completed: boolean
+          date: string
+          id: string
+          notes: string
+          shipper_id: string
+        }
+        Insert: {
+          completed?: boolean
+          date?: string
+          id?: string
+          notes?: string
+          shipper_id: string
+        }
+        Update: {
+          completed?: boolean
+          date?: string
+          id?: string
+          notes?: string
+          shipper_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lanes: {
+        Row: {
+          destination: string
+          equipment_type: string
+          id: string
+          notes: string
+          origin: string
+          rate: number
+          shipper_id: string
+        }
+        Insert: {
+          destination?: string
+          equipment_type?: string
+          id?: string
+          notes?: string
+          origin?: string
+          rate?: number
+          shipper_id: string
+        }
+        Update: {
+          destination?: string
+          equipment_type?: string
+          id?: string
+          notes?: string
+          origin?: string
+          rate?: number
+          shipper_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lanes_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loads: {
+        Row: {
+          carrier_id: string | null
+          carrier_rate: number
+          created_at: string
+          delivery_date: string
+          destination: string
+          equipment_type: string
+          id: string
+          invoice_amount: number
+          invoice_date: string
+          invoice_number: string
+          load_number: string
+          notes: string
+          origin: string
+          payment_status: string
+          pickup_date: string
+          pod_uploaded: boolean
+          shipper_id: string
+          shipper_rate: number
+          status: string
+          weight: number
+        }
+        Insert: {
+          carrier_id?: string | null
+          carrier_rate?: number
+          created_at?: string
+          delivery_date?: string
+          destination?: string
+          equipment_type?: string
+          id?: string
+          invoice_amount?: number
+          invoice_date?: string
+          invoice_number?: string
+          load_number?: string
+          notes?: string
+          origin?: string
+          payment_status?: string
+          pickup_date?: string
+          pod_uploaded?: boolean
+          shipper_id: string
+          shipper_rate?: number
+          status?: string
+          weight?: number
+        }
+        Update: {
+          carrier_id?: string | null
+          carrier_rate?: number
+          created_at?: string
+          delivery_date?: string
+          destination?: string
+          equipment_type?: string
+          id?: string
+          invoice_amount?: number
+          invoice_date?: string
+          invoice_number?: string
+          load_number?: string
+          notes?: string
+          origin?: string
+          payment_status?: string
+          pickup_date?: string
+          pod_uploaded?: boolean
+          shipper_id?: string
+          shipper_rate?: number
+          status?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loads_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loads_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outbound_calls: {
+        Row: {
+          assigned_sales_rep: string
+          call_attempt_number: number
+          call_date: string
+          call_outcome: string
+          contact_name: string
+          contact_title: string
+          created_at: string
+          direct_phone: string
+          email: string
+          id: string
+          next_follow_up_date: string
+          next_step: string
+          notes: string
+          pain_point: string
+          shipper_id: string
+        }
+        Insert: {
+          assigned_sales_rep?: string
+          call_attempt_number?: number
+          call_date?: string
+          call_outcome?: string
+          contact_name?: string
+          contact_title?: string
+          created_at?: string
+          direct_phone?: string
+          email?: string
+          id?: string
+          next_follow_up_date?: string
+          next_step?: string
+          notes?: string
+          pain_point?: string
+          shipper_id: string
+        }
+        Update: {
+          assigned_sales_rep?: string
+          call_attempt_number?: number
+          call_date?: string
+          call_outcome?: string
+          contact_name?: string
+          contact_title?: string
+          created_at?: string
+          direct_phone?: string
+          email?: string
+          id?: string
+          next_follow_up_date?: string
+          next_step?: string
+          notes?: string
+          pain_point?: string
+          shipper_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outbound_calls_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_tasks: {
+        Row: {
+          cadence_day: number | null
+          completed: boolean
+          completed_at: string
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          shipper_id: string
+          template_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          cadence_day?: number | null
+          completed?: boolean
+          completed_at?: string
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          shipper_id: string
+          template_id?: string | null
+          title?: string
+          type?: string
+        }
+        Update: {
+          cadence_day?: number | null
+          completed?: boolean
+          completed_at?: string
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          shipper_id?: string
+          template_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_tasks_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shippers: {
+        Row: {
+          address: string
+          city: string
+          company_name: string
+          created_at: string
+          credit_limit: number
+          direct_phone: string | null
+          email: string
+          estimated_monthly_loads: number | null
+          id: string
+          last_contact_date: string | null
+          next_follow_up: string | null
+          notes: string
+          payment_terms: string
+          phone: string
+          sales_stage: string
+          shipping_manager_name: string | null
+          state: string
+          zip: string
+        }
+        Insert: {
+          address?: string
+          city?: string
+          company_name: string
+          created_at?: string
+          credit_limit?: number
+          direct_phone?: string | null
+          email?: string
+          estimated_monthly_loads?: number | null
+          id?: string
+          last_contact_date?: string | null
+          next_follow_up?: string | null
+          notes?: string
+          payment_terms?: string
+          phone?: string
+          sales_stage?: string
+          shipping_manager_name?: string | null
+          state?: string
+          zip?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          company_name?: string
+          created_at?: string
+          credit_limit?: number
+          direct_phone?: string | null
+          email?: string
+          estimated_monthly_loads?: number | null
+          id?: string
+          last_contact_date?: string | null
+          next_follow_up?: string | null
+          notes?: string
+          payment_terms?: string
+          phone?: string
+          sales_stage?: string
+          shipping_manager_name?: string | null
+          state?: string
+          zip?: string
+        }
+        Relationships: []
+      }
+      stage_change_logs: {
+        Row: {
+          changed_at: string
+          changed_by: string
+          from_stage: string
+          id: string
+          shipper_id: string
+          to_stage: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string
+          from_stage?: string
+          id?: string
+          shipper_id: string
+          to_stage?: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string
+          from_stage?: string
+          id?: string
+          shipper_id?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_change_logs_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
