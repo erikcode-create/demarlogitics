@@ -176,7 +176,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const logStageChange = useCallback((shipperId: string, fromStage: SalesStage, toStage: SalesStage) => {
     const log: StageChangeLog = {
-      id: `scl_${Date.now()}`,
+      id: crypto.randomUUID(),
       shipperId,
       fromStage,
       toStage,

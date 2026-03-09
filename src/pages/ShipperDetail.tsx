@@ -65,7 +65,7 @@ const ShipperDetail = () => {
   };
 
   const addActivity = () => {
-    setActivities(prev => [...prev, { id: `a${Date.now()}`, entityId: id!, entityType: 'shipper', type: newActivity.type, description: newActivity.description, timestamp: new Date().toISOString(), user: 'Mike Demar' }]);
+    setActivities(prev => [...prev, { id: crypto.randomUUID(), entityId: id!, entityType: 'shipper', type: newActivity.type, description: newActivity.description, timestamp: new Date().toISOString(), user: 'Mike Demar' }]);
     setActivityDialog(false);
     setNewActivity({ type: 'call', description: '' });
   };

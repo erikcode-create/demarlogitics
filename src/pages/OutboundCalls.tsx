@@ -88,7 +88,7 @@ const OutboundCalls = () => {
         logStageChange(form.shipperId, shipper.salesStage, 'quoting');
         setShippers(prev => prev.map(s => s.id === form.shipperId ? { ...s, salesStage: 'quoting' } : s));
         setSalesTasks(prev => [...prev, {
-          id: `st_quote_${Date.now()}`,
+          id: crypto.randomUUID(),
           shipperId: form.shipperId,
           type: 'call',
           title: '24-Hour Quote Follow-Up',

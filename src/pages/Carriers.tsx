@@ -36,7 +36,7 @@ const Carriers = () => {
 
   const handleAdd = () => {
     const carrier: Carrier = {
-      id: `cr${Date.now()}`, ...newCarrier, address: '', zip: '',
+      id: crypto.randomUUID(), ...newCarrier, address: '', zip: '',
       equipmentTypes: [], insuranceExpiry: '', insuranceProvider: '',
       packetStatus: 'not_started', factoringCompany: '', factoringRemitTo: '',
       w9Uploaded: false, insuranceCertUploaded: false, carrierPacketUploaded: false,

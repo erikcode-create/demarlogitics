@@ -79,7 +79,7 @@ export default function ContractBulkCreate() {
     const createdAt = signedAt;
 
     const newContracts: Contract[] = previews.map((p, index) => ({
-      id: `ct${Date.now()}-${index}`,
+      id: crypto.randomUUID(),
       type: 'rate_confirmation',
       status: 'signed',
       entityId: p.carrier.id,
