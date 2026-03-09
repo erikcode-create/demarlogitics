@@ -47,7 +47,7 @@ const ShipperDetail = () => {
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const addContact = () => {
-    setContacts(prev => [...prev, { id: `c${Date.now()}`, shipperId: id!, ...newContact, isPrimary: shipperContacts.length === 0 }]);
+    setContacts(prev => [...prev, { id: crypto.randomUUID(), shipperId: id!, ...newContact, isPrimary: shipperContacts.length === 0 }]);
     setContactDialog(false);
     setNewContact({ firstName: '', lastName: '', title: '', phone: '', email: '' });
   };
