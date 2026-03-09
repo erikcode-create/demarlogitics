@@ -60,7 +60,7 @@ const OutboundCalls = () => {
     if (!form.shipperId) return;
     const prevCalls = outboundCalls.filter(c => c.shipperId === form.shipperId).length;
     const call: OutboundCall = {
-      id: `oc_${Date.now()}`,
+      id: crypto.randomUUID(),
       shipperId: form.shipperId,
       contactName: form.contactName,
       contactTitle: form.contactTitle,
