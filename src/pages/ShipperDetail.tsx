@@ -59,7 +59,7 @@ const ShipperDetail = () => {
   };
 
   const addFollowUp = () => {
-    setFollowUps(prev => [...prev, { id: `f${Date.now()}`, shipperId: id!, date: newFollowUp.date, notes: newFollowUp.notes, completed: false }]);
+    setFollowUps(prev => [...prev, { id: crypto.randomUUID(), shipperId: id!, date: newFollowUp.date, notes: newFollowUp.notes, completed: false }]);
     setFollowUpDialog(false);
     setNewFollowUp({ date: '', notes: '' });
   };
