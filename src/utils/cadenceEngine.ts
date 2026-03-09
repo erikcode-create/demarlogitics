@@ -66,7 +66,7 @@ export function evaluateAutomationRules(
       const existingFutureTasks = salesTasks.filter(t => t.shipperId === shipper.id && !t.completed && isAfter(new Date(t.dueDate), now));
       if (existingFutureTasks.length === 0) {
         result.newTasks.push({
-          id: `st_recur_${shipper.id}_${Date.now()}`,
+          id: crypto.randomUUID(),
           shipperId: shipper.id,
           type: 'call',
           title: 'Relationship Follow-Up',
