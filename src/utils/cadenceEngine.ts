@@ -49,7 +49,7 @@ export function evaluateAutomationRules(
     if (shipperCalls.length > 0 && shipperCalls[0].callOutcome === 'spoke_quote_requested' && shipper.salesStage !== 'quoting') {
       result.stageChanges.push({ shipperId: shipper.id, newStage: 'quoting' });
       result.newTasks.push({
-        id: `st_auto_${shipper.id}_${Date.now()}`,
+        id: crypto.randomUUID(),
         shipperId: shipper.id,
         type: 'call',
         title: '24-Hour Quote Follow-Up',
