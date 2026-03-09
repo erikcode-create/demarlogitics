@@ -11,7 +11,6 @@ Broker agrees to arrange for the transportation of Shipper's freight via motor c
 
 PAYMENT TERMS:
 • Payment Terms: ${shipper.paymentTerms}
-• Credit Limit: $${shipper.creditLimit.toLocaleString()}
 • Invoices are due per agreed terms from date of delivery
 • Late payments subject to 1.5% monthly interest
 
