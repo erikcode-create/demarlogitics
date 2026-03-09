@@ -35,103 +35,124 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Typed supabase helper to bypass strict table typing
 const db = {
   from: (table: string) => supabase.from(table as any),
 };
 
-// Helper: sync local state changes to Supabase
-function useSyncedState<T extends { id: string }>(
+function syncToSupabase<T extends { id: string }>(
   table: string,
-  initial: T[]
-): [T[], React.Dispatch<React.SetStateAction<T[]>>] {
-  const [state, setStateRaw] = useState<T[]>(initial);
-  const isInitialLoad = useRef(true);
+  prev: T[],
+  next: T[]
+) {
+  const prevIds = new Set(prev.map(i => i.id));
+  const nextIds = new Set(next.map(i => i.id));
+  const prevMap = new Map(prev.map(i => [i.id, i]));
 
-  const setState: React.Dispatch<React.SetStateAction<T[]>> = useCallback((action) => {
-    setStateRaw(prev => {
-      const next = typeof action === 'function' ? (action as (prev: T[]) => T[])(prev) : action;
-
-      // Skip sync during initial data load
-      if (isInitialLoad.current) return next;
-
-      const prevIds = new Set(prev.map(i => i.id));
-      const nextIds = new Set(next.map(i => i.id));
-      const prevMap = new Map(prev.map(i => [i.id, i]));
-
-      // Inserts
-      const inserts = next.filter(i => !prevIds.has(i.id));
-      if (inserts.length > 0) {
-        const rows = inserts.map(i => frontendToRow(i as any));
-        db.from(table).insert(rows).then(({ error }: any) => {
-          if (error) console.error(`Insert error (${table}):`, error);
-        });
-      }
-
-      // Updates
-      for (const item of next) {
-        if (prevIds.has(item.id)) {
-          const old = prevMap.get(item.id);
-          if (JSON.stringify(old) !== JSON.stringify(item)) {
-            const row = frontendToRow(item as any);
-            const { id, ...rest } = row;
-            db.from(table).update(rest).eq('id', id).then(({ error }: any) => {
-              if (error) console.error(`Update error (${table}):`, error);
-            });
-          }
-        }
-      }
-
-      // Deletes
-      const deletes = prev.filter(i => !nextIds.has(i.id));
-      for (const item of deletes) {
-        db.from(table).delete().eq('id', item.id).then(({ error }: any) => {
-          if (error) console.error(`Delete error (${table}):`, error);
-        });
-      }
-
-      return next;
+  // Inserts
+  const inserts = next.filter(i => !prevIds.has(i.id));
+  if (inserts.length > 0) {
+    const rows = inserts.map(i => frontendToRow(i as any));
+    db.from(table).insert(rows).then(({ error }: any) => {
+      if (error) console.error(`Insert error (${table}):`, error);
     });
-  }, [table]);
+  }
 
-  // Mark initial load as done after first real setState
-  const markLoaded = useCallback(() => {
-    isInitialLoad.current = false;
-  }, []);
+  // Updates
+  for (const item of next) {
+    if (prevIds.has(item.id)) {
+      const old = prevMap.get(item.id);
+      if (JSON.stringify(old) !== JSON.stringify(item)) {
+        const row = frontendToRow(item as any);
+        const { id, ...rest } = row;
+        db.from(table).update(rest).eq('id', id).then(({ error }: any) => {
+          if (error) console.error(`Update error (${table}):`, error);
+        });
+      }
+    }
+  }
 
-  return [state, setState];
+  // Deletes
+  const deletes = prev.filter(i => !nextIds.has(i.id));
+  for (const item of deletes) {
+    db.from(table).delete().eq('id', item.id).then(({ error }: any) => {
+      if (error) console.error(`Delete error (${table}):`, error);
+    });
+  }
 }
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [shippers, setShippers] = useSyncedState<Shipper>('shippers', []);
-  const [contacts, setContacts] = useSyncedState<Contact>('contacts', []);
-  const [lanes, setLanes] = useSyncedState<Lane>('lanes', []);
-  const [followUps, setFollowUps] = useSyncedState<FollowUp>('follow_ups', []);
-  const [activities, setActivities] = useSyncedState<Activity>('activities', []);
-  const [carriers, setCarriers] = useSyncedState<Carrier>('carriers', []);
-  const [loads, setLoads] = useSyncedState<Load>('loads', []);
-  const [contracts, setContracts] = useSyncedState<Contract>('contracts', []);
-  const [outboundCalls, setOutboundCalls] = useSyncedState<OutboundCall>('outbound_calls', []);
-  const [salesTasks, setSalesTasks] = useSyncedState<SalesTask>('sales_tasks', []);
-  const [emailTemplates, setEmailTemplates] = useSyncedState<EmailTemplate>('email_templates', []);
-  const [stageChangeLogs, setStageChangeLogs] = useSyncedState<StageChangeLog>('stage_change_logs', []);
+  const [shippers, setShippersRaw] = useState<Shipper[]>([]);
+  const [contacts, setContactsRaw] = useState<Contact[]>([]);
+  const [lanes, setLanesRaw] = useState<Lane[]>([]);
+  const [followUps, setFollowUpsRaw] = useState<FollowUp[]>([]);
+  const [activities, setActivitiesRaw] = useState<Activity[]>([]);
+  const [carriers, setCarriersRaw] = useState<Carrier[]>([]);
+  const [loads, setLoadsRaw] = useState<Load[]>([]);
+  const [contracts, setContractsRaw] = useState<Contract[]>([]);
+  const [outboundCalls, setOutboundCallsRaw] = useState<OutboundCall[]>([]);
+  const [salesTasks, setSalesTasksRaw] = useState<SalesTask[]>([]);
+  const [emailTemplates, setEmailTemplatesRaw] = useState<EmailTemplate[]>([]);
+  const [stageChangeLogs, setStageChangeLogsRaw] = useState<StageChangeLog[]>([]);
+
+  const readyRef = useRef(false);
+
+  // Create synced setters
+  const makeSynced = <T extends { id: string }>(
+    table: string,
+    rawSetter: React.Dispatch<React.SetStateAction<T[]>>
+  ): React.Dispatch<React.SetStateAction<T[]>> => {
+    return (action: React.SetStateAction<T[]>) => {
+      rawSetter(prev => {
+        const next = typeof action === 'function' ? (action as (p: T[]) => T[])(prev) : action;
+        if (readyRef.current) {
+          syncToSupabase(table, prev, next);
+        }
+        return next;
+      });
+    };
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setShippers = useCallback(makeSynced<Shipper>('shippers', setShippersRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setContacts = useCallback(makeSynced<Contact>('contacts', setContactsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setLanes = useCallback(makeSynced<Lane>('lanes', setLanesRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setFollowUps = useCallback(makeSynced<FollowUp>('follow_ups', setFollowUpsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setActivities = useCallback(makeSynced<Activity>('activities', setActivitiesRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setCarriers = useCallback(makeSynced<Carrier>('carriers', setCarriersRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setLoads = useCallback(makeSynced<Load>('loads', setLoadsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setContracts = useCallback(makeSynced<Contract>('contracts', setContractsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setOutboundCalls = useCallback(makeSynced<OutboundCall>('outbound_calls', setOutboundCallsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setSalesTasks = useCallback(makeSynced<SalesTask>('sales_tasks', setSalesTasksRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setEmailTemplates = useCallback(makeSynced<EmailTemplate>('email_templates', setEmailTemplatesRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setStageChangeLogs = useCallback(makeSynced<StageChangeLog>('stage_change_logs', setStageChangeLogsRaw), []);
 
   // Load all data from Supabase on mount
   useEffect(() => {
     async function loadAll() {
-      const tableConfigs = [
-        { table: 'shippers', setter: setShippers },
-        { table: 'contacts', setter: setContacts },
-        { table: 'lanes', setter: setLanes },
-        { table: 'follow_ups', setter: setFollowUps },
-        { table: 'activities', setter: setActivities },
-        { table: 'carriers', setter: setCarriers },
-        { table: 'loads', setter: setLoads },
-        { table: 'contracts', setter: setContracts },
-        { table: 'outbound_calls', setter: setOutboundCalls },
-        { table: 'sales_tasks', setter: setSalesTasks },
-        { table: 'email_templates', setter: setEmailTemplates },
-        { table: 'stage_change_logs', setter: setStageChangeLogs },
+      const tableConfigs: { table: string; setter: React.Dispatch<React.SetStateAction<any[]>> }[] = [
+        { table: 'shippers', setter: setShippersRaw },
+        { table: 'contacts', setter: setContactsRaw },
+        { table: 'lanes', setter: setLanesRaw },
+        { table: 'follow_ups', setter: setFollowUpsRaw },
+        { table: 'activities', setter: setActivitiesRaw },
+        { table: 'carriers', setter: setCarriersRaw },
+        { table: 'loads', setter: setLoadsRaw },
+        { table: 'contracts', setter: setContractsRaw },
+        { table: 'outbound_calls', setter: setOutboundCallsRaw },
+        { table: 'sales_tasks', setter: setSalesTasksRaw },
+        { table: 'email_templates', setter: setEmailTemplatesRaw },
+        { table: 'stage_change_logs', setter: setStageChangeLogsRaw },
       ];
 
       const results = await Promise.all(
@@ -144,23 +165,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         const frontendData = rowsToFrontend(result.data || []);
-        tableConfigs[i].setter(frontendData as any);
+        tableConfigs[i].setter(frontendData);
       });
 
-      // After all data is loaded, mark all states as ready for sync
-      // Small delay to ensure all setStates have processed
-      setTimeout(() => {
-        // We need a way to flip isInitialLoad. Since we can't access the ref directly,
-        // we'll use a different approach - track loaded state globally
-        loadedRef.current = true;
-      }, 100);
+      // Enable sync after initial load
+      readyRef.current = true;
     }
     loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Global loaded ref - used to prevent sync during initial load
-  const loadedRef = useRef(false);
 
   const logStageChange = useCallback((shipperId: string, fromStage: SalesStage, toStage: SalesStage) => {
     const log: StageChangeLog = {
