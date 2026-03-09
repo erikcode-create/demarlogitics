@@ -1,292 +1,31 @@
-import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, EmailTemplate } from '@/types';
+import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, EmailTemplate, SalesStage, LoadStatus, EquipmentType, PaymentStatus, CarrierPacketStatus, ContractType, ContractStatus } from '@/types';
 
-export const mockShippers: Shipper[] = [
-  { id: 's1', companyName: 'Midwest Manufacturing Co.', address: '1200 Industrial Blvd', city: 'Chicago', state: 'IL', zip: '60601', phone: '312-555-0100', email: 'shipping@midwestmfg.com', salesStage: 'active', creditLimit: 50000, paymentTerms: 'Net 30', notes: 'High-volume shipper, priority account', createdAt: '2024-01-15', shippingManagerName: 'James Wilson', directPhone: '312-555-0101', estimatedMonthlyLoads: 40, lastContactDate: '2026-02-28', nextFollowUp: '2026-03-10' },
-  { id: 's2', companyName: 'Pacific Foods Distribution', address: '8900 Harbor Way', city: 'Los Angeles', state: 'CA', zip: '90001', phone: '213-555-0200', email: 'logistics@pacificfoods.com', salesStage: 'active', creditLimit: 75000, paymentTerms: 'Net 15', notes: 'Reefer loads only, strict temp requirements', createdAt: '2024-02-20', shippingManagerName: 'Maria Garcia', directPhone: '213-555-0201', estimatedMonthlyLoads: 25, lastContactDate: '2026-02-26', nextFollowUp: '2026-03-08' },
-  { id: 's3', companyName: 'Southern Steel Works', address: '4500 Forge Dr', city: 'Birmingham', state: 'AL', zip: '35201', phone: '205-555-0300', email: 'dispatch@southernsteel.com', salesStage: 'quoted', creditLimit: 30000, paymentTerms: 'Net 30', notes: 'Flatbed specialist, heavy haul', createdAt: '2024-03-10', shippingManagerName: 'Robert Taylor', directPhone: '205-555-0301', estimatedMonthlyLoads: 15, lastContactDate: '2026-02-25', nextFollowUp: '2026-03-05' },
-  { id: 's4', companyName: 'Great Plains Agriculture', address: '200 Grain Elevator Rd', city: 'Omaha', state: 'NE', zip: '68101', phone: '402-555-0400', email: 'transport@gpag.com', salesStage: 'prospect', creditLimit: 0, paymentTerms: 'TBD', notes: 'Seasonal volume Q3-Q4', createdAt: '2024-06-01', shippingManagerName: 'Linda Johnson', directPhone: '402-555-0401', estimatedMonthlyLoads: 10, lastContactDate: '2026-02-20', nextFollowUp: '2026-03-07' },
-  { id: 's5', companyName: 'Atlantic Pharma Logistics', address: '77 Research Park', city: 'Boston', state: 'MA', zip: '02101', phone: '617-555-0500', email: 'supply@atlanticpharma.com', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Temperature-controlled, high value', createdAt: '2024-08-15', shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: 0, lastContactDate: '', nextFollowUp: '2026-03-10' },
-  // === Prospect Shippers (imported from CSV) ===
-  { id: 's100', companyName: 'Tesla, Inc.', address: '', city: 'Sparks', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Automotive Manufacturing | Freight: Components & Batteries', createdAt: '2026-03-03' },
-  { id: 's101', companyName: 'Panasonic Energy', address: '', city: 'Sparks', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Battery Manufacturing | Freight: Industrial Components', createdAt: '2026-03-03' },
-  { id: 's102', companyName: 'Hamilton Company', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Laboratory Manufacturing | Freight: Precision Equipment', createdAt: '2026-03-03' },
-  { id: 's103', companyName: 'Sierra Nevada Corporation', address: '', city: 'Sparks', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Aerospace | Freight: Aerospace Components', createdAt: '2026-03-03' },
-  { id: 's104', companyName: 'Amazon', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: E-Commerce | Freight: Consumer Goods', createdAt: '2026-03-03' },
-  { id: 's105', companyName: 'Chewy Inc', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: E-Commerce | Freight: Pet Supplies', createdAt: '2026-03-03' },
-  { id: 's106', companyName: 'Wayfair Inc', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: E-Commerce | Freight: Furniture', createdAt: '2026-03-03' },
-  { id: 's107', companyName: 'PetSmart DC', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Retail Distribution | Freight: Pet Supplies', createdAt: '2026-03-03' },
-  { id: 's108', companyName: 'Patagonia DC', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Apparel Distribution | Freight: Clothing', createdAt: '2026-03-03' },
-  { id: 's109', companyName: 'Blue Ribbon Meat', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Food Distribution | Freight: Protein', createdAt: '2026-03-03' },
-  { id: 's110', companyName: 'Pacific Cheese', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Food Distribution | Freight: Dairy', createdAt: '2026-03-03' },
-  { id: 's111', companyName: "Raley's DC", address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's112', companyName: 'ABC Supply', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Building Materials | Freight: Roofing & Lumber', createdAt: '2026-03-03' },
-  { id: 's113', companyName: 'Kelly-Moore Paints', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Manufacturing | Freight: Paint Products', createdAt: '2026-03-03' },
-  { id: 's114', companyName: 'SRS Distribution', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Building Materials | Freight: Roofing Materials', createdAt: '2026-03-03' },
-  { id: 's115', companyName: 'Lineage Logistics', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Cold Storage | Freight: Frozen Foods', createdAt: '2026-03-03' },
-  { id: 's116', companyName: 'Americold', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Cold Storage | Freight: Frozen Goods', createdAt: '2026-03-03' },
-  { id: 's117', companyName: 'UPS Hub', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Parcel Distribution | Freight: General Freight', createdAt: '2026-03-03' },
-  { id: 's118', companyName: 'FedEx Freight', address: '', city: 'Reno', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: LTL Distribution | Freight: Mixed Freight', createdAt: '2026-03-03' },
-  { id: 's119', companyName: 'Americold Sparks', address: '', city: 'Sparks', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Reno | Industry: Cold Storage | Freight: Frozen Freight', createdAt: '2026-03-03' },
-  { id: 's120', companyName: 'Konami Gaming', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Gaming Manufacturing | Freight: High Value Equipment', createdAt: '2026-03-03' },
-  { id: 's121', companyName: 'Scientific Games', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Gaming Manufacturing | Freight: Gaming Equipment', createdAt: '2026-03-03' },
-  { id: 's122', companyName: 'PepsiCo', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Beverage Distribution | Freight: Beverages', createdAt: '2026-03-03' },
-  { id: 's123', companyName: 'Coca-Cola', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Beverage Distribution | Freight: Beverages', createdAt: '2026-03-03' },
-  { id: 's124', companyName: 'Southern Glazers', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Alcohol Distribution | Freight: Wine & Spirits', createdAt: '2026-03-03' },
-  { id: 's125', companyName: 'Breakthru Beverage', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Alcohol Distribution | Freight: Wine & Spirits', createdAt: '2026-03-03' },
-  { id: 's126', companyName: 'Albertsons DC', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's127', companyName: 'Kroger DC', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's128', companyName: 'Home Depot DC', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Retail Distribution | Freight: Home Goods', createdAt: '2026-03-03' },
-  { id: 's129', companyName: "Lowe's DC", address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Retail Distribution | Freight: Home Goods', createdAt: '2026-03-03' },
-  { id: 's130', companyName: 'Builders FirstSource', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Building Materials | Freight: Lumber', createdAt: '2026-03-03' },
-  { id: 's131', companyName: 'Grainger', address: '', city: 'Las Vegas', state: 'NV', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Las Vegas | Industry: Industrial Supply | Freight: MRO Supplies', createdAt: '2026-03-03' },
-  { id: 's132', companyName: 'Blue Diamond Growers', address: '', city: 'Sacramento', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Agriculture | Freight: Almond Products', createdAt: '2026-03-03' },
-  { id: 's133', companyName: 'Clif Bar', address: '', city: 'Emeryville', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Food Manufacturing | Freight: Snack Foods', createdAt: '2026-03-03' },
-  { id: 's134', companyName: 'Del Monte Foods', address: '', city: 'Walnut Creek', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Food Manufacturing | Freight: Canned Foods', createdAt: '2026-03-03' },
-  { id: 's135', companyName: 'Foster Farms', address: '', city: 'Livingston', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Poultry Processing | Freight: Protein', createdAt: '2026-03-03' },
-  { id: 's136', companyName: 'Sun-Maid Growers', address: '', city: 'Kingsburg', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Agriculture | Freight: Raisins', createdAt: '2026-03-03' },
-  { id: 's137', companyName: 'Intel Corporation', address: '', city: 'Folsom', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Semiconductor | Freight: Electronics', createdAt: '2026-03-03' },
-  { id: 's138', companyName: 'Applied Materials', address: '', city: 'Santa Clara', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Semiconductor Equipment | Freight: Industrial Equipment', createdAt: '2026-03-03' },
-  { id: 's139', companyName: 'Lam Research', address: '', city: 'Fremont', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Semiconductor Equipment | Freight: Industrial Equipment', createdAt: '2026-03-03' },
-  { id: 's140', companyName: 'Target DC', address: '', city: 'Woodland', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Retail Distribution | Freight: Mixed Retail', createdAt: '2026-03-03' },
-  { id: 's141', companyName: 'Walmart DC', address: '', city: 'Red Bluff', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Retail Distribution | Freight: Mixed Retail', createdAt: '2026-03-03' },
-  { id: 's142', companyName: 'Costco DC', address: '', city: 'Tracy', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Retail Distribution | Freight: Bulk Retail', createdAt: '2026-03-03' },
-  { id: 's143', companyName: 'Safeway DC', address: '', city: 'Richmond', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's144', companyName: 'E&J Gallo Winery', address: '', city: 'Modesto', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Beverage Alcohol | Freight: Wine', createdAt: '2026-03-03' },
-  { id: 's145', companyName: 'Constellation Brands', address: '', city: 'Oakville', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Beverage Alcohol | Freight: Wine', createdAt: '2026-03-03' },
-  { id: 's146', companyName: 'Owens Corning', address: '', city: 'Various', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Building Materials | Freight: Insulation', createdAt: '2026-03-03' },
-  { id: 's147', companyName: 'Cemex', address: '', city: 'Various', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Construction Materials | Freight: Cement', createdAt: '2026-03-03' },
-  { id: 's148', companyName: 'Vulcan Materials', address: '', city: 'Various', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Construction Materials | Freight: Aggregate', createdAt: '2026-03-03' },
-  { id: 's149', companyName: 'Lineage Logistics CA', address: '', city: 'Various', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Cold Storage | Freight: Frozen Foods', createdAt: '2026-03-03' },
-  { id: 's150', companyName: 'Americold CA', address: '', city: 'Various', state: 'CA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Northern CA | Industry: Cold Storage | Freight: Frozen Foods', createdAt: '2026-03-03' },
-  { id: 's151', companyName: 'Nike', address: '', city: 'Beaverton', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Apparel Distribution | Freight: Footwear', createdAt: '2026-03-03' },
-  { id: 's152', companyName: 'Columbia Sportswear', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Apparel Distribution | Freight: Outdoor Apparel', createdAt: '2026-03-03' },
-  { id: 's153', companyName: "Bob's Red Mill", address: '', city: 'Milwaukie', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Food Manufacturing | Freight: Grains', createdAt: '2026-03-03' },
-  { id: 's154', companyName: 'Tillamook', address: '', city: 'Tillamook', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Dairy Processing | Freight: Dairy Products', createdAt: '2026-03-03' },
-  { id: 's155', companyName: "Reser's Fine Foods", address: '', city: 'Beaverton', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Food Manufacturing | Freight: Prepared Foods', createdAt: '2026-03-03' },
-  { id: 's156', companyName: 'Precision Castparts', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Metal Manufacturing | Freight: Industrial Components', createdAt: '2026-03-03' },
-  { id: 's157', companyName: 'Daimler Truck NA', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Truck Manufacturing | Freight: Heavy Equipment', createdAt: '2026-03-03' },
-  { id: 's158', companyName: 'Leupold & Stevens', address: '', city: 'Beaverton', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Optics Manufacturing | Freight: Optical Equipment', createdAt: '2026-03-03' },
-  { id: 's159', companyName: 'Franz Bakery', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Bakery | Freight: Bread Products', createdAt: '2026-03-03' },
-  { id: 's160', companyName: 'Pacific Seafood', address: '', city: 'Clackamas', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Seafood Processing | Freight: Seafood', createdAt: '2026-03-03' },
-  { id: 's161', companyName: 'Georgia-Pacific', address: '', city: 'Various', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Paper Products | Freight: Paper Goods', createdAt: '2026-03-03' },
-  { id: 's162', companyName: 'US Foods', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Food Distribution | Freight: Mixed Food', createdAt: '2026-03-03' },
-  { id: 's163', companyName: 'Sysco', address: '', city: 'Wilsonville', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Food Distribution | Freight: Mixed Food', createdAt: '2026-03-03' },
-  { id: 's164', companyName: 'WinCo Foods DC', address: '', city: 'Woodburn', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's165', companyName: 'McLane Company', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Supply Chain | Freight: Convenience Goods', createdAt: '2026-03-03' },
-  { id: 's166', companyName: 'Sherwin-Williams', address: '', city: 'Portland', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Paint Manufacturing | Freight: Paint Products', createdAt: '2026-03-03' },
-  { id: 's167', companyName: 'Knife River', address: '', city: 'Various', state: 'OR', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Oregon | Industry: Construction Materials | Freight: Aggregate', createdAt: '2026-03-03' },
-  { id: 's168', companyName: 'Amazon WA', address: '', city: 'Kent', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: E-Commerce | Freight: Consumer Goods', createdAt: '2026-03-03' },
-  { id: 's169', companyName: 'Costco HQ', address: '', city: 'Issaquah', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Retail | Freight: Bulk Retail', createdAt: '2026-03-03' },
-  { id: 's170', companyName: 'Darigold', address: '', city: 'Seattle', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Dairy Processing | Freight: Dairy Products', createdAt: '2026-03-03' },
-  { id: 's171', companyName: 'Boeing', address: '', city: 'Everett', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Aerospace | Freight: Aerospace Components', createdAt: '2026-03-03' },
-  { id: 's172', companyName: 'Paccar', address: '', city: 'Bellevue', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Truck Manufacturing | Freight: Truck Components', createdAt: '2026-03-03' },
-  { id: 's173', companyName: 'Weyerhaeuser', address: '', city: 'Federal Way', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Forest Products | Freight: Lumber', createdAt: '2026-03-03' },
-  { id: 's174', companyName: 'Ocean Spray', address: '', city: 'Kennewick', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Agriculture | Freight: Cranberry Products', createdAt: '2026-03-03' },
-  { id: 's175', companyName: 'Lamb Weston', address: '', city: 'Kennewick', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Food Processing | Freight: Frozen Foods', createdAt: '2026-03-03' },
-  { id: 's176', companyName: 'Tree Top Inc', address: '', city: 'Selah', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Food Processing | Freight: Fruit Products', createdAt: '2026-03-03' },
-  { id: 's177', companyName: 'Albertsons WA DC', address: '', city: 'Auburn', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's178', companyName: 'Safeway WA DC', address: '', city: 'Auburn', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-  { id: 's179', companyName: 'Home Depot WA DC', address: '', city: 'Sumner', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Retail Distribution | Freight: Home Goods', createdAt: '2026-03-03' },
-  { id: 's180', companyName: "Lowe's WA DC", address: '', city: 'Puyallup', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Retail Distribution | Freight: Home Goods', createdAt: '2026-03-03' },
-  { id: 's181', companyName: 'Kroger WA DC', address: '', city: 'Chehalis', state: 'WA', zip: '', phone: '', email: '', salesStage: 'lead', creditLimit: 0, paymentTerms: 'TBD', notes: 'Region: Washington | Industry: Grocery Distribution | Freight: Mixed Grocery', createdAt: '2026-03-03' },
-];
+export const mockShippers: Shipper[] = [];
+export const mockContacts: Contact[] = [];
+export const mockLanes: Lane[] = [];
+export const mockFollowUps: FollowUp[] = [];
+export const mockActivities: Activity[] = [];
+export const mockCarriers: Carrier[] = [];
+export const mockLoads: Load[] = [];
+export const mockContracts: Contract[] = [];
+export const mockEmailTemplates: EmailTemplate[] = [];
 
-export const mockContacts: Contact[] = [
-  { id: 'c1', shipperId: 's1', firstName: 'James', lastName: 'Wilson', title: 'Shipping Manager', phone: '312-555-0101', email: 'jwilson@midwestmfg.com', isPrimary: true },
-  { id: 'c2', shipperId: 's1', firstName: 'Sarah', lastName: 'Chen', title: 'Logistics Coordinator', phone: '312-555-0102', email: 'schen@midwestmfg.com', isPrimary: false },
-  { id: 'c3', shipperId: 's2', firstName: 'Maria', lastName: 'Garcia', title: 'VP Operations', phone: '213-555-0201', email: 'mgarcia@pacificfoods.com', isPrimary: true },
-  { id: 'c4', shipperId: 's3', firstName: 'Robert', lastName: 'Taylor', title: 'Dispatch Supervisor', phone: '205-555-0301', email: 'rtaylor@southernsteel.com', isPrimary: true },
-  { id: 'c5', shipperId: 's4', firstName: 'Linda', lastName: 'Johnson', title: 'Transportation Director', phone: '402-555-0401', email: 'ljohnson@gpag.com', isPrimary: true },
-];
-
-export const mockLanes: Lane[] = [
-  { id: 'l1', shipperId: 's1', origin: 'Chicago, IL', destination: 'Dallas, TX', rate: 2800, equipmentType: 'dry_van', notes: '3x/week' },
-  { id: 'l2', shipperId: 's1', origin: 'Chicago, IL', destination: 'Atlanta, GA', rate: 2200, equipmentType: 'dry_van', notes: '2x/week' },
-  { id: 'l3', shipperId: 's2', origin: 'Los Angeles, CA', destination: 'Phoenix, AZ', rate: 1800, equipmentType: 'reefer', notes: 'Temp 34°F' },
-  { id: 'l4', shipperId: 's2', origin: 'Los Angeles, CA', destination: 'Denver, CO', rate: 3200, equipmentType: 'reefer', notes: 'Temp 34°F' },
-  { id: 'l5', shipperId: 's3', origin: 'Birmingham, AL', destination: 'Houston, TX', rate: 2500, equipmentType: 'flatbed', notes: 'Oversized loads possible' },
-  // === Prospect Lanes (imported from CSV) ===
-  { id: 'l100', shipperId: 's100', origin: 'Sparks, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Components & Batteries' },
-  { id: 'l101', shipperId: 's100', origin: 'Sparks, NV', destination: '', rate: 0, equipmentType: 'power_only', notes: 'Components & Batteries' },
-  { id: 'l102', shipperId: 's101', origin: 'Sparks, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Industrial Components' },
-  { id: 'l103', shipperId: 's102', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Precision Equipment' },
-  { id: 'l104', shipperId: 's103', origin: 'Sparks, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Aerospace Components' },
-  { id: 'l105', shipperId: 's104', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Consumer Goods' },
-  { id: 'l106', shipperId: 's105', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Pet Supplies' },
-  { id: 'l107', shipperId: 's106', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Furniture' },
-  { id: 'l108', shipperId: 's107', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Pet Supplies' },
-  { id: 'l109', shipperId: 's108', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Clothing' },
-  { id: 'l110', shipperId: 's109', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Protein' },
-  { id: 'l111', shipperId: 's110', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Dairy' },
-  { id: 'l112', shipperId: 's111', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l113', shipperId: 's111', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Mixed Grocery' },
-  { id: 'l114', shipperId: 's112', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Roofing & Lumber' },
-  { id: 'l115', shipperId: 's113', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Paint Products' },
-  { id: 'l116', shipperId: 's114', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Roofing Materials' },
-  { id: 'l117', shipperId: 's115', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Frozen Foods' },
-  { id: 'l118', shipperId: 's116', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Frozen Goods' },
-  { id: 'l119', shipperId: 's117', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'General Freight' },
-  { id: 'l120', shipperId: 's118', origin: 'Reno, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Freight' },
-  { id: 'l121', shipperId: 's119', origin: 'Sparks, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Frozen Freight' },
-  { id: 'l122', shipperId: 's120', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'High Value Equipment' },
-  { id: 'l123', shipperId: 's121', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Gaming Equipment' },
-  { id: 'l124', shipperId: 's122', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Beverages' },
-  { id: 'l125', shipperId: 's123', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Beverages' },
-  { id: 'l126', shipperId: 's124', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Wine & Spirits' },
-  { id: 'l127', shipperId: 's125', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Wine & Spirits' },
-  { id: 'l128', shipperId: 's126', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l129', shipperId: 's126', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Mixed Grocery' },
-  { id: 'l130', shipperId: 's127', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l131', shipperId: 's128', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Home Goods' },
-  { id: 'l132', shipperId: 's129', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Home Goods' },
-  { id: 'l133', shipperId: 's130', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Lumber' },
-  { id: 'l134', shipperId: 's131', origin: 'Las Vegas, NV', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'MRO Supplies' },
-  { id: 'l135', shipperId: 's132', origin: 'Sacramento, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Almond Products' },
-  { id: 'l136', shipperId: 's133', origin: 'Emeryville, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Snack Foods' },
-  { id: 'l137', shipperId: 's134', origin: 'Walnut Creek, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Canned Foods' },
-  { id: 'l138', shipperId: 's135', origin: 'Livingston, CA', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Protein' },
-  { id: 'l139', shipperId: 's136', origin: 'Kingsburg, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Raisins' },
-  { id: 'l140', shipperId: 's137', origin: 'Folsom, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Electronics' },
-  { id: 'l141', shipperId: 's138', origin: 'Santa Clara, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Industrial Equipment' },
-  { id: 'l142', shipperId: 's139', origin: 'Fremont, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Industrial Equipment' },
-  { id: 'l143', shipperId: 's140', origin: 'Woodland, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Retail' },
-  { id: 'l144', shipperId: 's141', origin: 'Red Bluff, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Retail' },
-  { id: 'l145', shipperId: 's142', origin: 'Tracy, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Bulk Retail' },
-  { id: 'l146', shipperId: 's143', origin: 'Richmond, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l147', shipperId: 's143', origin: 'Richmond, CA', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Mixed Grocery' },
-  { id: 'l148', shipperId: 's144', origin: 'Modesto, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Wine' },
-  { id: 'l149', shipperId: 's145', origin: 'Oakville, CA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Wine' },
-  { id: 'l150', shipperId: 's146', origin: 'Various, CA', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Insulation' },
-  { id: 'l151', shipperId: 's147', origin: 'Various, CA', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Cement' },
-  { id: 'l152', shipperId: 's148', origin: 'Various, CA', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Aggregate' },
-  { id: 'l153', shipperId: 's149', origin: 'Various, CA', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Frozen Foods' },
-  { id: 'l154', shipperId: 's150', origin: 'Various, CA', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Frozen Foods' },
-  { id: 'l155', shipperId: 's151', origin: 'Beaverton, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Footwear' },
-  { id: 'l156', shipperId: 's152', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Outdoor Apparel' },
-  { id: 'l157', shipperId: 's153', origin: 'Milwaukie, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Grains' },
-  { id: 'l158', shipperId: 's154', origin: 'Tillamook, OR', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Dairy Products' },
-  { id: 'l159', shipperId: 's155', origin: 'Beaverton, OR', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Prepared Foods' },
-  { id: 'l160', shipperId: 's156', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Industrial Components' },
-  { id: 'l161', shipperId: 's157', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Heavy Equipment' },
-  { id: 'l162', shipperId: 's158', origin: 'Beaverton, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Optical Equipment' },
-  { id: 'l163', shipperId: 's159', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Bread Products' },
-  { id: 'l164', shipperId: 's160', origin: 'Clackamas, OR', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Seafood' },
-  { id: 'l165', shipperId: 's161', origin: 'Various, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Paper Goods' },
-  { id: 'l166', shipperId: 's162', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Mixed Food' },
-  { id: 'l167', shipperId: 's163', origin: 'Wilsonville, OR', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Mixed Food' },
-  { id: 'l168', shipperId: 's164', origin: 'Woodburn, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l169', shipperId: 's165', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Convenience Goods' },
-  { id: 'l170', shipperId: 's166', origin: 'Portland, OR', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Paint Products' },
-  { id: 'l171', shipperId: 's167', origin: 'Various, OR', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Aggregate' },
-  { id: 'l172', shipperId: 's168', origin: 'Kent, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Consumer Goods' },
-  { id: 'l173', shipperId: 's169', origin: 'Issaquah, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Bulk Retail' },
-  { id: 'l174', shipperId: 's170', origin: 'Seattle, WA', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Dairy Products' },
-  { id: 'l175', shipperId: 's171', origin: 'Everett, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Aerospace Components' },
-  { id: 'l176', shipperId: 's172', origin: 'Bellevue, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Truck Components' },
-  { id: 'l177', shipperId: 's173', origin: 'Federal Way, WA', destination: '', rate: 0, equipmentType: 'flatbed', notes: 'Lumber' },
-  { id: 'l178', shipperId: 's174', origin: 'Kennewick, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Cranberry Products' },
-  { id: 'l179', shipperId: 's175', origin: 'Kennewick, WA', destination: '', rate: 0, equipmentType: 'reefer', notes: 'Frozen Foods' },
-  { id: 'l180', shipperId: 's176', origin: 'Selah, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Fruit Products' },
-  { id: 'l181', shipperId: 's177', origin: 'Auburn, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l182', shipperId: 's178', origin: 'Auburn, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-  { id: 'l183', shipperId: 's179', origin: 'Sumner, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Home Goods' },
-  { id: 'l184', shipperId: 's180', origin: 'Puyallup, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Home Goods' },
-  { id: 'l185', shipperId: 's181', origin: 'Chehalis, WA', destination: '', rate: 0, equipmentType: 'dry_van', notes: 'Mixed Grocery' },
-];
-
-export const mockFollowUps: FollowUp[] = [
-  { id: 'f1', shipperId: 's3', date: '2026-03-05', notes: 'Send revised rate sheet', completed: false },
-  { id: 'f2', shipperId: 's4', date: '2026-03-07', notes: 'Follow up on capacity needs for harvest season', completed: false },
-  { id: 'f3', shipperId: 's5', date: '2026-03-10', notes: 'Initial discovery call scheduled', completed: false },
-  { id: 'f4', shipperId: 's1', date: '2026-02-28', notes: 'Quarterly business review', completed: true },
-];
-
-export const mockActivities: Activity[] = [
-  { id: 'a1', entityId: 's1', entityType: 'shipper', type: 'call', description: 'Discussed Q1 volume forecast, expecting 15% increase', timestamp: '2026-02-28T14:30:00', user: 'Mike Demar' },
-  { id: 'a2', entityId: 's1', entityType: 'shipper', type: 'email', description: 'Sent updated rate confirmation for Chicago-Dallas lane', timestamp: '2026-02-27T09:15:00', user: 'Mike Demar' },
-  { id: 'a3', entityId: 's2', entityType: 'shipper', type: 'note', description: 'Customer requesting dedicated reefer capacity for summer', timestamp: '2026-02-26T16:00:00', user: 'Jessica Adams' },
-  { id: 'a4', entityId: 's3', entityType: 'shipper', type: 'meeting', description: 'On-site visit to discuss flatbed requirements', timestamp: '2026-02-25T10:00:00', user: 'Mike Demar' },
-  { id: 'a5', entityId: 'cr1', entityType: 'carrier', type: 'call', description: 'Confirmed insurance renewal in progress', timestamp: '2026-02-28T11:00:00', user: 'Jessica Adams' },
-  { id: 'a6', entityId: 'cr2', entityType: 'carrier', type: 'email', description: 'Requested updated W9 form', timestamp: '2026-02-27T13:45:00', user: 'Mike Demar' },
-  { id: 'a7', entityId: 'ld1', entityType: 'load', type: 'note', description: 'Pickup confirmed for 03/03, driver ETA 8:00 AM', timestamp: '2026-03-02T17:00:00', user: 'Jessica Adams' },
-];
-
-export const mockCarriers: Carrier[] = [
-  { id: 'cr1', companyName: 'Eagle Express Trucking', mcNumber: 'MC-123456', dotNumber: 'DOT-7890123', address: '500 Truck Stop Ln', city: 'Memphis', state: 'TN', zip: '38101', phone: '901-555-1000', email: 'dispatch@eagleexpress.com', equipmentTypes: ['dry_van', 'reefer'], insuranceExpiry: '2026-06-15', insuranceProvider: 'National Indemnity', packetStatus: 'complete', factoringCompany: 'RTS Financial', factoringRemitTo: 'PO Box 12345, Memphis TN', w9Uploaded: true, insuranceCertUploaded: true, carrierPacketUploaded: true, notes: 'Reliable, on-time performance 98%', createdAt: '2024-01-20' },
-  { id: 'cr2', companyName: 'Heartland Haulers LLC', mcNumber: 'MC-234567', dotNumber: 'DOT-8901234', address: '1100 Highway 65', city: 'Kansas City', state: 'MO', zip: '64101', phone: '816-555-2000', email: 'ops@heartlandhaulers.com', equipmentTypes: ['dry_van'], insuranceExpiry: '2026-04-01', insuranceProvider: 'Progressive Commercial', packetStatus: 'complete', factoringCompany: '', factoringRemitTo: '', w9Uploaded: true, insuranceCertUploaded: true, carrierPacketUploaded: true, notes: 'Good rates, Midwest focus', createdAt: '2024-03-05' },
-  { id: 'cr3', companyName: 'Southwest Flatbed Inc.', mcNumber: 'MC-345678', dotNumber: 'DOT-9012345', address: '2200 Desert Rd', city: 'Phoenix', state: 'AZ', zip: '85001', phone: '602-555-3000', email: 'loads@swflatbed.com', equipmentTypes: ['flatbed', 'step_deck'], insuranceExpiry: '2026-03-15', insuranceProvider: 'Great West Casualty', packetStatus: 'in_progress', factoringCompany: 'Triumph Pay', factoringRemitTo: 'PO Box 67890, Dallas TX', w9Uploaded: true, insuranceCertUploaded: false, carrierPacketUploaded: false, notes: 'Insurance renewal pending - follow up!', createdAt: '2024-05-12' },
-  { id: 'cr4', companyName: 'Northern Logistics Group', mcNumber: 'MC-456789', dotNumber: 'DOT-0123456', address: '800 Lake Shore Dr', city: 'Milwaukee', state: 'WI', zip: '53201', phone: '414-555-4000', email: 'freight@northernlog.com', equipmentTypes: ['dry_van', 'reefer', 'flatbed'], insuranceExpiry: '2026-09-30', insuranceProvider: 'Zurich Insurance', packetStatus: 'complete', factoringCompany: '', factoringRemitTo: '', w9Uploaded: true, insuranceCertUploaded: true, carrierPacketUploaded: true, notes: 'Multi-modal capability, preferred carrier', createdAt: '2024-02-14' },
-  { id: 'cr5', companyName: 'Lone Star Transport', mcNumber: 'MC-567890', dotNumber: 'DOT-1234567', address: '3300 Cattle Dr', city: 'San Antonio', state: 'TX', zip: '78201', phone: '210-555-5000', email: 'dispatch@lonestar.com', equipmentTypes: ['dry_van', 'conestoga'], insuranceExpiry: '2026-12-01', insuranceProvider: 'Sentry Insurance', packetStatus: 'not_started', factoringCompany: '', factoringRemitTo: '', w9Uploaded: false, insuranceCertUploaded: false, carrierPacketUploaded: false, notes: 'New carrier, needs onboarding', createdAt: '2026-02-20' },
-];
-
-export const mockLoads: Load[] = [
-  { id: 'ld1', loadNumber: 'DT-2026-001', shipperId: 's1', carrierId: 'cr1', origin: 'Chicago, IL', destination: 'Dallas, TX', pickupDate: '2026-03-03', deliveryDate: '2026-03-05', shipperRate: 2800, carrierRate: 2200, weight: 42000, equipmentType: 'dry_van', status: 'booked', podUploaded: false, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending', notes: 'Standard palletized freight', createdAt: '2026-02-28' },
-  { id: 'ld2', loadNumber: 'DT-2026-002', shipperId: 's2', carrierId: 'cr1', origin: 'Los Angeles, CA', destination: 'Phoenix, AZ', pickupDate: '2026-03-02', deliveryDate: '2026-03-03', shipperRate: 1800, carrierRate: 1400, weight: 38000, equipmentType: 'reefer', status: 'in_transit', podUploaded: false, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending', notes: 'Temp 34°F, produce load', createdAt: '2026-02-27' },
-  { id: 'ld3', loadNumber: 'DT-2026-003', shipperId: 's1', carrierId: 'cr2', origin: 'Chicago, IL', destination: 'Atlanta, GA', pickupDate: '2026-02-28', deliveryDate: '2026-03-01', shipperRate: 2200, carrierRate: 1750, weight: 44000, equipmentType: 'dry_van', status: 'delivered', podUploaded: true, invoiceNumber: 'INV-003', invoiceDate: '2026-03-01', invoiceAmount: 2200, paymentStatus: 'pending', notes: '', createdAt: '2026-02-25' },
-  { id: 'ld4', loadNumber: 'DT-2026-004', shipperId: 's3', carrierId: 'cr3', origin: 'Birmingham, AL', destination: 'Houston, TX', pickupDate: '2026-02-25', deliveryDate: '2026-02-27', shipperRate: 2500, carrierRate: 1900, weight: 48000, equipmentType: 'flatbed', status: 'invoiced', podUploaded: true, invoiceNumber: 'INV-004', invoiceDate: '2026-02-28', invoiceAmount: 2500, paymentStatus: 'pending', notes: 'Steel coils, tarped', createdAt: '2026-02-22' },
-  { id: 'ld5', loadNumber: 'DT-2026-005', shipperId: 's2', carrierId: 'cr4', origin: 'Los Angeles, CA', destination: 'Denver, CO', pickupDate: '2026-02-20', deliveryDate: '2026-02-22', shipperRate: 3200, carrierRate: 2500, weight: 36000, equipmentType: 'reefer', status: 'paid', podUploaded: true, invoiceNumber: 'INV-005', invoiceDate: '2026-02-23', invoiceAmount: 3200, paymentStatus: 'paid', notes: '', createdAt: '2026-02-18' },
-  { id: 'ld6', loadNumber: 'DT-2026-006', shipperId: 's1', carrierId: null, origin: 'Chicago, IL', destination: 'Nashville, TN', pickupDate: '2026-03-06', deliveryDate: '2026-03-07', shipperRate: 1900, carrierRate: 0, weight: 40000, equipmentType: 'dry_van', status: 'available', podUploaded: false, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending', notes: 'Need carrier assignment', createdAt: '2026-03-01' },
-  { id: 'ld7', loadNumber: 'DT-2026-007', shipperId: 's3', carrierId: null, origin: 'Birmingham, AL', destination: 'Memphis, TN', pickupDate: '2026-03-08', deliveryDate: '2026-03-09', shipperRate: 1600, carrierRate: 0, weight: 45000, equipmentType: 'flatbed', status: 'available', podUploaded: false, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending', notes: 'I-beams, oversized permit may be needed', createdAt: '2026-03-02' },
-  { id: 'ld8', loadNumber: 'DT-2026-008', shipperId: 's1', carrierId: 'cr2', origin: 'Chicago, IL', destination: 'Dallas, TX', pickupDate: '2026-02-15', deliveryDate: '2026-02-17', shipperRate: 2800, carrierRate: 2150, weight: 41000, equipmentType: 'dry_van', status: 'paid', podUploaded: true, invoiceNumber: 'INV-008', invoiceDate: '2026-02-18', invoiceAmount: 2800, paymentStatus: 'paid', notes: '', createdAt: '2026-02-12' },
-];
-
-// Helper to format equipment type for display
-export const equipmentTypeLabels: Record<string, string> = {
-  dry_van: 'Dry Van',
-  reefer: 'Reefer',
-  flatbed: 'Flatbed',
-  step_deck: 'Step Deck',
-  conestoga: 'Conestoga',
-  power_only: 'Power Only',
-};
-
-export const salesStageLabels: Record<string, string> = {
+export const salesStageLabels: Record<SalesStage, string> = {
   lead: 'Lead',
   prospect: 'Prospect',
   contacted: 'Contacted',
   engaged: 'Engaged',
   lane_discussed: 'Lane Discussed',
   quoting: 'Quoting',
+  quoted: 'Quoted',
   contract_sent: 'Contract Sent',
   active: 'Active',
   dormant: 'Dormant',
-  closed_lost: 'Closed – Lost',
-  quoted: 'Quoted',
   inactive: 'Inactive',
+  closed_lost: 'Closed / Lost',
 };
 
-export const mockEmailTemplates: EmailTemplate[] = [
-  {
-    id: 'tpl1',
-    name: 'Intro – Regional West Coast Capacity',
-    subject: 'Regional Capacity Support for {{Company_Name}}',
-    body: `Hi {{Contact_Name}},\n\nI'm reaching out from Demar Transportation — we specialize in {{Equipment_Type}} freight across the {{Region}} region.\n\nWe're currently offering dedicated capacity for shippers in your area and wanted to see if you have any lanes we could support.\n\nWould you have a few minutes this week to discuss your freight needs?\n\nBest regards,\nMike Demar\nDemar Transportation`,
-    createdAt: '2026-03-01',
-  },
-  {
-    id: 'tpl2',
-    name: 'Lane Question',
-    subject: 'Quick question about your {{Region}} lanes',
-    body: `Hi {{Contact_Name}},\n\nFollowing up on my earlier note. I wanted to ask — do you have any consistent lanes running out of {{Region}} that you'd like a competitive quote on?\n\nWe have strong carrier coverage for {{Equipment_Type}} in your area and can turn quotes around same-day.\n\nLet me know if I can send over a rate.\n\nBest,\nMike Demar`,
-    createdAt: '2026-03-01',
-  },
-  {
-    id: 'tpl3',
-    name: 'Backup Capacity Option',
-    subject: 'Backup capacity for {{Company_Name}}',
-    body: `Hi {{Contact_Name}},\n\nI know finding reliable carriers in {{Region}} can be challenging, especially during peak season.\n\nWe've helped companies like yours by serving as a backup option — so when your primary carriers fall through, you have a reliable partner ready to go.\n\nWould it make sense to set us up as a backup option? No commitment needed.\n\nBest,\nMike Demar`,
-    createdAt: '2026-03-01',
-  },
-  {
-    id: 'tpl4',
-    name: 'Close the Loop',
-    subject: 'Closing the loop – {{Company_Name}}',
-    body: `Hi {{Contact_Name}},\n\nI've reached out a few times and wanted to close the loop. If freight brokerage support isn't a priority right now, no worries at all.\n\nIf anything changes down the road, I'd be happy to help with {{Equipment_Type}} capacity in the {{Region}} region.\n\nWishing you and the team all the best.\n\nMike Demar\nDemar Transportation`,
-    createdAt: '2026-03-01',
-  },
-];
-
-export const loadStatusLabels: Record<string, string> = {
+export const loadStatusLabels: Record<LoadStatus, string> = {
   available: 'Available',
   booked: 'Booked',
   in_transit: 'In Transit',
@@ -295,55 +34,38 @@ export const loadStatusLabels: Record<string, string> = {
   paid: 'Paid',
 };
 
-export const packetStatusLabels: Record<string, string> = {
-  not_started: 'Not Started',
-  in_progress: 'In Progress',
-  complete: 'Complete',
-  expired: 'Expired',
+export const equipmentTypeLabels: Record<EquipmentType, string> = {
+  dry_van: 'Dry Van',
+  reefer: 'Reefer',
+  flatbed: 'Flatbed',
+  step_deck: 'Step Deck',
+  conestoga: 'Conestoga',
+  power_only: 'Power Only',
 };
 
-export const paymentStatusLabels: Record<string, string> = {
+export const paymentStatusLabels: Record<PaymentStatus, string> = {
   pending: 'Pending',
   partial: 'Partial',
   paid: 'Paid',
   overdue: 'Overdue',
 };
 
-export const contractTypeLabels: Record<string, string> = {
+export const packetStatusLabels: Record<CarrierPacketStatus, string> = {
+  not_started: 'Not Started',
+  in_progress: 'In Progress',
+  complete: 'Complete',
+  expired: 'Expired',
+};
+
+export const contractTypeLabels: Record<ContractType, string> = {
   shipper_agreement: 'Shipper Agreement',
   carrier_agreement: 'Carrier Agreement',
   rate_confirmation: 'Rate Confirmation',
 };
 
-export const contractStatusLabels: Record<string, string> = {
+export const contractStatusLabels: Record<ContractStatus, string> = {
   draft: 'Draft',
   sent: 'Sent',
   signed: 'Signed',
   expired: 'Expired',
 };
-
-export const mockContracts: Contract[] = [
-  {
-    id: 'ct1', type: 'shipper_agreement', status: 'signed', entityId: 's1', entityType: 'shipper',
-    title: 'Shipper Agreement — Midwest Manufacturing Co.',
-    terms: 'Standard freight brokerage agreement for dry van shipments. Payment terms Net 30. Credit limit $50,000.',
-    signedByName: 'James Wilson', signedAt: '2026-01-20T10:30:00', createdAt: '2026-01-15', expiresAt: '2027-01-15',
-  },
-  {
-    id: 'ct2', type: 'carrier_agreement', status: 'signed', entityId: 'cr1', entityType: 'carrier',
-    title: 'Carrier Agreement — Eagle Express Trucking',
-    terms: 'Carrier broker agreement. MC-123456, DOT-7890123. Equipment: Dry Van, Reefer. Insurance via National Indemnity, expires 2026-06-15.',
-    signedByName: 'Tom Eagle', signedAt: '2026-01-22T14:00:00', createdAt: '2026-01-20', expiresAt: '2027-01-20',
-  },
-  {
-    id: 'ct3', type: 'rate_confirmation', status: 'signed', entityId: 'cr1', entityType: 'carrier', loadId: 'ld1',
-    title: 'Rate Confirmation — DT-2026-001',
-    terms: 'Rate confirmation for load DT-2026-001. Chicago, IL → Dallas, TX. Carrier rate: $2,200. Pickup: 03/03/2026, Delivery: 03/05/2026.',
-    signedByName: 'Tom Eagle', signedAt: '2026-02-28T09:00:00', createdAt: '2026-02-28', expiresAt: '2026-03-05',
-  },
-  {
-    id: 'ct4', type: 'shipper_agreement', status: 'draft', entityId: 's3', entityType: 'shipper',
-    title: 'Shipper Agreement — Southern Steel Works',
-    terms: '', signedByName: '', signedAt: '', createdAt: '2026-03-01', expiresAt: '2027-03-01',
-  },
-];
