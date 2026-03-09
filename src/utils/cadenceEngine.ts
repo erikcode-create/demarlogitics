@@ -13,7 +13,7 @@ const cadenceSchedule: { day: number; type: 'call' | 'email' | 'linkedin_reminde
 
 export function generateCadenceTasks(shipperId: string, startDate: Date = new Date()): SalesTask[] {
   return cadenceSchedule.map((item, i) => ({
-    id: `st_${shipperId}_${Date.now()}_${i}`,
+    id: crypto.randomUUID(),
     shipperId,
     type: item.type,
     title: item.title,
