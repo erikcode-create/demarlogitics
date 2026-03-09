@@ -144,8 +144,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         const frontendData = rowsToFrontend(result.data || []);
-        // This sets during initial load - isInitialLoad is true so no sync back
-        tableConfigs[i].setter(frontendData);
+        tableConfigs[i].setter(frontendData as any);
       });
 
       // After all data is loaded, mark all states as ready for sync
