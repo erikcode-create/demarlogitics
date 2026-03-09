@@ -98,7 +98,7 @@ export function evaluateAutomationRules(
       for (const c of sentContracts) {
         if (differenceInDays(now, new Date(c.createdAt)) >= 5) {
           result.newTasks.push({
-            id: `st_contract_${shipper.id}_${Date.now()}`,
+            id: crypto.randomUUID(),
             shipperId: shipper.id,
             type: 'call',
             title: 'Contract Follow-Up Reminder',
