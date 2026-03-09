@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, OutboundCall, SalesTask, EmailTemplate, StageChangeLog, SalesStage } from '@/types';
 import { mockShippers, mockContacts, mockLanes, mockFollowUps, mockActivities, mockCarriers, mockLoads, mockContracts, mockEmailTemplates } from '@/data/mockData';
 import { generateCadenceTasks } from '@/utils/cadenceEngine';
