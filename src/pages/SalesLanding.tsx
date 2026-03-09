@@ -397,7 +397,7 @@ export default function SalesLanding() {
     }
 
     setActivities(prev => [...prev, {
-      id: `act_${Date.now()}`,
+      id: crypto.randomUUID(),
       entityId: shipperId, entityType: 'shipper', type: 'note',
       description: `Website lead form submitted. ${data.origin} → ${data.destination}, ${data.equipmentType}`,
       timestamp: new Date().toISOString(), user: 'Website',
