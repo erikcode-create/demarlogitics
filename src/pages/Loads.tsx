@@ -30,8 +30,17 @@ const Loads = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newLoad, setNewLoad] = useState({
     shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
-    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType, referenceNumber: '',
+    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
   });
+
+  const generateRefNumber = (): string => {
+    const existing = new Set(loads.map(l => l.referenceNumber));
+    let ref: string;
+    do {
+      ref = String(Math.floor(10000000 + Math.random() * 90000000));
+    } while (existing.has(ref));
+    return ref;
+  };
 
   const filtered = loads.filter(l => {
     const shipper = shippers.find(s => s.id === l.shipperId);
