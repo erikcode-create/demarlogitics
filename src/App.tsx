@@ -71,6 +71,7 @@ function ProtectedRoutes() {
               <Route path="/sales/templates" element={<EmailTemplates />} />
               <Route path="/sales/dashboard" element={<SalesDashboard />} />
               <Route path="/sales/performance" element={<PerformanceTracker />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
