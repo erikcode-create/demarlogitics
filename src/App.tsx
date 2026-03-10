@@ -35,7 +35,7 @@ import CarrierPortalDocument from "./pages/CarrierPortalDocument";
 
 const queryClient = new QueryClient();
 
-const isPreviewMode = window.location.hostname.includes('preview') || window.location.hostname === 'localhost';
+const isPreviewMode = window.location.hostname.includes('preview') || window.location.hostname.includes('lovableproject.com') || window.location.hostname === 'localhost';
 
 function ProtectedRoutes() {
   const { session, loading } = useAuth();
