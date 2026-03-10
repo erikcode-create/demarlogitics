@@ -192,9 +192,10 @@ const CarrierPortalDashboard = () => {
                           <p className="text-xs text-muted-foreground truncate">{uploaded.file_name}</p>
                         )}
                       </div>
-                      <label>
+                      <>
                         <input
                           type="file"
+                          id={`file-input-${doc.key}`}
                           className="hidden"
                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                           disabled={isUploading}
@@ -208,15 +209,13 @@ const CarrierPortalDashboard = () => {
                           variant={uploaded ? 'ghost' : 'outline'}
                           size="sm"
                           className="gap-1"
-                          asChild
                           disabled={isUploading}
+                          onClick={() => document.getElementById(`file-input-${doc.key}`)?.click()}
                         >
-                          <span>
-                            <Upload className="h-3 w-3" />
-                            {isUploading ? 'Uploading...' : uploaded ? 'Replace' : 'Upload'}
-                          </span>
+                          <Upload className="h-3 w-3" />
+                          {isUploading ? 'Uploading...' : uploaded ? 'Replace' : 'Upload'}
                         </Button>
-                      </label>
+                      </>
                     </div>
                   );
                 })}
