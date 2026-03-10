@@ -27,6 +27,7 @@ import EmailTemplates from "./pages/EmailTemplates";
 import SalesDashboard from "./pages/SalesDashboard";
 import PerformanceTracker from "./pages/PerformanceTracker";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
