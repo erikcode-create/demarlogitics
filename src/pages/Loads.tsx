@@ -30,7 +30,7 @@ const Loads = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newLoad, setNewLoad] = useState({
     shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
-    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
+    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType, referenceNumber: '',
   });
 
   const filtered = loads.filter(l => {
