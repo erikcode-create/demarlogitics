@@ -117,7 +117,10 @@ const Carriers = () => {
                     <TableCell className="text-sm">{c.equipmentTypes.map(e => equipmentTypeLabels[e]).join(', ') || '—'}</TableCell>
                     <TableCell>{ins ? <span className={`flex items-center gap-1 text-sm ${ins.color}`}><ins.icon className="h-3 w-3" />{ins.label}</span> : '—'}</TableCell>
                     <TableCell><Badge variant="outline">{packetStatusLabels[c.packetStatus]}</Badge></TableCell>
-                    <TableCell>
+                    <TableCell className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" title="Preview as Carrier" onClick={e => { e.stopPropagation(); window.open(`/portal/preview/${c.id}`, '_blank'); }}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={e => e.stopPropagation()}>
