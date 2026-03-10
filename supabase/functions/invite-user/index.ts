@@ -89,15 +89,7 @@ Deno.serve(async (req) => {
     const origin = req.headers.get("origin") || "https://demarlogitics.lovable.app";
     const existingUser = users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
 
-    // If user exists and has confirmed (has a password set), block re-invite
-    if (existingUser && existingUser.email_confirmed_at && existingUser.last_sign_in_at) {
-      return new Response(JSON.stringify({ error: `User ${email} is already active. No need to re-invite.` }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // If user exists but hasn't completed setup, delete and re-invite
+    // If user exists, delete and re-invite (allows resending invites)
     if (existingUser) {
       await adminClient.auth.admin.deleteUser(existingUser.id);
     }
