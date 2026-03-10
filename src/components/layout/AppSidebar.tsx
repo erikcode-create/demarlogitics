@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Truck, Package, FileText, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Building2, Truck, Package, FileText, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp, Settings } from 'lucide-react';
 import demarLogo from '@/assets/demar-logo.png';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
