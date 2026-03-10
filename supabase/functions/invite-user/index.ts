@@ -31,10 +31,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Decode JWT to get email directly (avoids getUser failing on ID mismatch)
     const jwtPayload = decodeJwtPayload(authHeader);
     const userEmail = jwtPayload?.email;
-    console.log("JWT email:", userEmail);
 
     if (!userEmail) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
@@ -47,7 +45,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Find user by email in auth.users
+    // Find the actual DB user by email
     const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
     if (listError) {
       return new Response(JSON.stringify({ error: "Failed to verify admin status" }), {
@@ -57,7 +55,6 @@ Deno.serve(async (req) => {
     }
 
     const dbUser = users?.find((u: any) => u.email === userEmail);
-    console.log("DB user found:", dbUser?.id, dbUser?.email);
     if (!dbUser) {
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 401,
@@ -72,8 +69,6 @@ Deno.serve(async (req) => {
       .eq("user_id", dbUser.id)
       .eq("role", "admin")
       .single();
-
-    console.log("Admin role check:", roleData);
 
     if (!roleData) {
       return new Response(JSON.stringify({ error: "Admin access required" }), {
@@ -91,14 +86,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Check if user already exists
+    const existingUser = users?.find((u: any) => u.email === email);
+    if (existingUser) {
+      return new Response(JSON.stringify({ error: `A user with email ${email} already exists` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Send invite
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
       redirectTo: `${req.headers.get("origin") || supabaseUrl}`,
     });
 
-    console.log("Invite result:", !!data?.user, error?.message);
-
     if (error) {
+      console.log("Invite error:", error.message);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
