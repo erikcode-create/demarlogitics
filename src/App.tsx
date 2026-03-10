@@ -35,6 +35,8 @@ import CarrierPortalDocument from "./pages/CarrierPortalDocument";
 
 const queryClient = new QueryClient();
 
+const isPreviewMode = window.location.hostname.includes('preview') || window.location.hostname === 'localhost';
+
 function ProtectedRoutes() {
   const { session, loading } = useAuth();
 
@@ -46,36 +48,41 @@ function ProtectedRoutes() {
     );
   }
 
-  if (!session) {
+  if (!session && !isPreviewMode) {
     return <Navigate to="/auth" replace />;
   }
 
   return (
     <AppProvider>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/shippers" element={<Shippers />} />
-          <Route path="/shippers/:id" element={<ShipperDetail />} />
-          <Route path="/carriers" element={<Carriers />} />
-          <Route path="/carriers/:id" element={<CarrierDetail />} />
-          <Route path="/loads" element={<Loads />} />
-          <Route path="/loads/:id" element={<LoadDetail />} />
-          <Route path="/contracts" element={<Contracts />} />
-          <Route path="/contracts/new" element={<ContractNew />} />
-          <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
-          <Route path="/contracts/:id" element={<ContractDetail />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/sales/calls" element={<OutboundCalls />} />
-          <Route path="/sales/pipeline" element={<SalesPipeline />} />
-          <Route path="/sales/tasks" element={<SalesTasks />} />
-          <Route path="/sales/templates" element={<EmailTemplates />} />
-          <Route path="/sales/dashboard" element={<SalesDashboard />} />
-          <Route path="/sales/performance" element={<PerformanceTracker />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AppLayout>
+      <Routes>
+        <Route path="/" element={<SalesLanding />} />
+        <Route path="/*" element={
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/shippers" element={<Shippers />} />
+              <Route path="/shippers/:id" element={<ShipperDetail />} />
+              <Route path="/carriers" element={<Carriers />} />
+              <Route path="/carriers/:id" element={<CarrierDetail />} />
+              <Route path="/loads" element={<Loads />} />
+              <Route path="/loads/:id" element={<LoadDetail />} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/new" element={<ContractNew />} />
+              <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
+              <Route path="/contracts/:id" element={<ContractDetail />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/sales/calls" element={<OutboundCalls />} />
+              <Route path="/sales/pipeline" element={<SalesPipeline />} />
+              <Route path="/sales/tasks" element={<SalesTasks />} />
+              <Route path="/sales/templates" element={<EmailTemplates />} />
+              <Route path="/sales/dashboard" element={<SalesDashboard />} />
+              <Route path="/sales/performance" element={<PerformanceTracker />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        } />
+      </Routes>
     </AppProvider>
   );
 }
@@ -96,7 +103,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<SalesLanding />} />
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/portal" element={<CarrierPortalLogin />} />
