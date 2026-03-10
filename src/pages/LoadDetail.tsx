@@ -165,6 +165,47 @@ const LoadDetail = () => {
         </CardContent>
       </Card>
 
+      {/* Carrier Documents Status */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm">Carrier Document Status</CardTitle>
+          <Button variant="ghost" size="icon" onClick={fetchCarrierDocs} disabled={docsLoading}>
+            <RefreshCw className={`h-4 w-4 ${docsLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {carrierDocs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No documents sent to carrier yet. Use the builders above to save &amp; send.</p>
+          ) : (
+            <div className="space-y-3">
+              {carrierDocs.map(doc => {
+                const carrierName = carriers.find(c => c.id === doc.carrier_id)?.companyName || 'Unknown';
+                return (
+                  <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">{doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}</p>
+                        <p className="text-xs text-muted-foreground">Sent to {carrierName} · {new Date(doc.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {doc.status === 'signed' ? (
+                        <div>
+                          <Badge className="bg-success/20 text-success border-0">Signed</Badge>
+                          <p className="text-xs text-muted-foreground mt-1">by {doc.signed_by_name} · {new Date(doc.signed_at).toLocaleDateString()}</p>
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="text-warning border-warning/50">Pending Signature</Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       {/* POD & Invoice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
