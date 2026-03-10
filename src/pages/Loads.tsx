@@ -121,6 +121,7 @@ const Loads = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Load #</TableHead>
+                <TableHead>Ref #</TableHead>
                 <TableHead>Shipper</TableHead>
                 <TableHead>Origin → Dest</TableHead>
                 <TableHead>Pickup</TableHead>
