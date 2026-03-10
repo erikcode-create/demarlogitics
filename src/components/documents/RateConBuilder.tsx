@@ -58,21 +58,6 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     brokerEmail: 'dispatch@demartransportation.com',
     shipperName: shipper?.companyName || '',
     shipperAddress: shipper ? `${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}` : '',
-    carrierName: carrier?.companyName || '',
-    carrierMC: carrier?.mcNumber || '',
-    carrierDOT: carrier?.dotNumber || '',
-    origin: load.origin,
-    destination: load.destination,
-    pickupDate: load.pickupDate,
-    deliveryDate: load.deliveryDate,
-    equipment: equipmentTypeLabels[load.equipmentType] || load.equipmentType,
-    weight: load.weight.toLocaleString(),
-    carrierRate: load.carrierRate.toLocaleString(),
-    paymentTerms: carrier?.factoringCompany
-      ? `Pay to: ${carrier.factoringCompany} — ${carrier.factoringRemitTo}`
-      : 'Payment within 30 days of receipt of signed POD and invoice. Pay direct to carrier.',
-    specialInstructions: load.notes || '',
-  }));
 
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
 
