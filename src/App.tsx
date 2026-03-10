@@ -27,6 +27,7 @@ import EmailTemplates from "./pages/EmailTemplates";
 import SalesDashboard from "./pages/SalesDashboard";
 import PerformanceTracker from "./pages/PerformanceTracker";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ function ProtectedRoutes() {
               <Route path="/sales/templates" element={<EmailTemplates />} />
               <Route path="/sales/dashboard" element={<SalesDashboard />} />
               <Route path="/sales/performance" element={<PerformanceTracker />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>

@@ -7,18 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import demarLogo from '@/assets/demar-logo.png';
 
+const ADMIN_EMAIL = 'shayne@demartransportation.com';
+
 export default function Auth() {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (isSignUp) {
+    if (mode === 'signup') {
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -26,8 +28,6 @@ export default function Auth() {
       });
       if (error) {
         toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email.' });
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -38,16 +38,19 @@ export default function Auth() {
     setLoading(false);
   };
 
+  // Only show signup option for admin email
+  const showSignupToggle = email.toLowerCase() === ADMIN_EMAIL;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border">
         <CardHeader className="text-center space-y-4">
           <img src={demarLogo} alt="Demar Transportation" className="h-20 mx-auto" />
           <CardTitle className="text-2xl text-foreground">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {mode === 'signup' ? 'Create Admin Account' : 'Welcome Back'}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isSignUp ? 'Sign up to get started' : 'Sign in to your account'}
+            {mode === 'signup' ? 'Set up your admin account' : 'Sign in to your account'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -59,7 +62,7 @@ export default function Auth() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setMode('signin'); }}
                 required
               />
             </div>
@@ -76,17 +79,31 @@ export default function Auth() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+              {loading ? 'Loading...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
             </Button>
           </form>
           <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-primary hover:underline"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
+            {showSignupToggle && mode === 'signin' ? (
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className="text-sm text-primary hover:underline"
+              >
+                First time? Create your admin account
+              </button>
+            ) : showSignupToggle && mode === 'signup' ? (
+              <button
+                type="button"
+                onClick={() => setMode('signin')}
+                className="text-sm text-primary hover:underline"
+              >
+                Already have an account? Sign in
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Access is invite-only. Contact your admin for an invite.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
