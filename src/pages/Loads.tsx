@@ -30,8 +30,17 @@ const Loads = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newLoad, setNewLoad] = useState({
     shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
-    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType, referenceNumber: '',
+    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
   });
+
+  const generateRefNumber = (): string => {
+    const existing = new Set(loads.map(l => l.referenceNumber));
+    let ref: string;
+    do {
+      ref = String(Math.floor(10000000 + Math.random() * 90000000));
+    } while (existing.has(ref));
+    return ref;
+  };
 
   const filtered = loads.filter(l => {
     const shipper = shippers.find(s => s.id === l.shipperId);
@@ -52,12 +61,12 @@ const Loads = () => {
       pickupDate: newLoad.pickupDate, deliveryDate: newLoad.deliveryDate,
       shipperRate: Number(newLoad.shipperRate), carrierRate: 0, weight: Number(newLoad.weight),
       equipmentType: newLoad.equipmentType, status: 'available', podUploaded: false,
-      referenceNumber: newLoad.referenceNumber, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
+      referenceNumber: generateRefNumber(), invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
       notes: '', createdAt: new Date().toISOString().split('T')[0],
     };
     setLoads(prev => [...prev, load]);
     setDialogOpen(false);
-    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van', referenceNumber: '' });
+    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van' });
   };
 
   return (
@@ -84,7 +93,6 @@ const Loads = () => {
                 <div><Label>Pickup Date</Label><Input type="date" value={newLoad.pickupDate} onChange={e => setNewLoad(p => ({ ...p, pickupDate: e.target.value }))} /></div>
                 <div><Label>Delivery Date</Label><Input type="date" value={newLoad.deliveryDate} onChange={e => setNewLoad(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
               </div>
-              <div><Label>Reference # (PO/BOL)</Label><Input value={newLoad.referenceNumber} onChange={e => setNewLoad(p => ({ ...p, referenceNumber: e.target.value }))} placeholder="e.g. PO-12345" /></div>
               <div className="grid grid-cols-2 gap-2">
                 <div><Label>Shipper Rate ($)</Label><Input type="number" value={newLoad.shipperRate} onChange={e => setNewLoad(p => ({ ...p, shipperRate: e.target.value }))} /></div>
                 <div><Label>Weight (lbs)</Label><Input type="number" value={newLoad.weight} onChange={e => setNewLoad(p => ({ ...p, weight: e.target.value }))} /></div>
