@@ -138,6 +138,7 @@ const Loads = () => {
                 return (
                   <TableRow key={l.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/loads/${l.id}`)}>
                     <TableCell className="font-medium">{l.loadNumber}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{l.referenceNumber || '—'}</TableCell>
                     <TableCell className="text-sm">{shipper?.companyName || '—'}</TableCell>
                     <TableCell className="text-sm">{l.origin} → {l.destination}</TableCell>
                     <TableCell className="text-sm">{new Date(l.pickupDate).toLocaleDateString()}</TableCell>
