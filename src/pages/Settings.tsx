@@ -21,12 +21,7 @@ export default function Settings() {
     // Check admin via the has_role database function using current user id
     supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })
       .then(({ data, error }) => {
-        if (!error && data === true) {
-          setIsAdmin(true);
-        } else {
-          // Fallback: check if user email matches known admin
-          setIsAdmin(user.email === 'shayne@demartransportation.com');
-        }
+        setIsAdmin(!error && data === true);
         setLoading(false);
       });
   }, [user]);
