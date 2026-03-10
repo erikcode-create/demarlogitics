@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
 import { LoadStatus, PaymentStatus } from '@/types';
+import RateConBuilder from '@/components/documents/RateConBuilder';
+import BolBuilder from '@/components/documents/BolBuilder';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
