@@ -134,7 +134,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <FileText className="h-4 w-4" />Generate Rate Con

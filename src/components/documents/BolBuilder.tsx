@@ -33,7 +33,8 @@ const emptyLine = (): CommodityLine => ({
 
 const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
   const [open, setOpen] = useState(false);
-  const [fields, setFields] = useState(() => ({
+
+  const buildFields = () => ({
     bolNumber: `BOL-${load.loadNumber}`,
     date: new Date().toISOString().slice(0, 10),
     shipperName: shipper?.companyName || '',
@@ -46,7 +47,9 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
     pickupDate: load.pickupDate,
     equipment: equipmentTypeLabels[load.equipmentType] || load.equipmentType,
     specialInstructions: load.notes || '',
-  }));
+  });
+
+  const [fields, setFields] = useState(buildFields);
   const [commodities, setCommodities] = useState<CommodityLine[]>([
     { ...emptyLine(), weight: load.weight.toLocaleString() },
   ]);
