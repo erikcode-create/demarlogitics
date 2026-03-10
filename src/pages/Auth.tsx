@@ -29,12 +29,8 @@ export default function Auth() {
       <Card className="w-full max-w-md border-border">
         <CardHeader className="text-center space-y-4">
           <img src={demarLogo} alt="Demar Transportation" className="h-20 mx-auto" />
-          <CardTitle className="text-2xl text-foreground">
-            {mode === 'signup' ? 'Create Admin Account' : 'Welcome Back'}
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            {mode === 'signup' ? 'Set up your admin account' : 'Sign in to your account'}
-          </CardDescription>
+          <CardTitle className="text-2xl text-foreground">Welcome Back</CardTitle>
+          <CardDescription className="text-muted-foreground">Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -45,7 +41,7 @@ export default function Auth() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); setMode('signin'); }}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -62,31 +58,13 @@ export default function Auth() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+              {loading ? 'Loading...' : 'Sign In'}
             </Button>
           </form>
           <div className="mt-4 text-center">
-            {showSignupToggle && mode === 'signin' ? (
-              <button
-                type="button"
-                onClick={() => setMode('signup')}
-                className="text-sm text-primary hover:underline"
-              >
-                First time? Create your admin account
-              </button>
-            ) : showSignupToggle && mode === 'signup' ? (
-              <button
-                type="button"
-                onClick={() => setMode('signin')}
-                className="text-sm text-primary hover:underline"
-              >
-                Already have an account? Sign in
-              </button>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Access is invite-only. Contact your admin for an invite.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              Access is invite-only. Contact your admin for an invite.
+            </p>
           </div>
         </CardContent>
       </Card>
