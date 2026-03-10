@@ -36,6 +36,7 @@ const Loads = () => {
   const filtered = loads.filter(l => {
     const shipper = shippers.find(s => s.id === l.shipperId);
     const matchSearch = l.loadNumber.toLowerCase().includes(search.toLowerCase()) ||
+      (l.referenceNumber && l.referenceNumber.toLowerCase().includes(search.toLowerCase())) ||
       l.origin.toLowerCase().includes(search.toLowerCase()) ||
       l.destination.toLowerCase().includes(search.toLowerCase()) ||
       (shipper?.companyName.toLowerCase().includes(search.toLowerCase()));
