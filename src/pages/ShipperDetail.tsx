@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,8 @@ import { Contact, Lane, FollowUp, Activity, SalesStage, EquipmentType, ActivityT
 const ShipperDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const currentUserName = user?.email || 'Unknown';
   const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, stageChangeLogs, setStageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence } = useAppContext();
 
   const [contactDialog, setContactDialog] = useState(false);
@@ -65,13 +68,13 @@ const ShipperDetail = () => {
   };
 
   const addActivity = () => {
-    setActivities(prev => [...prev, { id: crypto.randomUUID(), entityId: id!, entityType: 'shipper', type: newActivity.type, description: newActivity.description, timestamp: new Date().toISOString(), user: 'Mike Demar' }]);
+    setActivities(prev => [...prev, { id: crypto.randomUUID(), entityId: id!, entityType: 'shipper', type: newActivity.type, description: newActivity.description, timestamp: new Date().toISOString(), user: currentUserName }]);
     setActivityDialog(false);
     setNewActivity({ type: 'call', description: '' });
   };
 
   const updateStage = (stage: SalesStage) => {
-    logStageChange(id!, shipper.salesStage, stage);
+    logStageChange(id!, shipper.salesStage, stage, currentUserName);
     setShippers(prev => prev.map(s => s.id === id ? { ...s, salesStage: stage } : s));
   };
 

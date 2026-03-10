@@ -29,7 +29,7 @@ interface AppContextType {
   setEmailTemplates: React.Dispatch<React.SetStateAction<EmailTemplate[]>>;
   stageChangeLogs: StageChangeLog[];
   setStageChangeLogs: React.Dispatch<React.SetStateAction<StageChangeLog[]>>;
-  logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage) => void;
+  logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
   triggerCadence: (shipperId: string) => void;
 }
 
@@ -174,14 +174,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     loadAll();
   }, []);
 
-  const logStageChange = useCallback((shipperId: string, fromStage: SalesStage, toStage: SalesStage) => {
+  const logStageChange = useCallback((shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => {
     const log: StageChangeLog = {
       id: crypto.randomUUID(),
       shipperId,
       fromStage,
       toStage,
       changedAt: new Date().toISOString(),
-      changedBy: 'Mike Demar',
+      changedBy: changedBy || 'Unknown',
     };
     setStageChangeLogs(prev => [...prev, log]);
   }, [setStageChangeLogs]);

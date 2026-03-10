@@ -22,14 +22,18 @@ export default function ContractDetail() {
 
   const contract = contracts.find(c => c.id === id);
 
+  const escapeHtml = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const handleExportPDF = useCallback(() => {
     if (!printRef.current) return;
     const printContent = printRef.current.innerHTML;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+    const safeTitle = escapeHtml(contract?.title ?? 'Contract');
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html><head><title>${contract?.title ?? 'Contract'}</title>
+      <html><head><title>${safeTitle}</title>
       <style>body{font-family:system-ui,sans-serif;padding:20mm;color:#111}
       @media print{body{padding:10mm}}</style></head>
       <body>${printContent}</body></html>

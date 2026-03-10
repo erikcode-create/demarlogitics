@@ -6,17 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function decodeJwtPayload(token: string): any {
-  try {
-    const parts = token.replace("Bearer ", "").split(".");
-    if (parts.length !== 3) return null;
-    const payload = atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(payload);
-  } catch {
-    return null;
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,49 +13,46 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const jwtPayload = decodeJwtPayload(authHeader);
-    const userEmail = jwtPayload?.email;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!userEmail) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
+    // Verify JWT cryptographically using Supabase's built-in validation
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const userId = claimsData.claims.sub;
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Invalid token: no user ID" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Find the actual DB user by email
-    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
-    if (listError) {
-      return new Response(JSON.stringify({ error: "Failed to verify admin status" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const dbUser = users?.find((u: any) => u.email === userEmail);
-    if (!dbUser) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Check admin role
+    // Check admin role using verified user ID
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", dbUser.id)
+      .eq("user_id", userId)
       .eq("role", "admin")
       .single();
 
@@ -87,6 +73,16 @@ Deno.serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "https://demarlogitics.lovable.app";
+
+    // Check if user already exists
+    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
+    if (listError) {
+      return new Response(JSON.stringify({ error: "Failed to check existing users" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const existingUser = users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
 
     // If user exists, delete and re-invite (allows resending invites)
