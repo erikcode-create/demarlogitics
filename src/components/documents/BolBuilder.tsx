@@ -54,6 +54,14 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
     { ...emptyLine(), weight: load.weight.toLocaleString() },
   ]);
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      setFields(buildFields());
+      setCommodities([{ ...emptyLine(), weight: load.weight.toLocaleString() }]);
+    }
+    setOpen(isOpen);
+  };
+
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
 
   const updateCommodity = (idx: number, key: keyof CommodityLine, value: string | boolean) => {
