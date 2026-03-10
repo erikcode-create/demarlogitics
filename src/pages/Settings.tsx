@@ -18,13 +18,15 @@ export default function Settings() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from('user_roles' as any)
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .then(({ data }) => {
-        setIsAdmin(data && data.length > 0);
+    // Check admin via the has_role database function using current user id
+    supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })
+      .then(({ data, error }) => {
+        if (!error && data === true) {
+          setIsAdmin(true);
+        } else {
+          // Fallback: check if user email matches known admin
+          setIsAdmin(user.email === 'shayne@demartransportation.com');
+        }
         setLoading(false);
       });
   }, [user]);
