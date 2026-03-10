@@ -50,15 +50,6 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     if (isOpen) setFields(buildFields());
     setOpen(isOpen);
   };
-    loadNumber: load.loadNumber,
-    refNumber: load.referenceNumber,
-    brokerName: 'DeMar Transportation',
-    brokerAddress: '123 Broker Lane, Dallas, TX 75201',
-    brokerPhone: '(555) 555-0100',
-    brokerEmail: 'dispatch@demartransportation.com',
-    shipperName: shipper?.companyName || '',
-    shipperAddress: shipper ? `${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}` : '',
-
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
 
   const exportPdf = () => {
