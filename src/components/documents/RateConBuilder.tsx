@@ -18,7 +18,8 @@ interface RateConBuilderProps {
 
 const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   const [open, setOpen] = useState(false);
-  const [fields, setFields] = useState(() => ({
+
+  const buildFields = () => ({
     loadNumber: load.loadNumber,
     refNumber: load.referenceNumber,
     brokerName: 'DeMar Transportation',
@@ -41,8 +42,14 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
       ? `Pay to: ${carrier.factoringCompany} — ${carrier.factoringRemitTo}`
       : 'Payment within 30 days of receipt of signed POD and invoice. Pay direct to carrier.',
     specialInstructions: load.notes || '',
-  }));
+  });
 
+  const [fields, setFields] = useState(buildFields);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) setFields(buildFields());
+    setOpen(isOpen);
+  };
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
 
   const exportPdf = () => {
@@ -127,7 +134,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <FileText className="h-4 w-4" />Generate Rate Con

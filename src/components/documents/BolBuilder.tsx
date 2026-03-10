@@ -33,7 +33,8 @@ const emptyLine = (): CommodityLine => ({
 
 const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
   const [open, setOpen] = useState(false);
-  const [fields, setFields] = useState(() => ({
+
+  const buildFields = () => ({
     bolNumber: `BOL-${load.loadNumber}`,
     date: new Date().toISOString().slice(0, 10),
     shipperName: shipper?.companyName || '',
@@ -46,10 +47,20 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
     pickupDate: load.pickupDate,
     equipment: equipmentTypeLabels[load.equipmentType] || load.equipmentType,
     specialInstructions: load.notes || '',
-  }));
+  });
+
+  const [fields, setFields] = useState(buildFields);
   const [commodities, setCommodities] = useState<CommodityLine[]>([
     { ...emptyLine(), weight: load.weight.toLocaleString() },
   ]);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      setFields(buildFields());
+      setCommodities([{ ...emptyLine(), weight: load.weight.toLocaleString() }]);
+    }
+    setOpen(isOpen);
+  };
 
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
 
@@ -153,7 +164,7 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <ClipboardList className="h-4 w-4" />Generate BOL
