@@ -111,6 +111,7 @@ const App = () => (
             <Route path="/portal" element={<CarrierPortalLogin />} />
             <Route path="/portal/documents" element={<CarrierPortalDashboard />} />
             <Route path="/portal/documents/:id" element={<CarrierPortalDocument />} />
+            <Route path="/portal/preview/:carrierId" element={<CarrierPortalPreview />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
