@@ -94,7 +94,6 @@ const Loads = () => {
                 <div><Label>Delivery Date</Label><Input type="date" value={newLoad.deliveryDate} onChange={e => setNewLoad(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-              <div className="grid grid-cols-2 gap-2">
                 <div><Label>Shipper Rate ($)</Label><Input type="number" value={newLoad.shipperRate} onChange={e => setNewLoad(p => ({ ...p, shipperRate: e.target.value }))} /></div>
                 <div><Label>Weight (lbs)</Label><Input type="number" value={newLoad.weight} onChange={e => setNewLoad(p => ({ ...p, weight: e.target.value }))} /></div>
               </div>
