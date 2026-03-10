@@ -51,12 +51,12 @@ const Loads = () => {
       pickupDate: newLoad.pickupDate, deliveryDate: newLoad.deliveryDate,
       shipperRate: Number(newLoad.shipperRate), carrierRate: 0, weight: Number(newLoad.weight),
       equipmentType: newLoad.equipmentType, status: 'available', podUploaded: false,
-      invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
+      referenceNumber: newLoad.referenceNumber, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
       notes: '', createdAt: new Date().toISOString().split('T')[0],
     };
     setLoads(prev => [...prev, load]);
     setDialogOpen(false);
-    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van' });
+    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van', referenceNumber: '' });
   };
 
   return (
