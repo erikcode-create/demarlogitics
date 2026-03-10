@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Download, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface CarrierDocument {
   id: string;
@@ -23,6 +23,8 @@ interface CarrierDocument {
   load_id: string;
 }
 
+const REQUIRED_DOC_TYPES = ['w9', 'workers_comp', 'certificate_of_insurance', 'mc_authority_letter', 'notice_of_assignment'];
+
 const CarrierPortalDocument = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -31,6 +33,8 @@ const CarrierPortalDocument = () => {
   const [sigName, setSigName] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
   useEffect(() => {
     const fetchDoc = async () => {
@@ -40,7 +44,21 @@ const CarrierPortalDocument = () => {
         .eq('id', id)
         .single();
 
-      setDoc(data as CarrierDocument | null);
+      const docData = data as CarrierDocument | null;
+      setDoc(docData);
+
+      if (docData) {
+        // Check onboarding status
+        const { data: onboardingDocs } = await supabase
+          .from('carrier_onboarding_documents')
+          .select('document_type')
+          .eq('carrier_id', docData.carrier_id);
+
+        const uploadedTypes = (onboardingDocs || []).map((d: any) => d.document_type);
+        const complete = REQUIRED_DOC_TYPES.every(t => uploadedTypes.includes(t));
+        setOnboardingComplete(complete);
+      }
+      setCheckingOnboarding(false);
       setLoading(false);
     };
     fetchDoc();
@@ -107,7 +125,7 @@ ${doc.status === 'signed' ? `<div class="sig-section"><p style="font-weight:bold
     if (win) { win.document.write(html); win.document.close(); win.print(); }
   };
 
-  if (loading) {
+  if (loading || checkingOnboarding) {
     return (
       <CarrierPortalLayout>
         <div className="flex items-center justify-center py-20">
@@ -123,6 +141,34 @@ ${doc.status === 'signed' ? `<div class="sig-section"><p style="font-weight:bold
         <div className="text-center py-20">
           <p className="text-muted-foreground">Document not found.</p>
           <Button variant="link" onClick={() => navigate('/portal/documents')}>Back to Documents</Button>
+        </div>
+      </CarrierPortalLayout>
+    );
+  }
+
+  // Onboarding gate
+  if (!onboardingComplete) {
+    return (
+      <CarrierPortalLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/portal/documents')}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-xl font-bold text-foreground">Onboarding Required</h2>
+          </div>
+          <Card className="border-orange-300">
+            <CardContent className="py-8 text-center space-y-4">
+              <AlertCircle className="h-12 w-12 text-orange-500 mx-auto" />
+              <h3 className="text-lg font-semibold text-foreground">Complete Your Onboarding First</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                You must upload all required documents (W-9, Workers Comp, Certificate of Insurance, MC Authority Letter, and Notice of Assignment) before you can view or sign rate confirmations.
+              </p>
+              <Button onClick={() => navigate('/portal/documents')}>
+                Go to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </CarrierPortalLayout>
     );

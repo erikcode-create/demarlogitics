@@ -95,6 +95,41 @@ export type Database = {
           },
         ]
       }
+      carrier_onboarding_documents: {
+        Row: {
+          carrier_id: string
+          document_type: string
+          file_name: string
+          file_path: string
+          id: string
+          uploaded_at: string
+        }
+        Insert: {
+          carrier_id: string
+          document_type: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          uploaded_at?: string
+        }
+        Update: {
+          carrier_id?: string
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_onboarding_documents_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_portal_users: {
         Row: {
           carrier_id: string

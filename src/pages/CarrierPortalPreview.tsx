@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CarrierPortalLayout } from '@/components/layout/CarrierPortalLayout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, ClipboardList, Eye } from 'lucide-react';
+import { FileText, ClipboardList, Eye, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface CarrierDocument {
   id: string;
@@ -17,12 +18,21 @@ interface CarrierDocument {
   load_id: string;
 }
 
+const REQUIRED_DOCS = [
+  { key: 'w9', label: 'W-9' },
+  { key: 'workers_comp', label: 'Workers Compensation' },
+  { key: 'certificate_of_insurance', label: 'Certificate of Insurance' },
+  { key: 'mc_authority_letter', label: 'MC Authority Letter (FMCSA)' },
+  { key: 'notice_of_assignment', label: 'Notice of Assignment' },
+] as const;
+
 const CarrierPortalPreview = () => {
   const { carrierId } = useParams<{ carrierId: string }>();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<CarrierDocument[]>([]);
   const [carrierName, setCarrierName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [uploadedDocs, setUploadedDocs] = useState<string[]>([]);
 
   useEffect(() => {
     if (!carrierId) return;
@@ -36,18 +46,28 @@ const CarrierPortalPreview = () => {
 
       setCarrierName(carrier?.company_name || 'Unknown Carrier');
 
-      const { data: docs } = await supabase
-        .from('carrier_documents')
-        .select('*')
-        .eq('carrier_id', carrierId)
-        .order('created_at', { ascending: false });
+      const [docsRes, onboardingRes] = await Promise.all([
+        supabase
+          .from('carrier_documents')
+          .select('*')
+          .eq('carrier_id', carrierId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('carrier_onboarding_documents')
+          .select('document_type')
+          .eq('carrier_id', carrierId),
+      ]);
 
-      setDocuments((docs as CarrierDocument[]) || []);
+      setDocuments((docsRes.data as CarrierDocument[]) || []);
+      setUploadedDocs((onboardingRes.data || []).map((d: any) => d.document_type));
       setLoading(false);
     };
 
     fetchData();
   }, [carrierId]);
+
+  const completedCount = REQUIRED_DOCS.filter(d => uploadedDocs.includes(d.key)).length;
+  const isOnboardingComplete = completedCount === REQUIRED_DOCS.length;
 
   if (loading) {
     return (
@@ -70,15 +90,46 @@ const CarrierPortalPreview = () => {
           </span>
         </div>
 
+        {/* Onboarding Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              {isOnboardingComplete ? (
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-orange-500" />
+              )}
+              Onboarding Status: {completedCount}/{REQUIRED_DOCS.length} Documents
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Progress value={(completedCount / REQUIRED_DOCS.length) * 100} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {REQUIRED_DOCS.map((doc) => (
+                <div key={doc.key} className="flex items-center gap-2 text-sm">
+                  {uploadedDocs.includes(doc.key) ? (
+                    <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                  ) : (
+                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                  )}
+                  <span className={uploadedDocs.includes(doc.key) ? 'text-foreground' : 'text-muted-foreground'}>
+                    {doc.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <div>
-          <h2 className="text-xl font-bold text-foreground">Your Documents</h2>
-          <p className="text-sm text-muted-foreground">View and sign your rate confirmations and bills of lading</p>
+          <h2 className="text-xl font-bold text-foreground">Documents</h2>
+          <p className="text-sm text-muted-foreground">Rate confirmations and bills of lading</p>
         </div>
 
         {documents.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              No documents yet. Documents will appear here when your broker sends them.
+              No documents yet.
             </CardContent>
           </Card>
         ) : (
