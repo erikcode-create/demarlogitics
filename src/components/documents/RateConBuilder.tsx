@@ -179,7 +179,36 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
           <div><Label>Payment Terms</Label><Textarea value={fields.paymentTerms} onChange={e => update('paymentTerms', e.target.value)} /></div>
           <div><Label>Special Instructions</Label><Textarea value={fields.specialInstructions} onChange={e => update('specialInstructions', e.target.value)} /></div>
 
-          <Button onClick={exportPdf} className="w-full">Export PDF</Button>
+          <div className="flex gap-2">
+            <Button onClick={exportPdf} className="flex-1">Export PDF</Button>
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              disabled={!carrier}
+              onClick={async () => {
+                if (!carrier || !load.carrierId) return;
+                const { error } = await supabase.from('carrier_documents').insert({
+                  carrier_id: load.carrierId,
+                  load_id: load.id,
+                  type: 'rate_con',
+                  document_data: fields as any,
+                  status: 'pending',
+                });
+                if (error) {
+                  toast({ title: 'Error', description: error.message, variant: 'destructive' });
+                } else {
+                  // Send magic link
+                  await supabase.functions.invoke('send-carrier-magic-link', {
+                    body: { carrier_id: load.carrierId },
+                  });
+                  toast({ title: 'Sent to Carrier Portal', description: `Rate con saved and magic link sent to ${carrier.email}` });
+                  setOpen(false);
+                }
+              }}
+            >
+              <Send className="h-4 w-4" />Save & Send to Carrier
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

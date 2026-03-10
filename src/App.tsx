@@ -103,6 +103,9 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/portal" element={<CarrierPortalLogin />} />
+            <Route path="/portal/documents" element={<CarrierPortalDashboard />} />
+            <Route path="/portal/documents/:id" element={<CarrierPortalDocument />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
