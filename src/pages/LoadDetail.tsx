@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
 import { LoadStatus, PaymentStatus } from '@/types';
+import RateConBuilder from '@/components/documents/RateConBuilder';
+import BolBuilder from '@/components/documents/BolBuilder';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
@@ -139,6 +141,15 @@ const LoadDetail = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Documents */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Documents</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <RateConBuilder load={load} shipper={shipper} carrier={carrier} />
+          <BolBuilder load={load} shipper={shipper} carrier={carrier} />
+        </CardContent>
+      </Card>
 
       {/* POD & Invoice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
