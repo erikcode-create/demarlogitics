@@ -1,15 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
 import { LoadStatus, PaymentStatus } from '@/types';
 import RateConBuilder from '@/components/documents/RateConBuilder';
 import BolBuilder from '@/components/documents/BolBuilder';
-
+import { supabase } from '@/integrations/supabase/client';
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
   booked: 'bg-blue-500/20 text-blue-400',
