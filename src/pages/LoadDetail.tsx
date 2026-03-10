@@ -1,15 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
 import { LoadStatus, PaymentStatus } from '@/types';
 import RateConBuilder from '@/components/documents/RateConBuilder';
 import BolBuilder from '@/components/documents/BolBuilder';
-
+import { supabase } from '@/integrations/supabase/client';
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
   booked: 'bg-blue-500/20 text-blue-400',
@@ -24,7 +25,25 @@ const LoadDetail = () => {
   const navigate = useNavigate();
   const { loads, setLoads, shippers, carriers } = useAppContext();
 
+  const [carrierDocs, setCarrierDocs] = useState<any[]>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+
   const load = loads.find(l => l.id === id);
+
+  const fetchCarrierDocs = async () => {
+    if (!id) return;
+    setDocsLoading(true);
+    const { data } = await supabase
+      .from('carrier_documents')
+      .select('id, type, status, signed_by_name, signed_at, created_at, carrier_id')
+      .eq('load_id', id)
+      .order('created_at', { ascending: false });
+    setCarrierDocs(data || []);
+    setDocsLoading(false);
+  };
+
+  useEffect(() => { fetchCarrierDocs(); }, [id]);
+
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
 
   const shipper = shippers.find(s => s.id === load.shipperId);
@@ -151,6 +170,47 @@ const LoadDetail = () => {
         </CardContent>
       </Card>
 
+      {/* Carrier Documents Status */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm">Carrier Document Status</CardTitle>
+          <Button variant="ghost" size="icon" onClick={fetchCarrierDocs} disabled={docsLoading}>
+            <RefreshCw className={`h-4 w-4 ${docsLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {carrierDocs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No documents sent to carrier yet. Use the builders above to save &amp; send.</p>
+          ) : (
+            <div className="space-y-3">
+              {carrierDocs.map(doc => {
+                const carrierName = carriers.find(c => c.id === doc.carrier_id)?.companyName || 'Unknown';
+                return (
+                  <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">{doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}</p>
+                        <p className="text-xs text-muted-foreground">Sent to {carrierName} · {new Date(doc.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {doc.status === 'signed' ? (
+                        <div>
+                          <Badge className="bg-success/20 text-success border-0">Signed</Badge>
+                          <p className="text-xs text-muted-foreground mt-1">by {doc.signed_by_name} · {new Date(doc.signed_at).toLocaleDateString()}</p>
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="text-warning border-warning/50">Pending Signature</Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       {/* POD & Invoice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
