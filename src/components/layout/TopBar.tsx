@@ -1,10 +1,14 @@
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, LogOut, Search } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
 
 export function TopBar() {
+  const { user, signOut } = useAuth();
+  const initials = user?.email?.slice(0, 2).toUpperCase() ?? 'U';
+
   return (
     <header className="h-14 flex items-center justify-between border-b border-border bg-card px-4">
       <div className="flex items-center gap-3">
@@ -20,8 +24,11 @@ export function TopBar() {
           <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">3</span>
         </Button>
         <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs">MD</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
         </Avatar>
+        <Button variant="ghost" size="icon" onClick={signOut} title="Sign out">
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </header>
   );
