@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus } from 'lucide-react';
-import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
+import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 
 const statusColors: Record<string, string> = {
@@ -22,16 +22,20 @@ const statusColors: Record<string, string> = {
   paid: 'bg-primary/20 text-primary',
 };
 
+const emptyForm = {
+  shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
+  shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
+};
+
 const Loads = () => {
   const { loads, setLoads, shippers, carriers } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newLoad, setNewLoad] = useState({
-    shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
-    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
-  });
+  const [editingLoad, setEditingLoad] = useState<Load | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
+  const [formData, setFormData] = useState(emptyForm);
 
   const generateRefNumber = (): string => {
     const existing = new Set(loads.map(l => l.referenceNumber));
@@ -53,62 +57,130 @@ const Loads = () => {
     return matchSearch && matchStatus;
   });
 
-  const handleAdd = () => {
-    const loadNum = `DT-2026-${String(loads.length + 1).padStart(3, '0')}`;
-    const load: Load = {
-      id: crypto.randomUUID(), loadNumber: loadNum, shipperId: newLoad.shipperId, carrierId: null,
-      origin: newLoad.origin, destination: newLoad.destination,
-      pickupDate: newLoad.pickupDate, deliveryDate: newLoad.deliveryDate,
-      shipperRate: Number(newLoad.shipperRate), carrierRate: 0, weight: Number(newLoad.weight),
-      equipmentType: newLoad.equipmentType, status: 'available', podUploaded: false,
-      referenceNumber: generateRefNumber(), invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
-      notes: '', createdAt: new Date().toISOString().split('T')[0],
-    };
-    setLoads(prev => [...prev, load]);
+  const openCreate = () => {
+    setEditingLoad(null);
+    setFormData(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (e: React.MouseEvent, load: Load) => {
+    e.stopPropagation();
+    setEditingLoad(load);
+    setFormData({
+      shipperId: load.shipperId,
+      origin: load.origin,
+      destination: load.destination,
+      pickupDate: load.pickupDate,
+      deliveryDate: load.deliveryDate,
+      shipperRate: String(load.shipperRate),
+      weight: String(load.weight),
+      equipmentType: load.equipmentType,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = () => {
+    if (editingLoad) {
+      setLoads(prev => prev.map(l => l.id === editingLoad.id ? {
+        ...l,
+        shipperId: formData.shipperId,
+        origin: formData.origin,
+        destination: formData.destination,
+        pickupDate: formData.pickupDate,
+        deliveryDate: formData.deliveryDate,
+        shipperRate: Number(formData.shipperRate),
+        weight: Number(formData.weight),
+        equipmentType: formData.equipmentType,
+      } : l));
+    } else {
+      const loadNum = `DT-2026-${String(loads.length + 1).padStart(3, '0')}`;
+      const load: Load = {
+        id: crypto.randomUUID(), loadNumber: loadNum, shipperId: formData.shipperId, carrierId: null,
+        origin: formData.origin, destination: formData.destination,
+        pickupDate: formData.pickupDate, deliveryDate: formData.deliveryDate,
+        shipperRate: Number(formData.shipperRate), carrierRate: 0, weight: Number(formData.weight),
+        equipmentType: formData.equipmentType, status: 'available', podUploaded: false,
+        referenceNumber: generateRefNumber(), invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
+        notes: '', createdAt: new Date().toISOString().split('T')[0],
+      };
+      setLoads(prev => [...prev, load]);
+    }
     setDialogOpen(false);
-    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van' });
+    setEditingLoad(null);
+    setFormData(emptyForm);
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    setLoads(prev => prev.filter(l => l.id !== deleteTarget.id));
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = (e: React.MouseEvent, load: Load) => {
+    e.stopPropagation();
+    setDeleteTarget(load);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Load Board</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus className="mr-1 h-4 w-4" />New Load</Button></DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Create Load</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <Label>Shipper</Label>
-                <Select value={newLoad.shipperId} onValueChange={v => setNewLoad(p => ({ ...p, shipperId: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Select shipper" /></SelectTrigger>
-                  <SelectContent>{shippers.map(s => <SelectItem key={s.id} value={s.id}>{s.companyName}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Origin</Label><Input value={newLoad.origin} onChange={e => setNewLoad(p => ({ ...p, origin: e.target.value }))} /></div>
-                <div><Label>Destination</Label><Input value={newLoad.destination} onChange={e => setNewLoad(p => ({ ...p, destination: e.target.value }))} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Pickup Date</Label><Input type="date" value={newLoad.pickupDate} onChange={e => setNewLoad(p => ({ ...p, pickupDate: e.target.value }))} /></div>
-                <div><Label>Delivery Date</Label><Input type="date" value={newLoad.deliveryDate} onChange={e => setNewLoad(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Shipper Rate ($)</Label><Input type="number" value={newLoad.shipperRate} onChange={e => setNewLoad(p => ({ ...p, shipperRate: e.target.value }))} /></div>
-                <div><Label>Weight (lbs)</Label><Input type="number" value={newLoad.weight} onChange={e => setNewLoad(p => ({ ...p, weight: e.target.value }))} /></div>
-              </div>
-              <div>
-                <Label>Equipment</Label>
-                <Select value={newLoad.equipmentType} onValueChange={(v: EquipmentType) => setNewLoad(p => ({ ...p, equipmentType: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{Object.entries(equipmentTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleAdd} className="w-full" disabled={!newLoad.shipperId || !newLoad.origin}>Create Load</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button size="sm" onClick={openCreate}><Plus className="mr-1 h-4 w-4" />New Load</Button>
       </div>
+
+      {/* Create / Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingLoad(null); setFormData(emptyForm); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editingLoad ? 'Edit Load' : 'Create Load'}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Shipper</Label>
+              <Select value={formData.shipperId} onValueChange={v => setFormData(p => ({ ...p, shipperId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select shipper" /></SelectTrigger>
+                <SelectContent>{shippers.map(s => <SelectItem key={s.id} value={s.id}>{s.companyName}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Origin</Label><Input value={formData.origin} onChange={e => setFormData(p => ({ ...p, origin: e.target.value }))} /></div>
+              <div><Label>Destination</Label><Input value={formData.destination} onChange={e => setFormData(p => ({ ...p, destination: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Pickup Date</Label><Input type="date" value={formData.pickupDate} onChange={e => setFormData(p => ({ ...p, pickupDate: e.target.value }))} /></div>
+              <div><Label>Delivery Date</Label><Input type="date" value={formData.deliveryDate} onChange={e => setFormData(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Shipper Rate ($)</Label><Input type="number" value={formData.shipperRate} onChange={e => setFormData(p => ({ ...p, shipperRate: e.target.value }))} /></div>
+              <div><Label>Weight (lbs)</Label><Input type="number" value={formData.weight} onChange={e => setFormData(p => ({ ...p, weight: e.target.value }))} /></div>
+            </div>
+            <div>
+              <Label>Equipment</Label>
+              <Select value={formData.equipmentType} onValueChange={(v: EquipmentType) => setFormData(p => ({ ...p, equipmentType: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{Object.entries(equipmentTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleSave} className="w-full" disabled={!formData.shipperId || !formData.origin}>
+              {editingLoad ? 'Save Changes' : 'Create Load'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Load</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <span className="font-semibold">{deleteTarget?.loadNumber}</span>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-3">
         <div className="relative flex-1">
@@ -137,6 +209,7 @@ const Loads = () => {
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Rate</TableHead>
                 <TableHead className="text-right">Margin</TableHead>
+                <TableHead className="w-20"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -150,7 +223,7 @@ const Loads = () => {
                     <TableCell className="text-sm text-muted-foreground">{l.referenceNumber || '—'}</TableCell>
                     <TableCell className="text-sm">{shipper?.companyName || '—'}</TableCell>
                     <TableCell className="text-sm">{l.origin} → {l.destination}</TableCell>
-                    <TableCell className="text-sm">{new Date(l.pickupDate).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-sm">{l.pickupDate ? new Date(l.pickupDate).toLocaleDateString() : '—'}</TableCell>
                     <TableCell><Badge className={statusColors[l.status]}>{loadStatusLabels[l.status]}</Badge></TableCell>
                     <TableCell className="text-right font-medium">${l.shipperRate.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
@@ -160,11 +233,21 @@ const Loads = () => {
                         </span>
                       ) : '—'}
                     </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => openEdit(e, l)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => confirmDelete(e, l)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No loads found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No loads found</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
