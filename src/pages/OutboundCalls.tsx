@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,8 @@ const outcomeColors: Record<string, string> = {
 
 const OutboundCalls = () => {
   const { shippers, setShippers, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, logStageChange } = useAppContext();
+  const { user } = useAuth();
+  const currentUserName = user?.email || 'Unknown';
   const [search, setSearch] = useState('');
   const [outcomeFilter, setOutcomeFilter] = useState<string>('all');
 
@@ -38,14 +41,13 @@ const OutboundCalls = () => {
     notes: '',
     nextStep: 'follow_up_call' as TaskNextStep,
     nextFollowUpDate: '',
-    assignedSalesRep: 'Mike Demar',
+    assignedSalesRep: '',
   });
 
   const selectedShipper = shippers.find(s => s.id === form.shipperId);
 
   const handleShipperChange = (shipperId: string) => {
     const shipper = shippers.find(s => s.id === shipperId);
-    const prevCalls = outboundCalls.filter(c => c.shipperId === shipperId).length;
     setForm(prev => ({
       ...prev,
       shipperId,
@@ -53,6 +55,7 @@ const OutboundCalls = () => {
       directPhone: shipper?.directPhone || '',
       email: shipper?.email || '',
       callOutcome: 'no_answer',
+      assignedSalesRep: currentUserName,
     }));
   };
 
@@ -73,7 +76,7 @@ const OutboundCalls = () => {
       notes: form.notes,
       nextStep: form.nextStep,
       nextFollowUpDate: form.nextFollowUpDate,
-      assignedSalesRep: form.assignedSalesRep,
+      assignedSalesRep: form.assignedSalesRep || currentUserName,
       createdAt: new Date().toISOString(),
     };
     setOutboundCalls(prev => [call, ...prev]);
@@ -85,7 +88,7 @@ const OutboundCalls = () => {
     if (form.callOutcome === 'spoke_quote_requested') {
       const shipper = shippers.find(s => s.id === form.shipperId);
       if (shipper && shipper.salesStage !== 'quoting') {
-        logStageChange(form.shipperId, shipper.salesStage, 'quoting');
+        logStageChange(form.shipperId, shipper.salesStage, 'quoting', currentUserName);
         setShippers(prev => prev.map(s => s.id === form.shipperId ? { ...s, salesStage: 'quoting' } : s));
         setSalesTasks(prev => [...prev, {
           id: crypto.randomUUID(),
@@ -105,11 +108,11 @@ const OutboundCalls = () => {
     if (['lead', 'prospect'].includes(shippers.find(s => s.id === form.shipperId)?.salesStage || '') && form.callOutcome !== 'spoke_quote_requested') {
       const shipper = shippers.find(s => s.id === form.shipperId)!;
       const newStage = form.callOutcome.startsWith('spoke') ? 'engaged' : 'contacted';
-      logStageChange(form.shipperId, shipper.salesStage, newStage);
+      logStageChange(form.shipperId, shipper.salesStage, newStage, currentUserName);
       setShippers(prev => prev.map(s => s.id === form.shipperId ? { ...s, salesStage: newStage } : s));
     }
 
-    setForm({ shipperId: '', contactName: '', contactTitle: '', directPhone: '', email: '', callOutcome: 'no_answer', painPoint: '', notes: '', nextStep: 'follow_up_call', nextFollowUpDate: '', assignedSalesRep: 'Mike Demar' });
+    setForm({ shipperId: '', contactName: '', contactTitle: '', directPhone: '', email: '', callOutcome: 'no_answer', painPoint: '', notes: '', nextStep: 'follow_up_call', nextFollowUpDate: '', assignedSalesRep: currentUserName });
   };
 
   const filtered = useMemo(() => {
