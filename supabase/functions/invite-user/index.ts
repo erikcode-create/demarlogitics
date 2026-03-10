@@ -96,8 +96,9 @@ Deno.serve(async (req) => {
     }
 
     // Send invite
+    const origin = req.headers.get("origin") || "https://demarlogitics.lovable.app";
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${req.headers.get("origin") || supabaseUrl}`,
+      redirectTo: `${origin}/set-password`,
     });
 
     if (error) {

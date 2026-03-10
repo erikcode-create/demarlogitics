@@ -1,25 +1,23 @@
 
 
-## Problem
+## Change Sales Page Route to Root Path
 
-When invited users click their email link, they land on the Auth page which only has a password login form. They have no password yet, so they can't sign in. The invite magic link includes a token in the URL that needs to be detected and exchanged to authenticate the user, then they should be prompted to set a password.
+Since the sales/landing page is the public-facing website, it makes sense to serve it at `/` (the root) — the natural "homepage" URL.
 
-## Plan
+### Changes
 
-### 1. Create a Set Password page (`src/pages/SetPassword.tsx`)
-- Detects the invite/recovery token from the URL hash on mount
-- Calls `supabase.auth.verifyOtp()` with `type: 'invite'` to exchange the token
-- Shows a "Set your password" form once authenticated
-- Calls `supabase.auth.updateUser({ password })` to save the password
-- Redirects to `/dashboard` on success
+**1. `src/App.tsx`** — Change the route from `/sales-page` to `/`; move the CRM app routes under a `/app/*` or `/crm/*` prefix, or keep them as-is with the sales page taking priority at `/`.
 
-### 2. Update Auth page (`src/pages/Auth.tsx`)
-- On mount, check URL hash for `type=invite` or `type=signup` tokens
-- If found, redirect to `/set-password` with the hash preserved
+Actually, looking at the current routing: the `Index` page currently lives at `/` inside the AppLayout. The simplest approach:
+- Move `SalesLanding` to `/` 
+- Change `/sales-page` → `/`
+- Keep the CRM routes as they are (they all have specific paths like `/dashboard`, `/loads`, etc.)
+- Update the `Index` redirect or remove it
 
-### 3. Add route in `src/App.tsx`
-- Add `/set-password` as a public route (alongside `/auth`)
+**2. `src/components/layout/AppSidebar.tsx`** — Update the logo link from `/sales-page` to `/`.
 
-### 4. Update Edge Function redirect
-- Change `redirectTo` in `invite-user/index.ts` to point to the app's origin + `/set-password` so invited users land directly on the password setup page
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Route `/sales-page` → `/`, adjust Index route |
+| `src/components/layout/AppSidebar.tsx` | Logo link href `/sales-page` → `/` |
 

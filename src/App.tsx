@@ -7,6 +7,7 @@ import { AppProvider } from "@/context/AppContext";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Auth from "./pages/Auth";
+import SetPassword from "./pages/SetPassword";
 import SalesLanding from "./pages/SalesLanding";
 import Dashboard from "./pages/Dashboard";
 import Shippers from "./pages/Shippers";
@@ -98,6 +99,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
+            <Route path="/set-password" element={<SetPassword />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
