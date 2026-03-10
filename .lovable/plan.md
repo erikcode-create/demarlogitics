@@ -1,23 +1,26 @@
 
 
-## Change Sales Page Route to Root Path
+## Plan: Add "Preview as Carrier" button to Carrier Detail page
 
-Since the sales/landing page is the public-facing website, it makes sense to serve it at `/` (the root) — the natural "homepage" URL.
+**What**: Add a button on the CarrierDetail page that opens the carrier portal in a new tab/modal, simulating the carrier's view. Since the portal normally requires auth + carrier_portal_users linking, we'll create a preview route that accepts a carrier ID as a query param and renders the portal with mock/direct data.
 
-### Changes
+### Approach
 
-**1. `src/App.tsx`** — Change the route from `/sales-page` to `/`; move the CRM app routes under a `/app/*` or `/crm/*` prefix, or keep them as-is with the sales page taking priority at `/`.
+1. **Add a new route** `/portal/preview/:carrierId` that renders the CarrierPortalDashboard in "preview mode" — fetching documents directly by carrier_id instead of requiring auth-based carrier lookup.
 
-Actually, looking at the current routing: the `Index` page currently lives at `/` inside the AppLayout. The simplest approach:
-- Move `SalesLanding` to `/` 
-- Change `/sales-page` → `/`
-- Keep the CRM routes as they are (they all have specific paths like `/dashboard`, `/loads`, etc.)
-- Update the `Index` redirect or remove it
+2. **Create a `CarrierPortalPreview` page** that:
+   - Takes `carrierId` from URL params
+   - Fetches carrier name from `carriers` table and documents from `carrier_documents` table filtered by `carrier_id`
+   - Renders the same UI as `CarrierPortalDashboard` but without auth checks
+   - Shows a banner at top: "Preview Mode — Viewing as [Carrier Name]"
+   - Only accessible in preview/dev mode (reuses `isPreviewMode` check)
 
-**2. `src/components/layout/AppSidebar.tsx`** — Update the logo link from `/sales-page` to `/`.
+3. **Add "Preview Portal" button** on `CarrierDetail.tsx` page — an eye icon button that links to `/portal/preview/{carrierId}` (opens in new tab or navigates).
 
-| File | Change |
-|------|--------|
-| `src/App.tsx` | Route `/sales-page` → `/`, adjust Index route |
-| `src/components/layout/AppSidebar.tsx` | Logo link href `/sales-page` → `/` |
+4. **Add route** in `App.tsx` for `/portal/preview/:carrierId`.
+
+### Files to change
+- `src/pages/CarrierPortalPreview.tsx` — new file, based on CarrierPortalDashboard but with direct carrier_id fetching and preview banner
+- `src/pages/CarrierDetail.tsx` — add "Preview Portal" button
+- `src/App.tsx` — add route for `/portal/preview/:carrierId`
 
