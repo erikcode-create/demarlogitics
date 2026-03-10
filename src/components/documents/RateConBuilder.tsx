@@ -205,10 +205,14 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
                   toast({ title: 'Error', description: error.message, variant: 'destructive' });
                 } else {
                   // Send magic link
-                  await supabase.functions.invoke('send-carrier-magic-link', {
-                    body: { carrier_id: load.carrierId },
+                  const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-ratecon-email', {
+                    body: { carrier_id: load.carrierId, document_id: undefined },
                   });
-                  toast({ title: 'Sent to Carrier Portal', description: `Rate con saved and magic link sent to ${carrier.email}` });
+                  if (emailError) {
+                    toast({ title: 'Saved', description: 'Rate con saved but email failed to send.', variant: 'destructive' });
+                  } else {
+                    toast({ title: 'Sent to Carrier', description: `Rate con saved and email sent to ${carrier.email}` });
+                  }
                   setOpen(false);
                 }
               }}
