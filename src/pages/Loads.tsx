@@ -30,12 +30,13 @@ const Loads = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newLoad, setNewLoad] = useState({
     shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
-    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
+    shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType, referenceNumber: '',
   });
 
   const filtered = loads.filter(l => {
     const shipper = shippers.find(s => s.id === l.shipperId);
     const matchSearch = l.loadNumber.toLowerCase().includes(search.toLowerCase()) ||
+      (l.referenceNumber && l.referenceNumber.toLowerCase().includes(search.toLowerCase())) ||
       l.origin.toLowerCase().includes(search.toLowerCase()) ||
       l.destination.toLowerCase().includes(search.toLowerCase()) ||
       (shipper?.companyName.toLowerCase().includes(search.toLowerCase()));
@@ -51,12 +52,12 @@ const Loads = () => {
       pickupDate: newLoad.pickupDate, deliveryDate: newLoad.deliveryDate,
       shipperRate: Number(newLoad.shipperRate), carrierRate: 0, weight: Number(newLoad.weight),
       equipmentType: newLoad.equipmentType, status: 'available', podUploaded: false,
-      invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
+      referenceNumber: newLoad.referenceNumber, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
       notes: '', createdAt: new Date().toISOString().split('T')[0],
     };
     setLoads(prev => [...prev, load]);
     setDialogOpen(false);
-    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van' });
+    setNewLoad({ shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '', shipperRate: '', weight: '', equipmentType: 'dry_van', referenceNumber: '' });
   };
 
   return (
@@ -83,6 +84,7 @@ const Loads = () => {
                 <div><Label>Pickup Date</Label><Input type="date" value={newLoad.pickupDate} onChange={e => setNewLoad(p => ({ ...p, pickupDate: e.target.value }))} /></div>
                 <div><Label>Delivery Date</Label><Input type="date" value={newLoad.deliveryDate} onChange={e => setNewLoad(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
               </div>
+              <div><Label>Reference # (PO/BOL)</Label><Input value={newLoad.referenceNumber} onChange={e => setNewLoad(p => ({ ...p, referenceNumber: e.target.value }))} placeholder="e.g. PO-12345" /></div>
               <div className="grid grid-cols-2 gap-2">
                 <div><Label>Shipper Rate ($)</Label><Input type="number" value={newLoad.shipperRate} onChange={e => setNewLoad(p => ({ ...p, shipperRate: e.target.value }))} /></div>
                 <div><Label>Weight (lbs)</Label><Input type="number" value={newLoad.weight} onChange={e => setNewLoad(p => ({ ...p, weight: e.target.value }))} /></div>
@@ -120,6 +122,7 @@ const Loads = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Load #</TableHead>
+                <TableHead>Ref #</TableHead>
                 <TableHead>Shipper</TableHead>
                 <TableHead>Origin → Dest</TableHead>
                 <TableHead>Pickup</TableHead>
@@ -136,6 +139,7 @@ const Loads = () => {
                 return (
                   <TableRow key={l.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/loads/${l.id}`)}>
                     <TableCell className="font-medium">{l.loadNumber}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{l.referenceNumber || '—'}</TableCell>
                     <TableCell className="text-sm">{shipper?.companyName || '—'}</TableCell>
                     <TableCell className="text-sm">{l.origin} → {l.destination}</TableCell>
                     <TableCell className="text-sm">{new Date(l.pickupDate).toLocaleDateString()}</TableCell>
@@ -152,7 +156,7 @@ const Loads = () => {
                 );
               })}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No loads found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No loads found</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

@@ -314,6 +314,7 @@ export type Database = {
           payment_status: string
           pickup_date: string
           pod_uploaded: boolean
+          reference_number: string
           shipper_id: string
           shipper_rate: number
           status: string
@@ -336,6 +337,7 @@ export type Database = {
           payment_status?: string
           pickup_date?: string
           pod_uploaded?: boolean
+          reference_number?: string
           shipper_id: string
           shipper_rate?: number
           status?: string
@@ -358,6 +360,7 @@ export type Database = {
           payment_status?: string
           pickup_date?: string
           pod_uploaded?: boolean
+          reference_number?: string
           shipper_id?: string
           shipper_rate?: number
           status?: string

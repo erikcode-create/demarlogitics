@@ -114,6 +114,7 @@ export interface Load {
   invoiceDate: string;
   invoiceAmount: number;
   paymentStatus: PaymentStatus;
+  referenceNumber: string;
   notes: string;
   createdAt: string;
 }

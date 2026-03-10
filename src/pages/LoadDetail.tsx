@@ -52,6 +52,7 @@ const LoadDetail = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate('/loads')}><ArrowLeft className="h-4 w-4" /></Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{load.loadNumber}</h1>
+          {load.referenceNumber && <p className="text-sm text-muted-foreground">Ref: {load.referenceNumber}</p>}
           <p className="text-sm text-muted-foreground">{load.origin} → {load.destination}</p>
         </div>
         <Select value={load.status} onValueChange={(v: LoadStatus) => updateStatus(v)}>

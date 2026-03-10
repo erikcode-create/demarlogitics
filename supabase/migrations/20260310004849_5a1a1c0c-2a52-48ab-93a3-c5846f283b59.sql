@@ -1,0 +1,1 @@
+ALTER TABLE public.loads ADD COLUMN reference_number text NOT NULL DEFAULT '';
