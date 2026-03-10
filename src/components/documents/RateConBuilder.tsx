@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText } from 'lucide-react';
+import { FileText, Send } from 'lucide-react';
 import { Load, Shipper, Carrier } from '@/types';
 import { equipmentTypeLabels } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface RateConBuilderProps {
   load: Load;
