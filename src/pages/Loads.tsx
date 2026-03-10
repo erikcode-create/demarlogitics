@@ -83,6 +83,7 @@ const Loads = () => {
                 <div><Label>Pickup Date</Label><Input type="date" value={newLoad.pickupDate} onChange={e => setNewLoad(p => ({ ...p, pickupDate: e.target.value }))} /></div>
                 <div><Label>Delivery Date</Label><Input type="date" value={newLoad.deliveryDate} onChange={e => setNewLoad(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
               </div>
+              <div><Label>Reference # (PO/BOL)</Label><Input value={newLoad.referenceNumber} onChange={e => setNewLoad(p => ({ ...p, referenceNumber: e.target.value }))} placeholder="e.g. PO-12345" /></div>
               <div className="grid grid-cols-2 gap-2">
                 <div><Label>Shipper Rate ($)</Label><Input type="number" value={newLoad.shipperRate} onChange={e => setNewLoad(p => ({ ...p, shipperRate: e.target.value }))} /></div>
                 <div><Label>Weight (lbs)</Label><Input type="number" value={newLoad.weight} onChange={e => setNewLoad(p => ({ ...p, weight: e.target.value }))} /></div>
