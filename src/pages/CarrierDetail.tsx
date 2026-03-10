@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2 } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { CarrierPacketStatus } from '@/types';
 
@@ -19,7 +20,7 @@ const getInsuranceStatus = (expiry: string) => {
 const CarrierDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { carriers, setCarriers, activities } = useAppContext();
+  const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
 
   const carrier = carriers.find(c => c.id === id);
 
@@ -37,6 +38,13 @@ const CarrierDetail = () => {
     setCarriers(prev => prev.map(c => c.id === id ? { ...c, [doc]: !c[doc] } : c));
   };
 
+  const handleDelete = () => {
+    setCarriers(prev => prev.filter(c => c.id !== id));
+    setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'carrier')));
+    setLoads(prev => prev.map(l => l.carrierId === id ? { ...l, carrierId: null } : l));
+    navigate('/carriers');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -49,6 +57,21 @@ const CarrierDetail = () => {
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{carrier.city}, {carrier.state}</span>
           </div>
         </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {carrier.companyName}?</AlertDialogTitle>
+              <AlertDialogDescription>This will permanently delete this carrier and all related data. This action cannot be undone.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
