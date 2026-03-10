@@ -142,6 +142,15 @@ const LoadDetail = () => {
         </Card>
       </div>
 
+      {/* Documents */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Documents</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <RateConBuilder load={load} shipper={shipper} carrier={carrier} />
+          <BolBuilder load={load} shipper={shipper} carrier={carrier} />
+        </CardContent>
+      </Card>
+
       {/* POD & Invoice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
