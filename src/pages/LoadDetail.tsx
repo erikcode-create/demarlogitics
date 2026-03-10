@@ -46,6 +46,11 @@ const LoadDetail = () => {
 
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
 
+  const shipper = shippers.find(s => s.id === load.shipperId);
+  const carrier = load.carrierId ? carriers.find(c => c.id === load.carrierId) : null;
+  const margin = load.carrierRate > 0 ? load.shipperRate - load.carrierRate : null;
+  const marginPct = margin !== null && load.shipperRate > 0 ? ((margin / load.shipperRate) * 100).toFixed(1) : null;
+
   const updateStatus = (status: LoadStatus) => {
     setLoads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
   };
