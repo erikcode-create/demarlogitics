@@ -29,6 +29,9 @@ import SalesDashboard from "./pages/SalesDashboard";
 import PerformanceTracker from "./pages/PerformanceTracker";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import CarrierPortalLogin from "./pages/CarrierPortalLogin";
+import CarrierPortalDashboard from "./pages/CarrierPortalDashboard";
+import CarrierPortalDocument from "./pages/CarrierPortalDocument";
 
 const queryClient = new QueryClient();
 
