@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ClipboardList, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Plus, Trash2, Send } from 'lucide-react';
 import { Load, Shipper, Carrier } from '@/types';
 import { equipmentTypeLabels } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface CommodityLine {
   description: string;
@@ -218,7 +220,36 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
 
           <div><Label>Special Instructions</Label><Textarea value={fields.specialInstructions} onChange={e => update('specialInstructions', e.target.value)} /></div>
 
-          <Button onClick={exportPdf} className="w-full">Export PDF</Button>
+          <div className="flex gap-2">
+            <Button onClick={exportPdf} className="flex-1">Export PDF</Button>
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              disabled={!carrier}
+              onClick={async () => {
+                if (!carrier || !load.carrierId) return;
+                const docData = { ...fields, commodities } as any;
+                const { error } = await supabase.from('carrier_documents').insert({
+                  carrier_id: load.carrierId,
+                  load_id: load.id,
+                  type: 'bol',
+                  document_data: docData,
+                  status: 'pending',
+                });
+                if (error) {
+                  toast({ title: 'Error', description: error.message, variant: 'destructive' });
+                } else {
+                  await supabase.functions.invoke('send-carrier-magic-link', {
+                    body: { carrier_id: load.carrierId },
+                  });
+                  toast({ title: 'Sent to Carrier Portal', description: `BOL saved and magic link sent to ${carrier.email}` });
+                  setOpen(false);
+                }
+              }}
+            >
+              <Send className="h-4 w-4" />Save & Send to Carrier
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

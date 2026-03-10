@@ -44,6 +44,86 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_documents: {
+        Row: {
+          carrier_id: string
+          created_at: string
+          document_data: Json
+          id: string
+          load_id: string
+          signed_at: string | null
+          signed_by_name: string
+          status: string
+          type: string
+        }
+        Insert: {
+          carrier_id: string
+          created_at?: string
+          document_data?: Json
+          id?: string
+          load_id: string
+          signed_at?: string | null
+          signed_by_name?: string
+          status?: string
+          type?: string
+        }
+        Update: {
+          carrier_id?: string
+          created_at?: string
+          document_data?: Json
+          id?: string
+          load_id?: string
+          signed_at?: string | null
+          signed_by_name?: string
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_documents_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_documents_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_portal_users: {
+        Row: {
+          carrier_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          carrier_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          carrier_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_portal_users_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carriers: {
         Row: {
           address: string

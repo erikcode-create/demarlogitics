@@ -29,6 +29,9 @@ import SalesDashboard from "./pages/SalesDashboard";
 import PerformanceTracker from "./pages/PerformanceTracker";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import CarrierPortalLogin from "./pages/CarrierPortalLogin";
+import CarrierPortalDashboard from "./pages/CarrierPortalDashboard";
+import CarrierPortalDocument from "./pages/CarrierPortalDocument";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +103,9 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/portal" element={<CarrierPortalLogin />} />
+            <Route path="/portal/documents" element={<CarrierPortalDashboard />} />
+            <Route path="/portal/documents/:id" element={<CarrierPortalDocument />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
