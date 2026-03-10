@@ -1,23 +1,33 @@
 
 
-## Change Sales Page Route to Root Path
+## Rate Confirmation & Bill of Lading Builder for Loads
 
-Since the sales/landing page is the public-facing website, it makes sense to serve it at `/` (the root) — the natural "homepage" URL.
+### What We're Building
+Two document builders accessible from the Load Detail page — a **Rate Confirmation** (carrier-facing) and a **Bill of Lading** (shipping document). Each generates a professional, printable document pre-filled with load data and can be exported as PDF via browser print.
 
 ### Changes
 
-**1. `src/App.tsx`** — Change the route from `/sales-page` to `/`; move the CRM app routes under a `/app/*` or `/crm/*` prefix, or keep them as-is with the sales page taking priority at `/`.
+**1. New component: `src/components/documents/RateConBuilder.tsx`**
+- Dialog triggered by a "Generate Rate Con" button on Load Detail
+- Pre-fills: load number, ref number, broker info (DeMar Transportation), shipper name/address, carrier name/MC#/DOT#, origin, destination, pickup/delivery dates, equipment type, weight, carrier rate, payment terms, special instructions
+- Editable fields so user can tweak before exporting
+- "Export PDF" button opens print window with styled HTML
 
-Actually, looking at the current routing: the `Index` page currently lives at `/` inside the AppLayout. The simplest approach:
-- Move `SalesLanding` to `/` 
-- Change `/sales-page` → `/`
-- Keep the CRM routes as they are (they all have specific paths like `/dashboard`, `/loads`, etc.)
-- Update the `Index` redirect or remove it
+**2. New component: `src/components/documents/BolBuilder.tsx`**
+- Dialog triggered by a "Generate BOL" button on Load Detail
+- Pre-fills: shipper name/address, consignee (destination), carrier name, load number, ref number, pickup date, equipment type, weight
+- Includes standard BOL fields: commodity description, NMFC#, class, packaging type, quantity, hazmat checkbox, special instructions
+- User can add multiple line items for commodities
+- "Export PDF" button with standard BOL layout
 
-**2. `src/components/layout/AppSidebar.tsx`** — Update the logo link from `/sales-page` to `/`.
+**3. Update `src/pages/LoadDetail.tsx`**
+- Add a new "Documents" card section with two buttons: "Generate Rate Con" and "Generate BOL"
+- Import and render both builder dialogs
+- Pass load, shipper, and carrier data as props
 
-| File | Change |
-|------|--------|
-| `src/App.tsx` | Route `/sales-page` → `/`, adjust Index route |
-| `src/components/layout/AppSidebar.tsx` | Logo link href `/sales-page` → `/` |
+### Technical Notes
+- No database changes needed — documents are generated on-the-fly and exported via browser print (same pattern as existing ContractDetail PDF export)
+- Rate Con reuses logic from `contractTemplates.ts` `generateRateConfirmation()` but in a structured HTML layout instead of plain text
+- BOL follows standard VICS BOL format fields
+- Both components use existing Dialog, Input, Label, Button components
 
