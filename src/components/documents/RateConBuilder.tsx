@@ -18,7 +18,38 @@ interface RateConBuilderProps {
 
 const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   const [open, setOpen] = useState(false);
-  const [fields, setFields] = useState(() => ({
+
+  const buildFields = () => ({
+    loadNumber: load.loadNumber,
+    refNumber: load.referenceNumber,
+    brokerName: 'DeMar Transportation',
+    brokerAddress: '123 Broker Lane, Dallas, TX 75201',
+    brokerPhone: '(555) 555-0100',
+    brokerEmail: 'dispatch@demartransportation.com',
+    shipperName: shipper?.companyName || '',
+    shipperAddress: shipper ? `${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}` : '',
+    carrierName: carrier?.companyName || '',
+    carrierMC: carrier?.mcNumber || '',
+    carrierDOT: carrier?.dotNumber || '',
+    origin: load.origin,
+    destination: load.destination,
+    pickupDate: load.pickupDate,
+    deliveryDate: load.deliveryDate,
+    equipment: equipmentTypeLabels[load.equipmentType] || load.equipmentType,
+    weight: load.weight.toLocaleString(),
+    carrierRate: load.carrierRate.toLocaleString(),
+    paymentTerms: carrier?.factoringCompany
+      ? `Pay to: ${carrier.factoringCompany} — ${carrier.factoringRemitTo}`
+      : 'Payment within 30 days of receipt of signed POD and invoice. Pay direct to carrier.',
+    specialInstructions: load.notes || '',
+  });
+
+  const [fields, setFields] = useState(buildFields);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) setFields(buildFields());
+    setOpen(isOpen);
+  };
     loadNumber: load.loadNumber,
     refNumber: load.referenceNumber,
     brokerName: 'DeMar Transportation',
