@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { Search, Plus, AlertTriangle, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Carrier, CarrierPacketStatus, EquipmentType } from '@/types';
 
@@ -21,7 +22,7 @@ const getInsuranceStatus = (expiry: string) => {
 };
 
 const Carriers = () => {
-  const { carriers, setCarriers } = useAppContext();
+  const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -45,6 +46,12 @@ const Carriers = () => {
     setCarriers(prev => [...prev, carrier]);
     setDialogOpen(false);
     setNewCarrier({ companyName: '', mcNumber: '', dotNumber: '', city: '', state: '', phone: '', email: '' });
+  };
+
+  const handleDelete = (id: string) => {
+    setCarriers(prev => prev.filter(c => c.id !== id));
+    setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'carrier')));
+    setLoads(prev => prev.map(l => l.carrierId === id ? { ...l, carrierId: null } : l));
   };
 
   return (
@@ -97,6 +104,7 @@ const Carriers = () => {
                 <TableHead>Equipment</TableHead>
                 <TableHead>Insurance</TableHead>
                 <TableHead>Packet</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,11 +117,30 @@ const Carriers = () => {
                     <TableCell className="text-sm">{c.equipmentTypes.map(e => equipmentTypeLabels[e]).join(', ') || '—'}</TableCell>
                     <TableCell>{ins ? <span className={`flex items-center gap-1 text-sm ${ins.color}`}><ins.icon className="h-3 w-3" />{ins.label}</span> : '—'}</TableCell>
                     <TableCell><Badge variant="outline">{packetStatusLabels[c.packetStatus]}</Badge></TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={e => e.stopPropagation()}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={e => e.stopPropagation()}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {c.companyName}?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete this carrier and all related data. This action cannot be undone.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDelete(c.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 );
               })}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No carriers found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No carriers found</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

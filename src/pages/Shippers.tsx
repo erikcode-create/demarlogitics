@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Search, Plus, Building2 } from 'lucide-react';
+import { Search, Plus, Trash2 } from 'lucide-react';
 import { salesStageLabels } from '@/data/mockData';
 import { Shipper, SalesStage } from '@/types';
 
@@ -30,7 +30,7 @@ const stageColors: Record<string, string> = {
 };
 
 const Shippers = () => {
-  const { shippers, setShippers } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, stageChangeLogs, setStageChangeLogs } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
@@ -73,6 +73,17 @@ const Shippers = () => {
     setShippers(prev => [...prev, shipper]);
     setDialogOpen(false);
     setNewShipper({ companyName: '', city: '', state: '', phone: '', email: '', salesStage: 'lead', shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '' });
+  };
+
+  const handleDelete = (id: string) => {
+    setShippers(prev => prev.filter(s => s.id !== id));
+    setContacts(prev => prev.filter(c => c.shipperId !== id));
+    setLanes(prev => prev.filter(l => l.shipperId !== id));
+    setFollowUps(prev => prev.filter(f => f.shipperId !== id));
+    setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'shipper')));
+    setOutboundCalls(prev => prev.filter(c => c.shipperId !== id));
+    setSalesTasks(prev => prev.filter(t => t.shipperId !== id));
+    setStageChangeLogs(prev => prev.filter(l => l.shipperId !== id));
   };
 
   return (
@@ -141,6 +152,7 @@ const Shippers = () => {
                   <TableHead>Stage</TableHead>
                   <TableHead>Last Contact</TableHead>
                   <TableHead>Next Follow-Up</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -155,10 +167,29 @@ const Shippers = () => {
                     <TableCell><Badge className={stageColors[s.salesStage]}>{salesStageLabels[s.salesStage]}</Badge></TableCell>
                     <TableCell className="text-sm">{s.lastContactDate ? new Date(s.lastContactDate).toLocaleDateString() : <span className="text-muted-foreground italic">—</span>}</TableCell>
                     <TableCell className="text-sm">{s.nextFollowUp ? new Date(s.nextFollowUp).toLocaleDateString() : <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={e => e.stopPropagation()}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={e => e.stopPropagation()}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {s.companyName}?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete this shipper and all related data (contacts, lanes, follow-ups, calls, tasks). This action cannot be undone.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDelete(s.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filtered.length === 0 && (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No shippers found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No shippers found</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

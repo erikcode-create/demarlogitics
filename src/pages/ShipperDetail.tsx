@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2 } from 'lucide-react';
 import { salesStageLabels, equipmentTypeLabels } from '@/data/mockData';
 import { callOutcomeLabels, nextStepLabels } from '@/utils/cadenceEngine';
 import { Contact, Lane, FollowUp, Activity, SalesStage, EquipmentType, ActivityType } from '@/types';
@@ -20,7 +20,7 @@ import { Contact, Lane, FollowUp, Activity, SalesStage, EquipmentType, ActivityT
 const ShipperDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, stageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, stageChangeLogs, setStageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence } = useAppContext();
 
   const [contactDialog, setContactDialog] = useState(false);
   const [newContact, setNewContact] = useState({ firstName: '', lastName: '', title: '', phone: '', email: '' });
@@ -104,6 +104,18 @@ const ShipperDetail = () => {
     setSalesTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : '' } : t));
   };
 
+  const handleDelete = () => {
+    setShippers(prev => prev.filter(s => s.id !== id));
+    setContacts(prev => prev.filter(c => c.shipperId !== id));
+    setLanes(prev => prev.filter(l => l.shipperId !== id));
+    setFollowUps(prev => prev.filter(f => f.shipperId !== id));
+    setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'shipper')));
+    setOutboundCalls(prev => prev.filter(c => c.shipperId !== id));
+    setSalesTasks(prev => prev.filter(t => t.shipperId !== id));
+    setStageChangeLogs(prev => prev.filter(l => l.shipperId !== id));
+    navigate('/shippers');
+  };
+
   const hasCadenceTasks = shipperTasks.some(t => t.cadenceDay);
 
   return (
@@ -122,6 +134,21 @@ const ShipperDetail = () => {
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {shipper.companyName}?</AlertDialogTitle>
+              <AlertDialogDescription>This will permanently delete this shipper and all related data (contacts, lanes, follow-ups, calls, tasks). This action cannot be undone.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Key Info Cards */}
@@ -298,17 +325,17 @@ const ShipperDetail = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shipperCalls.map(c => (
-                    <TableRow key={c.id}>
-                      <TableCell>{c.callAttemptNumber}</TableCell>
-                      <TableCell>{c.contactName}</TableCell>
-                      <TableCell><Badge variant="outline">{callOutcomeLabels[c.callOutcome]}</Badge></TableCell>
-                      <TableCell className="max-w-[200px] truncate">{c.painPoint || '—'}</TableCell>
-                      <TableCell>{nextStepLabels[c.nextStep]}</TableCell>
-                      <TableCell className="text-sm">{new Date(c.callDate).toLocaleString()}</TableCell>
+                  {shipperCalls.map(call => (
+                    <TableRow key={call.id}>
+                      <TableCell>{call.callAttemptNumber}</TableCell>
+                      <TableCell className="font-medium">{call.contactName}<br /><span className="text-xs text-muted-foreground">{call.contactTitle}</span></TableCell>
+                      <TableCell><Badge variant="outline">{callOutcomeLabels[call.callOutcome] || call.callOutcome}</Badge></TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate">{call.painPoint || '—'}</TableCell>
+                      <TableCell><Badge variant="secondary">{nextStepLabels[call.nextStep] || call.nextStep}</Badge></TableCell>
+                      <TableCell className="text-sm">{new Date(call.callDate).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}
-                  {shipperCalls.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">No calls logged</TableCell></TableRow>}
+                  {shipperCalls.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">No calls recorded</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
@@ -318,19 +345,21 @@ const ShipperDetail = () => {
         {/* Stage History Tab */}
         <TabsContent value="stages">
           <Card>
-            <CardHeader><CardTitle className="text-sm flex items-center gap-2"><History className="h-4 w-4" />Stage History</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">Stage Change History</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {shipperStageHistory.map(l => (
-                  <div key={l.id} className="flex items-center gap-3 text-sm p-3 rounded-lg bg-accent/30">
-                    <Badge variant="outline">{salesStageLabels[l.fromStage]}</Badge>
-                    <span className="text-muted-foreground">→</span>
-                    <Badge>{salesStageLabels[l.toStage]}</Badge>
-                    <span className="flex-1" />
-                    <span className="text-xs text-muted-foreground">{l.changedBy} · {new Date(l.changedAt).toLocaleString()}</span>
+                {shipperStageHistory.map(log => (
+                  <div key={log.id} className="flex items-center gap-3 text-sm">
+                    <History className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">{salesStageLabels[log.fromStage] || log.fromStage}</span>
+                      <span className="mx-2">→</span>
+                      <span className="font-medium">{salesStageLabels[log.toStage] || log.toStage}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{log.changedBy} · {new Date(log.changedAt).toLocaleString()}</span>
                   </div>
                 ))}
-                {shipperStageHistory.length === 0 && <p className="text-center text-muted-foreground py-6">No stage changes recorded</p>}
+                {shipperStageHistory.length === 0 && <p className="text-muted-foreground text-sm">No stage changes recorded</p>}
               </div>
             </CardContent>
           </Card>
@@ -339,23 +368,24 @@ const ShipperDetail = () => {
         {/* Tasks Tab */}
         <TabsContent value="tasks">
           <Card>
-            <CardHeader><CardTitle className="text-sm flex items-center gap-2"><CheckSquare className="h-4 w-4" />Sales Tasks</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">Sales Tasks</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {shipperTasks.map(t => (
-                  <div key={t.id} className={`flex items-center gap-3 p-3 rounded-lg bg-accent/30 ${t.completed ? 'opacity-60' : ''}`}>
-                    <Checkbox checked={t.completed} onCheckedChange={() => toggleTask(t.id)} />
+                {shipperTasks.map(task => (
+                  <div key={task.id} className={`flex items-center gap-3 p-2 rounded border ${task.completed ? 'opacity-50' : ''}`}>
+                    <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} />
                     <div className="flex-1">
-                      <p className={`text-sm font-medium ${t.completed ? 'line-through' : ''}`}>{t.title}</p>
-                      <p className="text-xs text-muted-foreground">{t.description}</p>
+                      <p className={`text-sm font-medium ${task.completed ? 'line-through' : ''}`}>{task.title}</p>
+                      <p className="text-xs text-muted-foreground">{task.description}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground">{new Date(t.dueDate).toLocaleDateString()}</p>
-                      {t.cadenceDay && <Badge variant="outline" className="text-[10px]">Day {t.cadenceDay}</Badge>}
+                      <Badge variant="outline" className="text-xs">{task.type}</Badge>
+                      {task.cadenceDay && <p className="text-xs text-muted-foreground mt-1">Day {task.cadenceDay}</p>}
+                      <p className="text-xs text-muted-foreground">Due: {new Date(task.dueDate).toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}
-                {shipperTasks.length === 0 && <p className="text-center text-muted-foreground py-6">No tasks</p>}
+                {shipperTasks.length === 0 && <p className="text-muted-foreground text-sm">No tasks</p>}
               </div>
             </CardContent>
           </Card>
@@ -371,24 +401,27 @@ const ShipperDetail = () => {
                   <DialogHeader><DialogTitle>New Follow-up</DialogTitle></DialogHeader>
                   <div className="space-y-3">
                     <div><Label>Date</Label><Input type="date" value={newFollowUp.date} onChange={e => setNewFollowUp(p => ({ ...p, date: e.target.value }))} /></div>
-                    <div><Label>Notes</Label><Textarea value={newFollowUp.notes} onChange={e => setNewFollowUp(p => ({ ...p, notes: e.target.value }))} /></div>
+                    <div><Label>Notes</Label><Input value={newFollowUp.notes} onChange={e => setNewFollowUp(p => ({ ...p, notes: e.target.value }))} /></div>
                     <Button onClick={addFollowUp} className="w-full" disabled={!newFollowUp.date}>Add Follow-up</Button>
                   </div>
                 </DialogContent>
               </Dialog>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {shipperFollowUps.map(f => (
-                  <div key={f.id} className="flex items-start gap-3 p-3 rounded-lg bg-accent/30">
-                    <Calendar className="h-4 w-4 mt-0.5 text-primary" />
+                  <div key={f.id} className="flex items-center gap-3 text-sm">
+                    <Checkbox
+                      checked={f.completed}
+                      onCheckedChange={() => setFollowUps(prev => prev.map(fu => fu.id === f.id ? { ...fu, completed: !fu.completed } : fu))}
+                    />
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{new Date(f.date).toLocaleDateString()}</p>
-                      <p className="text-sm text-muted-foreground">{f.notes}</p>
+                      <p className={f.completed ? 'line-through text-muted-foreground' : ''}>{f.notes}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(f.date).toLocaleDateString()}</p>
                     </div>
-                    <Badge variant={f.completed ? 'default' : 'outline'}>{f.completed ? 'Done' : 'Pending'}</Badge>
                   </div>
                 ))}
+                {shipperFollowUps.length === 0 && <p className="text-muted-foreground text-sm">No follow-ups</p>}
               </div>
             </CardContent>
           </Card>
@@ -415,7 +448,7 @@ const ShipperDetail = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Description</Label><Textarea value={newActivity.description} onChange={e => setNewActivity(p => ({ ...p, description: e.target.value }))} /></div>
+                    <div><Label>Description</Label><Input value={newActivity.description} onChange={e => setNewActivity(p => ({ ...p, description: e.target.value }))} /></div>
                     <Button onClick={addActivity} className="w-full" disabled={!newActivity.description}>Log Activity</Button>
                   </div>
                 </DialogContent>
@@ -432,6 +465,7 @@ const ShipperDetail = () => {
                     </div>
                   </div>
                 ))}
+                {shipperActivities.length === 0 && <p className="text-muted-foreground text-sm">No activity recorded</p>}
               </div>
             </CardContent>
           </Card>
