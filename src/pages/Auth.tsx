@@ -7,39 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import demarLogo from '@/assets/demar-logo.png';
 
-const ADMIN_EMAIL = 'shayne@demartransportation.com';
-
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) {
-        toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast({ title: 'Sign in failed', description: error.message, variant: 'destructive' });
-      }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast({ title: 'Sign in failed', description: error.message, variant: 'destructive' });
     }
     setLoading(false);
   };
-
-  // Only show signup option for admin email
-  const showSignupToggle = email.toLowerCase() === ADMIN_EMAIL;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
