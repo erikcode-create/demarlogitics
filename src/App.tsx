@@ -53,7 +53,7 @@ function ProtectedRoutes() {
   return (
     <AppProvider>
       <Routes>
-        <Route path="/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/*" element={
         <Route path="/*" element={
           <AppLayout>
             <Routes>
