@@ -25,13 +25,26 @@ const LoadDetail = () => {
   const navigate = useNavigate();
   const { loads, setLoads, shippers, carriers } = useAppContext();
 
-  const load = loads.find(l => l.id === id);
-  if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
+  const [carrierDocs, setCarrierDocs] = useState<any[]>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
 
-  const shipper = shippers.find(s => s.id === load.shipperId);
-  const carrier = load.carrierId ? carriers.find(c => c.id === load.carrierId) : null;
-  const margin = load.carrierRate > 0 ? load.shipperRate - load.carrierRate : null;
-  const marginPct = margin !== null && load.shipperRate > 0 ? ((margin / load.shipperRate) * 100).toFixed(1) : null;
+  const load = loads.find(l => l.id === id);
+
+  const fetchCarrierDocs = async () => {
+    if (!id) return;
+    setDocsLoading(true);
+    const { data } = await supabase
+      .from('carrier_documents')
+      .select('id, type, status, signed_by_name, signed_at, created_at, carrier_id')
+      .eq('load_id', id)
+      .order('created_at', { ascending: false });
+    setCarrierDocs(data || []);
+    setDocsLoading(false);
+  };
+
+  useEffect(() => { fetchCarrierDocs(); }, [id]);
+
+  if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
 
   const updateStatus = (status: LoadStatus) => {
     setLoads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
