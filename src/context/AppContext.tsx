@@ -29,7 +29,7 @@ interface AppContextType {
   setEmailTemplates: React.Dispatch<React.SetStateAction<EmailTemplate[]>>;
   stageChangeLogs: StageChangeLog[];
   setStageChangeLogs: React.Dispatch<React.SetStateAction<StageChangeLog[]>>;
-  logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage) => void;
+  logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
   triggerCadence: (shipperId: string) => void;
 }
 
