@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import demarLogo from '@/assets/demar-logo.png';
 
 export default function Auth() {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,22 +17,9 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) {
-        toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email.' });
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast({ title: 'Sign in failed', description: error.message, variant: 'destructive' });
-      }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast({ title: 'Sign in failed', description: error.message, variant: 'destructive' });
     }
     setLoading(false);
   };
@@ -43,11 +29,9 @@ export default function Auth() {
       <Card className="w-full max-w-md border-border">
         <CardHeader className="text-center space-y-4">
           <img src={demarLogo} alt="Demar Transportation" className="h-20 mx-auto" />
-          <CardTitle className="text-2xl text-foreground">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
-          </CardTitle>
+          <CardTitle className="text-2xl text-foreground">Welcome Back</CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isSignUp ? 'Sign up to get started' : 'Sign in to your account'}
+            Sign in to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -76,18 +60,12 @@ export default function Auth() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-primary hover:underline"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
-          </div>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Access is invite-only. Contact your admin for an invite.
+          </p>
         </CardContent>
       </Card>
     </div>
