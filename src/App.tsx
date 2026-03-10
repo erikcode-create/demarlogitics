@@ -32,6 +32,7 @@ import Settings from "./pages/Settings";
 import CarrierPortalLogin from "./pages/CarrierPortalLogin";
 import CarrierPortalDashboard from "./pages/CarrierPortalDashboard";
 import CarrierPortalDocument from "./pages/CarrierPortalDocument";
+import CarrierPortalPreview from "./pages/CarrierPortalPreview";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ const App = () => (
             <Route path="/portal" element={<CarrierPortalLogin />} />
             <Route path="/portal/documents" element={<CarrierPortalDashboard />} />
             <Route path="/portal/documents/:id" element={<CarrierPortalDocument />} />
+            <Route path="/portal/preview/:carrierId" element={<CarrierPortalPreview />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>

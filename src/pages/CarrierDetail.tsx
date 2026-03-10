@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2 } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { CarrierPacketStatus } from '@/types';
 
@@ -57,6 +57,9 @@ const CarrierDetail = () => {
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{carrier.city}, {carrier.state}</span>
           </div>
         </div>
+        <Button variant="outline" size="sm" onClick={() => window.open(`/portal/preview/${id}`, '_blank')}>
+          <Eye className="h-4 w-4 mr-1" /> Preview Portal
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
