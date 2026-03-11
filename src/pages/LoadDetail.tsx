@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
@@ -52,6 +52,21 @@ const LoadDetail = () => {
     }
     toast.success('Document deleted');
     setCarrierDocs(prev => prev.filter(d => d.id !== docId));
+  };
+
+  const [resending, setResending] = useState<string | null>(null);
+
+  const resendToCarrier = async (doc: any) => {
+    setResending(doc.id);
+    const { data, error } = await supabase.functions.invoke('send-ratecon-email', {
+      body: { carrier_id: doc.carrier_id, document_id: doc.id },
+    });
+    if (error) {
+      toast.error('Failed to resend document');
+    } else {
+      toast.success(`Document resent to carrier`);
+    }
+    setResending(null);
   };
 
   useEffect(() => { fetchCarrierDocs(); }, [id]);
@@ -216,25 +231,36 @@ const LoadDetail = () => {
                         <Badge variant="outline" className="text-warning border-warning/50">Pending Signature</Badge>
                       )}
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete this {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteCarrierDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={resending === doc.id}
+                        onClick={() => resendToCarrier(doc)}
+                        title="Resend to carrier"
+                      >
+                        <Send className={`h-4 w-4 text-primary ${resending === doc.id ? 'animate-pulse' : ''}`} />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteCarrierDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 );
               })}
