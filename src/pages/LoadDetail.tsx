@@ -216,14 +216,26 @@ const LoadDetail = () => {
                         <Badge variant="outline" className="text-warning border-warning/50">Pending Signature</Badge>
                       )}
                     </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete this {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteCarrierDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      {/* POD & Invoice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle className="text-sm">Proof of Delivery</CardTitle></CardHeader>
