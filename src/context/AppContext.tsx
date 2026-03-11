@@ -31,6 +31,7 @@ interface AppContextType {
   setStageChangeLogs: React.Dispatch<React.SetStateAction<StageChangeLog[]>>;
   logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
   triggerCadence: (shipperId: string) => void;
+  deleteRecord: (table: string, id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
