@@ -83,22 +83,43 @@ export default function Contracts() {
             <Card><CardContent className="py-8 text-center text-muted-foreground">No contracts found.</CardContent></Card>
           ) : (
             filtered.map(contract => (
-              <Link key={contract.id} to={contract.status === 'draft' ? `/contracts/new?draft=${contract.id}` : `/contracts/${contract.id}`}>
-                <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-                  <CardContent className="flex items-center justify-between py-4 px-5">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-foreground">{contract.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {contractTypeLabels[contract.type]} • {getEntityName(contract.entityId, contract.entityType)} • Created {contract.createdAt}
-                        </p>
+              <div key={contract.id} className="flex items-center gap-2">
+                <Link to={contract.status === 'draft' ? `/contracts/new?draft=${contract.id}` : `/contracts/${contract.id}`} className="flex-1">
+                  <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+                    <CardContent className="flex items-center justify-between py-4 px-5">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-foreground">{contract.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {contractTypeLabels[contract.type]} • {getEntityName(contract.entityId, contract.entityType)} • Created {contract.createdAt}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <Badge className={statusColors[contract.status]}>{contractStatusLabels[contract.status]}</Badge>
-                  </CardContent>
-                </Card>
-              </Link>
+                      <Badge className={statusColors[contract.status]}>{contractStatusLabels[contract.status]}</Badge>
+                    </CardContent>
+                  </Card>
+                </Link>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Contract</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{contract.title}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteContract(contract.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             ))
           )}
         </TabsContent>
