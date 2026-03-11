@@ -1,11 +1,13 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download, Trash2 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string }> = {
   signed: { icon: CheckCircle2, color: 'text-green-600' },
