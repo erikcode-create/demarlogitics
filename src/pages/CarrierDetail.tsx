@@ -6,12 +6,20 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye, Send } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye, Send, Download } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { CarrierPacketStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+interface OnboardingDoc {
+  id: string;
+  document_type: string;
+  file_name: string;
+  file_path: string;
+  uploaded_at: string;
+}
 
 const getInsuranceStatus = (expiry: string) => {
   const days = Math.ceil((new Date(expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -25,6 +33,31 @@ const CarrierDetail = () => {
   const navigate = useNavigate();
   const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const [sendingLink, setSendingLink] = useState(false);
+  const [onboardingDocs, setOnboardingDocs] = useState<OnboardingDoc[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchOnboardingDocs = async () => {
+      const { data } = await supabase
+        .from('carrier_onboarding_documents')
+        .select('*')
+        .eq('carrier_id', id)
+        .order('uploaded_at', { ascending: false });
+      setOnboardingDocs((data as OnboardingDoc[]) || []);
+    };
+    fetchOnboardingDocs();
+  }, [id]);
+
+  const handleDownloadDoc = async (doc: OnboardingDoc) => {
+    const { data, error } = await supabase.storage
+      .from('carrier-onboarding-docs')
+      .createSignedUrl(doc.file_path, 3600);
+    if (error || !data?.signedUrl) {
+      toast({ title: 'Download failed', description: error?.message || 'Could not generate download link', variant: 'destructive' });
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
 
   const handleSendPortalLink = async () => {
     if (!id) return;
@@ -137,12 +170,40 @@ const CarrierDetail = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="documents">
+      <Tabs defaultValue="onboarding">
         <TabsList>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="onboarding">Onboarding Docs ({onboardingDocs.length})</TabsTrigger>
+          <TabsTrigger value="documents">Compliance</TabsTrigger>
           <TabsTrigger value="factoring">Factoring</TabsTrigger>
           <TabsTrigger value="activity">Activity ({carrierActivities.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="onboarding">
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Carrier Uploaded Documents</CardTitle></CardHeader>
+            <CardContent>
+              {onboardingDocs.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No documents uploaded by this carrier yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {onboardingDocs.map(doc => (
+                    <div key={doc.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                      <FileCheck className="h-5 w-5 text-success shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{doc.document_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+                        <p className="text-xs text-muted-foreground truncate">{doc.file_name}</p>
+                        <p className="text-xs text-muted-foreground">Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}</p>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handleDownloadDoc(doc)}>
+                        <Download className="h-3 w-3 mr-1" /> Download
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="documents">
           <Card>
