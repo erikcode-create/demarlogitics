@@ -24,6 +24,22 @@ const CarrierDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
+  const [sendingLink, setSendingLink] = useState(false);
+
+  const handleSendPortalLink = async () => {
+    if (!id) return;
+    setSendingLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-carrier-magic-link', {
+        body: { carrier_id: id },
+      });
+      if (error) throw error;
+      toast({ title: 'Portal link sent', description: `Magic link sent to ${data?.email || carrier?.email}` });
+    } catch (err: any) {
+      toast({ title: 'Failed to send link', description: err.message, variant: 'destructive' });
+    }
+    setSendingLink(false);
+  };
 
   const carrier = carriers.find(c => c.id === id);
 
