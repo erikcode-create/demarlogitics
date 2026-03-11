@@ -76,6 +76,9 @@ const CarrierDetail = () => {
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{carrier.city}, {carrier.state}</span>
           </div>
         </div>
+        <Button variant="outline" size="sm" onClick={handleSendPortalLink} disabled={sendingLink || !carrier.email}>
+          <Send className="h-4 w-4 mr-1" /> {sendingLink ? 'Sending...' : 'Send Portal Link'}
+        </Button>
         <Button variant="outline" size="sm" onClick={() => window.open(`/portal/preview/${id}`, '_blank')}>
           <Eye className="h-4 w-4 mr-1" /> Preview Portal
         </Button>
