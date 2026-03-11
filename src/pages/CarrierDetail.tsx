@@ -23,7 +23,7 @@ const getInsuranceStatus = (expiry: string) => {
 const CarrierDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
+  const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const [sendingLink, setSendingLink] = useState(false);
 
   const handleSendPortalLink = async () => {

@@ -22,7 +22,7 @@ const getInsuranceStatus = (expiry: string) => {
 };
 
 const Carriers = () => {
-  const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
+  const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

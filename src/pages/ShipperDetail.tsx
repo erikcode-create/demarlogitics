@@ -25,7 +25,7 @@ const ShipperDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserName = user?.email || 'Unknown';
-  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, stageChangeLogs, setStageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, stageChangeLogs, setStageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence, deleteRecord } = useAppContext();
 
   const [contactDialog, setContactDialog] = useState(false);
   const [newContact, setNewContact] = useState({ firstName: '', lastName: '', title: '', phone: '', email: '' });

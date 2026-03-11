@@ -19,7 +19,7 @@ const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string }>
 export default function ContractDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { contracts, setContracts, shippers, carriers } = useAppContext();
+  const { contracts, setContracts, shippers, carriers, deleteRecord } = useAppContext();
   const printRef = useRef<HTMLDivElement>(null);
 
   const deleteContract = () => {
