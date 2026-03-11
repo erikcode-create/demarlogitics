@@ -44,6 +44,16 @@ const LoadDetail = () => {
     setDocsLoading(false);
   };
 
+  const deleteCarrierDoc = async (docId: string) => {
+    const { error } = await supabase.from('carrier_documents').delete().eq('id', docId);
+    if (error) {
+      toast.error('Failed to delete document');
+      return;
+    }
+    toast.success('Document deleted');
+    setCarrierDocs(prev => prev.filter(d => d.id !== docId));
+  };
+
   useEffect(() => { fetchCarrierDocs(); }, [id]);
 
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
