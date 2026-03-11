@@ -33,6 +33,31 @@ const CarrierDetail = () => {
   const navigate = useNavigate();
   const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const [sendingLink, setSendingLink] = useState(false);
+  const [onboardingDocs, setOnboardingDocs] = useState<OnboardingDoc[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchOnboardingDocs = async () => {
+      const { data } = await supabase
+        .from('carrier_onboarding_documents')
+        .select('*')
+        .eq('carrier_id', id)
+        .order('uploaded_at', { ascending: false });
+      setOnboardingDocs((data as OnboardingDoc[]) || []);
+    };
+    fetchOnboardingDocs();
+  }, [id]);
+
+  const handleDownloadDoc = async (doc: OnboardingDoc) => {
+    const { data, error } = await supabase.storage
+      .from('carrier-onboarding-docs')
+      .createSignedUrl(doc.file_path, 3600);
+    if (error || !data?.signedUrl) {
+      toast({ title: 'Download failed', description: error?.message || 'Could not generate download link', variant: 'destructive' });
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
 
   const handleSendPortalLink = async () => {
     if (!id) return;
