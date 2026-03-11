@@ -20,11 +20,12 @@ const statusColors: Record<string, string> = {
 };
 
 export default function Contracts() {
-  const { contracts, setContracts, shippers, carriers } = useAppContext();
+  const { contracts, setContracts, shippers, carriers, deleteRecord } = useAppContext();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
 
   const deleteContract = (contractId: string) => {
+    deleteRecord('contracts', contractId);
     setContracts(prev => prev.filter(c => c.id !== contractId));
     toast.success('Contract deleted');
   };

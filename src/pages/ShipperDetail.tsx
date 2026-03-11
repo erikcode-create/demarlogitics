@@ -25,7 +25,7 @@ const ShipperDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserName = user?.email || 'Unknown';
-  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, stageChangeLogs, setStageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, stageChangeLogs, setStageChangeLogs, salesTasks, setSalesTasks, logStageChange, triggerCadence, deleteRecord } = useAppContext();
 
   const [contactDialog, setContactDialog] = useState(false);
   const [newContact, setNewContact] = useState({ firstName: '', lastName: '', title: '', phone: '', email: '' });
@@ -110,6 +110,14 @@ const ShipperDetail = () => {
   };
 
   const handleDelete = () => {
+    deleteRecord('shippers', id!);
+    contacts.filter(c => c.shipperId === id).forEach(c => deleteRecord('contacts', c.id));
+    lanes.filter(l => l.shipperId === id).forEach(l => deleteRecord('lanes', l.id));
+    followUps.filter(f => f.shipperId === id).forEach(f => deleteRecord('follow_ups', f.id));
+    activities.filter(a => a.entityId === id && a.entityType === 'shipper').forEach(a => deleteRecord('activities', a.id));
+    outboundCalls.filter(c => c.shipperId === id).forEach(c => deleteRecord('outbound_calls', c.id));
+    salesTasks.filter(t => t.shipperId === id).forEach(t => deleteRecord('sales_tasks', t.id));
+    stageChangeLogs.filter(l => l.shipperId === id).forEach(l => deleteRecord('stage_change_logs', l.id));
     setShippers(prev => prev.filter(s => s.id !== id));
     setContacts(prev => prev.filter(c => c.shipperId !== id));
     setLanes(prev => prev.filter(l => l.shipperId !== id));

@@ -22,7 +22,7 @@ const getInsuranceStatus = (expiry: string) => {
 };
 
 const Carriers = () => {
-  const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
+  const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -49,6 +49,8 @@ const Carriers = () => {
   };
 
   const handleDelete = (id: string) => {
+    deleteRecord('carriers', id);
+    activities.filter(a => a.entityId === id && a.entityType === 'carrier').forEach(a => deleteRecord('activities', a.id));
     setCarriers(prev => prev.filter(c => c.id !== id));
     setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'carrier')));
     setLoads(prev => prev.map(l => l.carrierId === id ? { ...l, carrierId: null } : l));

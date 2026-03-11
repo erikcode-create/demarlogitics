@@ -28,7 +28,7 @@ const emptyForm = {
 };
 
 const Loads = () => {
-  const { loads, setLoads, shippers, carriers } = useAppContext();
+  const { loads, setLoads, shippers, carriers, deleteRecord } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -112,6 +112,7 @@ const Loads = () => {
 
   const handleDelete = () => {
     if (!deleteTarget) return;
+    deleteRecord('loads', deleteTarget.id);
     setLoads(prev => prev.filter(l => l.id !== deleteTarget.id));
     setDeleteTarget(null);
   };
