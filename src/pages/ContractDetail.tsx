@@ -73,11 +73,30 @@ export default function ContractDetail() {
         <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Back to Contracts
         </Button>
-        {contract.status === 'signed' && (
-          <Button variant="outline" onClick={handleExportPDF} className="gap-2">
-            <Download className="h-4 w-4" /> Export PDF
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/50 hover:bg-destructive/10">
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Contract</AlertDialogTitle>
+                <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteContract} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          {contract.status === 'signed' && (
+            <Button variant="outline" onClick={handleExportPDF} className="gap-2">
+              <Download className="h-4 w-4" /> Export PDF
+            </Button>
+          )}
+        </div>
       </div>
 
       <div ref={printRef} className="space-y-6">
