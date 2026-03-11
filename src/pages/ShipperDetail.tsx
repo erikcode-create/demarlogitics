@@ -156,6 +156,13 @@ const ShipperDetail = () => {
         >
           <Send className="mr-1 h-4 w-4" />Send Portal Link
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(`/shipper-portal/preview/${shipper.id}`)}
+        >
+          <Eye className="mr-1 h-4 w-4" />View as Shipper
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
