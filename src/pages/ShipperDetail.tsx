@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/context/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import { salesStageLabels, equipmentTypeLabels } from '@/data/mockData';
 import { callOutcomeLabels, nextStepLabels } from '@/utils/cadenceEngine';
 import { Contact, Lane, FollowUp, Activity, SalesStage, EquipmentType, ActivityType } from '@/types';
@@ -137,6 +139,23 @@ const ShipperDetail = () => {
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!shipper.email}
+          onClick={async () => {
+            const { data, error } = await supabase.functions.invoke('send-shipper-magic-link', {
+              body: { shipper_id: shipper.id },
+            });
+            if (error) {
+              toast.error('Failed to send portal link');
+            } else {
+              toast.success(`Portal link sent to ${data?.email || shipper.email}`);
+            }
+          }}
+        >
+          <Send className="mr-1 h-4 w-4" />Send Portal Link
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" />Delete</Button>

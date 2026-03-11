@@ -1,11 +1,13 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download, Trash2 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string }> = {
   signed: { icon: CheckCircle2, color: 'text-green-600' },
@@ -17,8 +19,14 @@ const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string }>
 export default function ContractDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { contracts, shippers, carriers } = useAppContext();
+  const { contracts, setContracts, shippers, carriers } = useAppContext();
   const printRef = useRef<HTMLDivElement>(null);
+
+  const deleteContract = () => {
+    setContracts(prev => prev.filter(c => c.id !== id));
+    toast.success('Contract deleted');
+    navigate('/contracts');
+  };
 
   const contract = contracts.find(c => c.id === id);
 
@@ -65,11 +73,30 @@ export default function ContractDetail() {
         <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Back to Contracts
         </Button>
-        {contract.status === 'signed' && (
-          <Button variant="outline" onClick={handleExportPDF} className="gap-2">
-            <Download className="h-4 w-4" /> Export PDF
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="gap-2 text-destructive border-destructive/50 hover:bg-destructive/10">
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Contract</AlertDialogTitle>
+                <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteContract} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          {contract.status === 'signed' && (
+            <Button variant="outline" onClick={handleExportPDF} className="gap-2">
+              <Download className="h-4 w-4" /> Export PDF
+            </Button>
+          )}
+        </div>
       </div>
 
       <div ref={printRef} className="space-y-6">
