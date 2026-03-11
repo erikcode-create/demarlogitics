@@ -54,6 +54,21 @@ const LoadDetail = () => {
     setCarrierDocs(prev => prev.filter(d => d.id !== docId));
   };
 
+  const [resending, setResending] = useState<string | null>(null);
+
+  const resendToCarrier = async (doc: any) => {
+    setResending(doc.id);
+    const { data, error } = await supabase.functions.invoke('send-ratecon-email', {
+      body: { carrier_id: doc.carrier_id, document_id: doc.id },
+    });
+    if (error) {
+      toast.error('Failed to resend document');
+    } else {
+      toast.success(`Document resent to carrier`);
+    }
+    setResending(null);
+  };
+
   useEffect(() => { fetchCarrierDocs(); }, [id]);
 
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
