@@ -117,6 +117,7 @@ const App = () => (
             <Route path="/portal/preview/:carrierId" element={<CarrierPortalPreview />} />
             <Route path="/shipper-portal" element={<ShipperPortalLogin />} />
             <Route path="/shipper-portal/dashboard" element={<ShipperPortalDashboard />} />
+            <Route path="/shipper-portal/preview/:shipperId" element={<ShipperPortalPreview />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
