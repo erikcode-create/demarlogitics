@@ -236,6 +236,13 @@ const LoadDetail = () => {
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {/* POD & Invoice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle className="text-sm">Proof of Delivery</CardTitle></CardHeader>
