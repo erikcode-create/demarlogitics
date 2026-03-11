@@ -112,6 +112,7 @@ const Loads = () => {
 
   const handleDelete = () => {
     if (!deleteTarget) return;
+    deleteRecord('loads', deleteTarget.id);
     setLoads(prev => prev.filter(l => l.id !== deleteTarget.id));
     setDeleteTarget(null);
   };

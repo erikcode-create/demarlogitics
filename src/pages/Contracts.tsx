@@ -25,6 +25,7 @@ export default function Contracts() {
   const [tab, setTab] = useState('all');
 
   const deleteContract = (contractId: string) => {
+    deleteRecord('contracts', contractId);
     setContracts(prev => prev.filter(c => c.id !== contractId));
     toast.success('Contract deleted');
   };

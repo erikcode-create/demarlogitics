@@ -58,6 +58,8 @@ const CarrierDetail = () => {
   };
 
   const handleDelete = () => {
+    deleteRecord('carriers', id!);
+    activities.filter(a => a.entityId === id && a.entityType === 'carrier').forEach(a => deleteRecord('activities', a.id));
     setCarriers(prev => prev.filter(c => c.id !== id));
     setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'carrier')));
     setLoads(prev => prev.map(l => l.carrierId === id ? { ...l, carrierId: null } : l));

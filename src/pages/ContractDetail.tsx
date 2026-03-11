@@ -23,6 +23,7 @@ export default function ContractDetail() {
   const printRef = useRef<HTMLDivElement>(null);
 
   const deleteContract = () => {
+    deleteRecord('contracts', id!);
     setContracts(prev => prev.filter(c => c.id !== id));
     toast.success('Contract deleted');
     navigate('/contracts');
