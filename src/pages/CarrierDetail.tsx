@@ -56,7 +56,14 @@ const CarrierDetail = () => {
       toast({ title: 'Download failed', description: error?.message || 'Could not generate download link', variant: 'destructive' });
       return;
     }
-    window.open(data.signedUrl, '_blank');
+    const link = document.createElement('a');
+    link.href = data.signedUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.download = doc.file_name || '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleSendPortalLink = async () => {
