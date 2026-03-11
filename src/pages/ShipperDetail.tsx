@@ -139,6 +139,23 @@ const ShipperDetail = () => {
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>{Object.entries(salesStageLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!shipper.email}
+          onClick={async () => {
+            const { data, error } = await supabase.functions.invoke('send-shipper-magic-link', {
+              body: { shipper_id: shipper.id },
+            });
+            if (error) {
+              toast.error('Failed to send portal link');
+            } else {
+              toast.success(`Portal link sent to ${data?.email || shipper.email}`);
+            }
+          }}
+        >
+          <Send className="mr-1 h-4 w-4" />Send Portal Link
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" />Delete</Button>
