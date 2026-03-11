@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, ClipboardList, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileText, ClipboardList, Upload, CheckCircle, AlertCircle, Truck, MapPin, Calendar } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface CarrierDocument {
@@ -20,6 +21,19 @@ interface CarrierDocument {
   load_id: string;
 }
 
+interface CarrierLoad {
+  id: string;
+  load_number: string;
+  origin: string;
+  destination: string;
+  pickup_date: string;
+  delivery_date: string;
+  status: string;
+  equipment_type: string;
+  carrier_rate: number;
+  weight: number;
+}
+
 const REQUIRED_DOCS = [
   { key: 'w9', label: 'W-9' },
   { key: 'workers_comp', label: 'Workers Compensation' },
@@ -28,9 +42,18 @@ const REQUIRED_DOCS = [
   { key: 'notice_of_assignment', label: 'Notice of Assignment' },
 ] as const;
 
+const statusColors: Record<string, string> = {
+  available: 'bg-blue-100 text-blue-800',
+  dispatched: 'bg-yellow-100 text-yellow-800',
+  in_transit: 'bg-purple-100 text-purple-800',
+  delivered: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800',
+};
+
 const CarrierPortalDashboard = () => {
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<CarrierDocument[]>([]);
+  const [loads, setLoads] = useState<CarrierLoad[]>([]);
   const [carrierName, setCarrierName] = useState('');
   const [carrierId, setCarrierId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -78,7 +101,7 @@ const CarrierPortalDashboard = () => {
       }
 
       setCarrierId(cId);
-      await Promise.all([fetchDocuments(cId), fetchOnboardingDocs(cId)]);
+      await Promise.all([fetchDocuments(cId), fetchOnboardingDocs(cId), fetchLoads(cId)]);
       setLoading(false);
     };
 
@@ -89,6 +112,15 @@ const CarrierPortalDashboard = () => {
         .eq('carrier_id', cId)
         .order('created_at', { ascending: false });
       setDocuments((data as CarrierDocument[]) || []);
+    };
+
+    const fetchLoads = async (cId: string) => {
+      const { data } = await supabase
+        .from('loads')
+        .select('id, load_number, origin, destination, pickup_date, delivery_date, status, equipment_type, carrier_rate, weight')
+        .eq('carrier_id', cId)
+        .order('pickup_date', { ascending: false });
+      setLoads((data as CarrierLoad[]) || []);
     };
 
     fetchData();
@@ -234,69 +266,130 @@ const CarrierPortalDashboard = () => {
           </div>
         )}
 
-        {/* Documents Section */}
-        <div>
-          <h2 className="text-xl font-bold text-foreground">Your Documents</h2>
-          <p className="text-sm text-muted-foreground">View and sign your rate confirmations and bills of lading</p>
-        </div>
+        {/* Tabbed Content */}
+        <Tabs defaultValue="documents">
+          <TabsList>
+            <TabsTrigger value="documents">Documents ({documents.length})</TabsTrigger>
+            <TabsTrigger value="loads">Loads ({loads.length})</TabsTrigger>
+          </TabsList>
 
-        {documents.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              No documents yet. Documents will appear here when your broker sends them.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {documents.map((doc) => (
-              <Card
-                key={doc.id}
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => {
-                  if (!isOnboardingComplete) {
-                    toast({
-                      title: 'Onboarding Required',
-                      description: 'Please upload all required documents before viewing rate confirmations.',
-                      variant: 'destructive',
-                    });
-                    return;
-                  }
-                  navigate(`/portal/documents/${doc.id}`);
-                }}
-              >
-                <CardContent className="py-4 flex items-center gap-4">
-                  {doc.type === 'rate_con' ? (
-                    <FileText className="h-8 w-8 text-primary shrink-0" />
-                  ) : (
-                    <ClipboardList className="h-8 w-8 text-primary shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground">
-                      {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}
-                      {doc.document_data?.loadNumber && ` — ${doc.document_data.loadNumber}`}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {doc.document_data?.origin} → {doc.document_data?.destination}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(doc.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!isOnboardingComplete && (
-                      <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
-                        Locked
-                      </Badge>
-                    )}
-                    <Badge variant={doc.status === 'signed' ? 'default' : 'outline'}>
-                      {doc.status === 'signed' ? 'Signed' : 'Pending Signature'}
-                    </Badge>
-                  </div>
+          <TabsContent value="documents" className="space-y-3">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Your Documents</h2>
+              <p className="text-sm text-muted-foreground">View and sign your rate confirmations and bills of lading</p>
+            </div>
+
+            {documents.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No documents yet. Documents will appear here when your broker sends them.
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="space-y-3">
+                {documents.map((doc) => (
+                  <Card
+                    key={doc.id}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => {
+                      if (!isOnboardingComplete) {
+                        toast({
+                          title: 'Onboarding Required',
+                          description: 'Please upload all required documents before viewing rate confirmations.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      navigate(`/portal/documents/${doc.id}`);
+                    }}
+                  >
+                    <CardContent className="py-4 flex items-center gap-4">
+                      {doc.type === 'rate_con' ? (
+                        <FileText className="h-8 w-8 text-primary shrink-0" />
+                      ) : (
+                        <ClipboardList className="h-8 w-8 text-primary shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground">
+                          {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}
+                          {doc.document_data?.loadNumber && ` — ${doc.document_data.loadNumber}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {doc.document_data?.origin} → {doc.document_data?.destination}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(doc.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!isOnboardingComplete && (
+                          <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                            Locked
+                          </Badge>
+                        )}
+                        <Badge variant={doc.status === 'signed' ? 'default' : 'outline'}>
+                          {doc.status === 'signed' ? 'Signed' : 'Pending Signature'}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="loads" className="space-y-3">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Your Loads</h2>
+              <p className="text-sm text-muted-foreground">View all loads assigned to you</p>
+            </div>
+
+            {loads.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No loads assigned yet.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {loads.map((load) => (
+                  <Card key={load.id}>
+                    <CardContent className="py-4 flex items-center gap-4">
+                      <Truck className="h-8 w-8 text-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground">
+                          {load.load_number || 'No Load #'}
+                        </p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {load.origin} → {load.destination}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            PU: {load.pickup_date || '—'}
+                          </span>
+                          <span>DEL: {load.delivery_date || '—'}</span>
+                          {load.weight > 0 && <span>{load.weight.toLocaleString()} lbs</span>}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge className={statusColors[load.status] || 'bg-muted text-muted-foreground'}>
+                          {load.status.replace(/_/g, ' ')}
+                        </Badge>
+                        {load.carrier_rate > 0 && (
+                          <span className="text-sm font-semibold text-foreground">
+                            ${load.carrier_rate.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </CarrierPortalLayout>
   );
