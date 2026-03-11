@@ -6,9 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye, Send } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { CarrierPacketStatus } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 const getInsuranceStatus = (expiry: string) => {
   const days = Math.ceil((new Date(expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -21,6 +24,22 @@ const CarrierDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { carriers, setCarriers, activities, setActivities, loads, setLoads } = useAppContext();
+  const [sendingLink, setSendingLink] = useState(false);
+
+  const handleSendPortalLink = async () => {
+    if (!id) return;
+    setSendingLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-carrier-magic-link', {
+        body: { carrier_id: id },
+      });
+      if (error) throw error;
+      toast({ title: 'Portal link sent', description: `Magic link sent to ${data?.email || carrier?.email}` });
+    } catch (err: any) {
+      toast({ title: 'Failed to send link', description: err.message, variant: 'destructive' });
+    }
+    setSendingLink(false);
+  };
 
   const carrier = carriers.find(c => c.id === id);
 
@@ -57,6 +76,9 @@ const CarrierDetail = () => {
             <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{carrier.city}, {carrier.state}</span>
           </div>
         </div>
+        <Button variant="outline" size="sm" onClick={handleSendPortalLink} disabled={sendingLink || !carrier.email}>
+          <Send className="h-4 w-4 mr-1" /> {sendingLink ? 'Sending...' : 'Send Portal Link'}
+        </Button>
         <Button variant="outline" size="sm" onClick={() => window.open(`/portal/preview/${id}`, '_blank')}>
           <Eye className="h-4 w-4 mr-1" /> Preview Portal
         </Button>
