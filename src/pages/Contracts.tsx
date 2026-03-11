@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Layers, Plus, Search } from 'lucide-react';
+import { FileText, Layers, Plus, Search, Trash2 } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ContractType } from '@/types';
+import { toast } from 'sonner';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-muted text-muted-foreground',
