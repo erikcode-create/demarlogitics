@@ -35,6 +35,7 @@ import CarrierPortalDocument from "./pages/CarrierPortalDocument";
 import CarrierPortalPreview from "./pages/CarrierPortalPreview";
 import ShipperPortalLogin from "./pages/ShipperPortalLogin";
 import ShipperPortalDashboard from "./pages/ShipperPortalDashboard";
+import ShipperPortalPreview from "./pages/ShipperPortalPreview";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +117,7 @@ const App = () => (
             <Route path="/portal/preview/:carrierId" element={<CarrierPortalPreview />} />
             <Route path="/shipper-portal" element={<ShipperPortalLogin />} />
             <Route path="/shipper-portal/dashboard" element={<ShipperPortalDashboard />} />
+            <Route path="/shipper-portal/preview/:shipperId" element={<ShipperPortalPreview />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>

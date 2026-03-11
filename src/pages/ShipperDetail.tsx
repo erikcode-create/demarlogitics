@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2, Send } from 'lucide-react';
+import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2, Send, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesStageLabels, equipmentTypeLabels } from '@/data/mockData';
 import { callOutcomeLabels, nextStepLabels } from '@/utils/cadenceEngine';
@@ -155,6 +155,13 @@ const ShipperDetail = () => {
           }}
         >
           <Send className="mr-1 h-4 w-4" />Send Portal Link
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(`/shipper-portal/preview/${shipper.id}`)}
+        >
+          <Eye className="mr-1 h-4 w-4" />View as Shipper
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
