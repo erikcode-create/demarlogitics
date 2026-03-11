@@ -610,6 +610,35 @@ export type Database = {
           },
         ]
       }
+      shipper_portal_users: {
+        Row: {
+          created_at: string
+          id: string
+          shipper_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          shipper_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          shipper_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipper_portal_users_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shippers: {
         Row: {
           address: string
@@ -739,6 +768,7 @@ export type Database = {
         Returns: boolean
       }
       is_carrier_portal_user: { Args: { _user_id: string }; Returns: boolean }
+      is_shipper_portal_user: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
