@@ -49,14 +49,40 @@ const CarrierDetail = () => {
   }, [id]);
 
   const handleDownloadDoc = async (doc: OnboardingDoc) => {
-    const { data, error } = await supabase.storage
-      .from('carrier-onboarding-docs')
-      .createSignedUrl(doc.file_path, 3600);
-    if (error || !data?.signedUrl) {
-      toast({ title: 'Download failed', description: error?.message || 'Could not generate download link', variant: 'destructive' });
-      return;
+    try {
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('carrier-onboarding-docs')
+        .download(doc.file_path);
+
+      if (!downloadError && fileData) {
+        const blobUrl = URL.createObjectURL(fileData);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = doc.file_name || 'onboarding-document';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        return;
+      }
+
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('carrier-onboarding-docs')
+        .createSignedUrl(doc.file_path, 3600);
+
+      if (signedError || !signedData?.signedUrl) {
+        toast({ title: 'Download failed', description: signedError?.message || 'Could not generate download link', variant: 'destructive' });
+        return;
+      }
+
+      const signedUrl = signedData.signedUrl.startsWith('http')
+        ? signedData.signedUrl
+        : `${import.meta.env.VITE_SUPABASE_URL}/storage/v1${signedData.signedUrl}`;
+
+      window.location.assign(signedUrl);
+    } catch (err: any) {
+      toast({ title: 'Download failed', description: err.message || 'Unexpected error while downloading document', variant: 'destructive' });
     }
-    window.location.assign(data.signedUrl);
   };
 
   const handleSendPortalLink = async () => {
