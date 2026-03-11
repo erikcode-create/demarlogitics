@@ -170,12 +170,40 @@ const CarrierDetail = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="documents">
+      <Tabs defaultValue="onboarding">
         <TabsList>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="onboarding">Onboarding Docs ({onboardingDocs.length})</TabsTrigger>
+          <TabsTrigger value="documents">Compliance</TabsTrigger>
           <TabsTrigger value="factoring">Factoring</TabsTrigger>
           <TabsTrigger value="activity">Activity ({carrierActivities.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="onboarding">
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Carrier Uploaded Documents</CardTitle></CardHeader>
+            <CardContent>
+              {onboardingDocs.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No documents uploaded by this carrier yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {onboardingDocs.map(doc => (
+                    <div key={doc.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                      <FileCheck className="h-5 w-5 text-success shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{doc.document_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+                        <p className="text-xs text-muted-foreground truncate">{doc.file_name}</p>
+                        <p className="text-xs text-muted-foreground">Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}</p>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handleDownloadDoc(doc)}>
+                        <Download className="h-3 w-3 mr-1" /> Download
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="documents">
           <Card>
