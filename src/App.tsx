@@ -96,8 +96,6 @@ function AuthGate() {
 
   if (loading) return null;
   if (session) return <Navigate to="/dashboard" replace />;
-  // In preview mode, skip auth and go straight to the app
-  if (isPreviewMode) return <Navigate to="/dashboard" replace />;
   return <Auth />;
 }
 
