@@ -192,6 +192,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSalesTasks(prev => [...prev, ...tasks]);
   }, [setSalesTasks]);
 
+  const deleteRecord = useCallback((table: string, id: string) => {
+    deleteFromSupabase(table, id);
+  }, []);
+
   return (
     <AppContext.Provider value={{
       shippers, setShippers,
@@ -208,6 +212,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       stageChangeLogs, setStageChangeLogs,
       logStageChange,
       triggerCadence,
+      deleteRecord,
     }}>
       {children}
     </AppContext.Provider>
