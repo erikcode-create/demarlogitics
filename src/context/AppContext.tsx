@@ -45,7 +45,6 @@ function syncToSupabase<T extends { id: string }>(
   next: T[]
 ) {
   const prevIds = new Set(prev.map(i => i.id));
-  const nextIds = new Set(next.map(i => i.id));
   const prevMap = new Map(prev.map(i => [i.id, i]));
 
   // Inserts
@@ -71,13 +70,14 @@ function syncToSupabase<T extends { id: string }>(
     }
   }
 
-  // Deletes
-  const deletes = prev.filter(i => !nextIds.has(i.id));
-  for (const item of deletes) {
-    db.from(table).delete().eq('id', item.id).then(({ error }: any) => {
-      if (error) console.error(`Delete error (${table}):`, error);
-    });
-  }
+  // NOTE: Deletes are handled explicitly via deleteFromSupabase to prevent
+  // accidental data loss during HMR / page refreshes
+}
+
+function deleteFromSupabase(table: string, id: string) {
+  db.from(table).delete().eq('id', id).then(({ error }: any) => {
+    if (error) console.error(`Delete error (${table}):`, error);
+  });
 }
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
