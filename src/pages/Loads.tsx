@@ -113,6 +113,33 @@ const Loads = () => {
     setFormData(emptyForm);
   };
 
+  const handleBulkCreate = () => {
+    const count = Number(bulkCount);
+    if (!formData.shipperId || !formData.origin || count < 1) return;
+    const existingRefs = new Set(loads.map(l => l.referenceNumber));
+    const newLoads: Load[] = [];
+    for (let i = 0; i < count; i++) {
+      let ref: string;
+      do { ref = String(Math.floor(10000000 + Math.random() * 90000000)); } while (existingRefs.has(ref));
+      existingRefs.add(ref);
+      const loadNum = `DT-2026-${String(loads.length + newLoads.length + 1).padStart(3, '0')}`;
+      newLoads.push({
+        id: crypto.randomUUID(), loadNumber: loadNum, shipperId: formData.shipperId, carrierId: null,
+        origin: formData.origin, destination: formData.destination,
+        pickupDate: formData.pickupDate, deliveryDate: formData.deliveryDate,
+        shipperRate: Number(formData.shipperRate), carrierRate: 0, weight: Number(formData.weight),
+        equipmentType: formData.equipmentType, status: 'available', podUploaded: false,
+        referenceNumber: ref, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
+        notes: '', createdAt: new Date().toISOString().split('T')[0],
+      });
+    }
+    setLoads(prev => [...prev, ...newLoads]);
+    setBulkDialogOpen(false);
+    setFormData(emptyForm);
+    setBulkCount('4');
+    toast.success(`${count} loads created successfully`);
+  };
+
   const handleDelete = () => {
     if (!deleteTarget) return;
     deleteRecord('loads', deleteTarget.id);
@@ -129,7 +156,12 @@ const Loads = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Load Board</h1>
-        <Button size="sm" onClick={openCreate}><Plus className="mr-1 h-4 w-4" />New Load</Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => { setFormData(emptyForm); setBulkDialogOpen(true); }}>
+            <Copy className="mr-1 h-4 w-4" />Bulk Create
+          </Button>
+          <Button size="sm" onClick={openCreate}><Plus className="mr-1 h-4 w-4" />New Load</Button>
+        </div>
       </div>
 
       {/* Create / Edit Dialog */}
