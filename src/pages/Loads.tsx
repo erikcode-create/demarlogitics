@@ -39,7 +39,6 @@ const Loads = () => {
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [bulkCount, setBulkCount] = useState('4');
-  const [formData, setFormData] = useState(emptyForm);
 
   const generateRefNumber = (): string => {
     const existing = new Set(loads.map(l => l.referenceNumber));
