@@ -202,7 +202,55 @@ const Loads = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Bulk Create Dialog */}
+      <Dialog open={bulkDialogOpen} onOpenChange={(open) => { setBulkDialogOpen(open); if (!open) setFormData(emptyForm); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Bulk Create Loads</DialogTitle>
+            <DialogDescription>Create multiple loads with the same details. Each will get a unique load number and reference number.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Number of Loads</Label>
+              <Select value={bulkCount} onValueChange={setBulkCount}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['2','3','4','5','6','7','8','9','10'].map(n => <SelectItem key={n} value={n}>{n} Loads</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Shipper</Label>
+              <Select value={formData.shipperId} onValueChange={v => setFormData(p => ({ ...p, shipperId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select shipper" /></SelectTrigger>
+                <SelectContent>{shippers.map(s => <SelectItem key={s.id} value={s.id}>{s.companyName}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Origin</Label><Input value={formData.origin} onChange={e => setFormData(p => ({ ...p, origin: e.target.value }))} /></div>
+              <div><Label>Destination</Label><Input value={formData.destination} onChange={e => setFormData(p => ({ ...p, destination: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Pickup Date</Label><Input type="date" value={formData.pickupDate} onChange={e => setFormData(p => ({ ...p, pickupDate: e.target.value }))} /></div>
+              <div><Label>Delivery Date</Label><Input type="date" value={formData.deliveryDate} onChange={e => setFormData(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Shipper Rate ($)</Label><Input type="number" value={formData.shipperRate} onChange={e => setFormData(p => ({ ...p, shipperRate: e.target.value }))} /></div>
+              <div><Label>Weight (lbs)</Label><Input type="number" value={formData.weight} onChange={e => setFormData(p => ({ ...p, weight: e.target.value }))} /></div>
+            </div>
+            <div>
+              <Label>Equipment</Label>
+              <Select value={formData.equipmentType} onValueChange={(v: EquipmentType) => setFormData(p => ({ ...p, equipmentType: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{Object.entries(equipmentTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleBulkCreate} className="w-full" disabled={!formData.shipperId || !formData.origin}>
+              Create {bulkCount} Loads
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
         <DialogContent>
           <DialogHeader>
