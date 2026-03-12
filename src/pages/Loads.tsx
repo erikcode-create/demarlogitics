@@ -34,8 +34,11 @@ const Loads = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
+  const [formData, setFormData] = useState(emptyForm);
+  const [bulkCount, setBulkCount] = useState('4');
   const [formData, setFormData] = useState(emptyForm);
 
   const generateRefNumber = (): string => {
