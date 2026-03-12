@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Copy } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
+import { toast } from 'sonner';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
@@ -33,9 +34,11 @@ const Loads = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
   const [formData, setFormData] = useState(emptyForm);
+  const [bulkCount, setBulkCount] = useState('4');
 
   const generateRefNumber = (): string => {
     const existing = new Set(loads.map(l => l.referenceNumber));
@@ -110,6 +113,33 @@ const Loads = () => {
     setFormData(emptyForm);
   };
 
+  const handleBulkCreate = () => {
+    const count = Number(bulkCount);
+    if (!formData.shipperId || !formData.origin || count < 1) return;
+    const existingRefs = new Set(loads.map(l => l.referenceNumber));
+    const newLoads: Load[] = [];
+    for (let i = 0; i < count; i++) {
+      let ref: string;
+      do { ref = String(Math.floor(10000000 + Math.random() * 90000000)); } while (existingRefs.has(ref));
+      existingRefs.add(ref);
+      const loadNum = `DT-2026-${String(loads.length + newLoads.length + 1).padStart(3, '0')}`;
+      newLoads.push({
+        id: crypto.randomUUID(), loadNumber: loadNum, shipperId: formData.shipperId, carrierId: null,
+        origin: formData.origin, destination: formData.destination,
+        pickupDate: formData.pickupDate, deliveryDate: formData.deliveryDate,
+        shipperRate: Number(formData.shipperRate), carrierRate: 0, weight: Number(formData.weight),
+        equipmentType: formData.equipmentType, status: 'available', podUploaded: false,
+        referenceNumber: ref, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
+        notes: '', createdAt: new Date().toISOString().split('T')[0],
+      });
+    }
+    setLoads(prev => [...prev, ...newLoads]);
+    setBulkDialogOpen(false);
+    setFormData(emptyForm);
+    setBulkCount('4');
+    toast.success(`${count} loads created successfully`);
+  };
+
   const handleDelete = () => {
     if (!deleteTarget) return;
     deleteRecord('loads', deleteTarget.id);
@@ -126,7 +156,12 @@ const Loads = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Load Board</h1>
-        <Button size="sm" onClick={openCreate}><Plus className="mr-1 h-4 w-4" />New Load</Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => { setFormData(emptyForm); setBulkDialogOpen(true); }}>
+            <Copy className="mr-1 h-4 w-4" />Bulk Create
+          </Button>
+          <Button size="sm" onClick={openCreate}><Plus className="mr-1 h-4 w-4" />New Load</Button>
+        </div>
       </div>
 
       {/* Create / Edit Dialog */}
@@ -167,7 +202,55 @@ const Loads = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Bulk Create Dialog */}
+      <Dialog open={bulkDialogOpen} onOpenChange={(open) => { setBulkDialogOpen(open); if (!open) setFormData(emptyForm); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Bulk Create Loads</DialogTitle>
+            <DialogDescription>Create multiple loads with the same details. Each will get a unique load number and reference number.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Number of Loads</Label>
+              <Select value={bulkCount} onValueChange={setBulkCount}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['2','3','4','5','6','7','8','9','10'].map(n => <SelectItem key={n} value={n}>{n} Loads</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Shipper</Label>
+              <Select value={formData.shipperId} onValueChange={v => setFormData(p => ({ ...p, shipperId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select shipper" /></SelectTrigger>
+                <SelectContent>{shippers.map(s => <SelectItem key={s.id} value={s.id}>{s.companyName}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Origin</Label><Input value={formData.origin} onChange={e => setFormData(p => ({ ...p, origin: e.target.value }))} /></div>
+              <div><Label>Destination</Label><Input value={formData.destination} onChange={e => setFormData(p => ({ ...p, destination: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Pickup Date</Label><Input type="date" value={formData.pickupDate} onChange={e => setFormData(p => ({ ...p, pickupDate: e.target.value }))} /></div>
+              <div><Label>Delivery Date</Label><Input type="date" value={formData.deliveryDate} onChange={e => setFormData(p => ({ ...p, deliveryDate: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Shipper Rate ($)</Label><Input type="number" value={formData.shipperRate} onChange={e => setFormData(p => ({ ...p, shipperRate: e.target.value }))} /></div>
+              <div><Label>Weight (lbs)</Label><Input type="number" value={formData.weight} onChange={e => setFormData(p => ({ ...p, weight: e.target.value }))} /></div>
+            </div>
+            <div>
+              <Label>Equipment</Label>
+              <Select value={formData.equipmentType} onValueChange={(v: EquipmentType) => setFormData(p => ({ ...p, equipmentType: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{Object.entries(equipmentTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleBulkCreate} className="w-full" disabled={!formData.shipperId || !formData.origin}>
+              Create {bulkCount} Loads
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
         <DialogContent>
           <DialogHeader>
