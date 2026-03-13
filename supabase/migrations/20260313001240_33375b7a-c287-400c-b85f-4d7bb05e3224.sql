@@ -1,0 +1,1 @@
+UPDATE carriers SET email = TRIM(email) WHERE id = 'c9ad4176-24fb-42dc-83d1-f190a5502eb9';
