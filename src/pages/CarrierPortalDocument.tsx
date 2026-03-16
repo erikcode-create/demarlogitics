@@ -23,7 +23,7 @@ interface CarrierDocument {
   load_id: string;
 }
 
-const REQUIRED_DOC_TYPES = ['w9', 'workers_comp', 'certificate_of_insurance', 'mc_authority_letter', 'notice_of_assignment'];
+const REQUIRED_DOC_TYPES = ['w9', 'certificate_of_insurance', 'mc_authority_letter', 'notice_of_assignment'];
 
 const CarrierPortalDocument = () => {
   const { id } = useParams<{ id: string }>();

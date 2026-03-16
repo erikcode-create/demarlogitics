@@ -34,11 +34,16 @@ interface CarrierLoad {
 
 const REQUIRED_DOCS = [
   { key: 'w9', label: 'W-9' },
-  { key: 'workers_comp', label: 'Workers Compensation' },
   { key: 'certificate_of_insurance', label: 'Certificate of Insurance' },
   { key: 'mc_authority_letter', label: 'MC Authority Letter (FMCSA)' },
   { key: 'notice_of_assignment', label: 'Notice of Assignment' },
 ] as const;
+
+const OPTIONAL_DOCS = [
+  { key: 'workers_comp', label: 'Workers Compensation (Optional)' },
+] as const;
+
+const ALL_DOCS = [...REQUIRED_DOCS, ...OPTIONAL_DOCS];
 
 const statusColors: Record<string, string> = {
   available: 'bg-blue-100 text-blue-800',
