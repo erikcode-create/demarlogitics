@@ -149,6 +149,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div><Label>Load Number</Label><Input value={fields.loadNumber} onChange={e => update('loadNumber', e.target.value)} /></div>
             <div><Label>Reference Number</Label><Input value={fields.refNumber} onChange={e => update('refNumber', e.target.value)} /></div>
+            <div><Label>Order Number</Label><Input value={fields.orderNumber} onChange={e => update('orderNumber', e.target.value)} placeholder="Shipper's order/PO number" /></div>
           </div>
 
           <h4 className="text-sm font-semibold text-muted-foreground pt-2">Broker</h4>
