@@ -82,7 +82,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     <h1>${fields.brokerName}</h1>
     <p>${fields.brokerAddress} | ${fields.brokerPhone} | ${fields.brokerEmail}</p>
   </div>
-  <div class="load-banner">RATE CONFIRMATION — Load #${fields.loadNumber}${fields.refNumber ? ` | Ref: ${fields.refNumber}` : ''}</div>
+  <div class="load-banner">RATE CONFIRMATION — Load #${fields.loadNumber}${fields.refNumber ? ` | Ref: ${fields.refNumber}` : ''}${fields.orderNumber ? ` | Order #: ${fields.orderNumber}` : ''}</div>
   <div class="grid">
     <div class="section">
       <div class="section-title">Shipper</div>
