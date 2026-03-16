@@ -1,23 +1,23 @@
 
 
-# Make Workers Compensation Optional in Carrier Onboarding
+## Change Sales Page Route to Root Path
 
-## Problem
-Workers Compensation is currently listed as a required document in the carrier onboarding gate, blocking carriers from proceeding if they don't upload it. It should be optional.
+Since the sales/landing page is the public-facing website, it makes sense to serve it at `/` (the root) — the natural "homepage" URL.
 
-## Changes
+### Changes
 
-### 1. `src/pages/CarrierPortalDashboard.tsx`
-- Remove `workers_comp` from the `REQUIRED_DOCS` array
-- Add a separate `OPTIONAL_DOCS` array containing workers comp
-- Keep the upload UI for workers comp but mark it as optional (not blocking the onboarding gate)
+**1. `src/App.tsx`** — Change the route from `/sales-page` to `/`; move the CRM app routes under a `/app/*` or `/crm/*` prefix, or keep them as-is with the sales page taking priority at `/`.
 
-### 2. `src/pages/CarrierPortalPreview.tsx`
-- Same changes: remove `workers_comp` from `REQUIRED_DOCS`, add as optional
+Actually, looking at the current routing: the `Index` page currently lives at `/` inside the AppLayout. The simplest approach:
+- Move `SalesLanding` to `/` 
+- Change `/sales-page` → `/`
+- Keep the CRM routes as they are (they all have specific paths like `/dashboard`, `/loads`, etc.)
+- Update the `Index` redirect or remove it
 
-### 3. `src/pages/CarrierPortalDocument.tsx`
-- Update the message text to remove "Workers Comp" from the list of required documents
+**2. `src/components/layout/AppSidebar.tsx`** — Update the logo link from `/sales-page` to `/`.
 
-## Result
-Carriers can complete onboarding and access documents after uploading only W-9, COI, MC Authority Letter, and Notice of Assignment. Workers Comp remains available to upload but is not mandatory.
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Route `/sales-page` → `/`, adjust Index route |
+| `src/components/layout/AppSidebar.tsx` | Logo link href `/sales-page` → `/` |
 

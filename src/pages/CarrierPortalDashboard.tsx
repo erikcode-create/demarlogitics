@@ -36,11 +36,16 @@ interface CarrierLoad {
 
 const REQUIRED_DOCS = [
   { key: 'w9', label: 'W-9' },
-  { key: 'workers_comp', label: 'Workers Compensation' },
   { key: 'certificate_of_insurance', label: 'Certificate of Insurance' },
   { key: 'mc_authority_letter', label: 'MC Authority Letter (FMCSA)' },
   { key: 'notice_of_assignment', label: 'Notice of Assignment' },
 ] as const;
+
+const OPTIONAL_DOCS = [
+  { key: 'workers_comp', label: 'Workers Compensation (Optional)' },
+] as const;
+
+const ALL_DOCS = [...REQUIRED_DOCS, ...OPTIONAL_DOCS];
 
 const statusColors: Record<string, string> = {
   available: 'bg-blue-100 text-blue-800',
@@ -204,9 +209,10 @@ const CarrierPortalDashboard = () => {
               </div>
 
               <div className="space-y-3">
-                {REQUIRED_DOCS.map((doc) => {
+                {ALL_DOCS.map((doc) => {
                   const uploaded = uploadedDocs[doc.key];
                   const isUploading = uploading === doc.key;
+                  const isOptional = OPTIONAL_DOCS.some(o => o.key === doc.key);
 
                   return (
                     <div
@@ -219,7 +225,12 @@ const CarrierPortalDashboard = () => {
                         <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{doc.label}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {doc.label}
+                          {isOptional && !uploaded && (
+                            <span className="text-xs text-muted-foreground ml-1">(not required)</span>
+                          )}
+                        </p>
                         {uploaded && (
                           <p className="text-xs text-muted-foreground truncate">{uploaded.file_name}</p>
                         )}

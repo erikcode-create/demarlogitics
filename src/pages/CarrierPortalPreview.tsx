@@ -34,11 +34,16 @@ interface CarrierLoad {
 
 const REQUIRED_DOCS = [
   { key: 'w9', label: 'W-9' },
-  { key: 'workers_comp', label: 'Workers Compensation' },
   { key: 'certificate_of_insurance', label: 'Certificate of Insurance' },
   { key: 'mc_authority_letter', label: 'MC Authority Letter (FMCSA)' },
   { key: 'notice_of_assignment', label: 'Notice of Assignment' },
 ] as const;
+
+const OPTIONAL_DOCS = [
+  { key: 'workers_comp', label: 'Workers Compensation (Optional)' },
+] as const;
+
+const ALL_DOCS = [...REQUIRED_DOCS, ...OPTIONAL_DOCS];
 
 const statusColors: Record<string, string> = {
   available: 'bg-blue-100 text-blue-800',
@@ -134,7 +139,7 @@ const CarrierPortalPreview = () => {
           <CardContent className="space-y-3">
             <Progress value={(completedCount / REQUIRED_DOCS.length) * 100} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {REQUIRED_DOCS.map((doc) => (
+              {ALL_DOCS.map((doc) => (
                 <div key={doc.key} className="flex items-center gap-2 text-sm">
                   {uploadedDocs.includes(doc.key) ? (
                     <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />

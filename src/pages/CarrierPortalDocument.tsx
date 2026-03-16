@@ -23,7 +23,7 @@ interface CarrierDocument {
   load_id: string;
 }
 
-const REQUIRED_DOC_TYPES = ['w9', 'workers_comp', 'certificate_of_insurance', 'mc_authority_letter', 'notice_of_assignment'];
+const REQUIRED_DOC_TYPES = ['w9', 'certificate_of_insurance', 'mc_authority_letter', 'notice_of_assignment'];
 
 const CarrierPortalDocument = () => {
   const { id } = useParams<{ id: string }>();
@@ -162,7 +162,7 @@ ${doc.status === 'signed' ? `<div class="sig-section"><p style="font-weight:bold
               <AlertCircle className="h-12 w-12 text-orange-500 mx-auto" />
               <h3 className="text-lg font-semibold text-foreground">Complete Your Onboarding First</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                You must upload all required documents (W-9, Workers Comp, Certificate of Insurance, MC Authority Letter, and Notice of Assignment) before you can view or sign rate confirmations.
+                You must upload all required documents (W-9, Certificate of Insurance, MC Authority Letter, and Notice of Assignment) before you can view or sign rate confirmations.
               </p>
               <Button onClick={() => navigate('/portal/documents')}>
                 Go to Dashboard
