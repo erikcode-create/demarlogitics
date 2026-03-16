@@ -22,6 +22,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   const buildFields = () => ({
     loadNumber: load.loadNumber,
     refNumber: load.referenceNumber,
+    orderNumber: '',
     brokerName: 'DeMar Transportation',
     brokerAddress: '123 Broker Lane, Dallas, TX 75201',
     brokerPhone: '(555) 555-0100',
@@ -81,7 +82,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     <h1>${fields.brokerName}</h1>
     <p>${fields.brokerAddress} | ${fields.brokerPhone} | ${fields.brokerEmail}</p>
   </div>
-  <div class="load-banner">RATE CONFIRMATION — Load #${fields.loadNumber}${fields.refNumber ? ` | Ref: ${fields.refNumber}` : ''}</div>
+  <div class="load-banner">RATE CONFIRMATION — Load #${fields.loadNumber}${fields.refNumber ? ` | Ref: ${fields.refNumber}` : ''}${fields.orderNumber ? ` | Order #: ${fields.orderNumber}` : ''}</div>
   <div class="grid">
     <div class="section">
       <div class="section-title">Shipper</div>
@@ -97,6 +98,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   </div>
   <div class="section">
     <div class="section-title">Shipment Details</div>
+    ${fields.orderNumber ? `<div class="field" style="margin-bottom:8px"><div class="field-label">ORDER / PO NUMBER</div><div class="field-value" style="font-size:14px;font-weight:bold;color:#1a365d">${fields.orderNumber}</div></div>` : ''}
     <table>
       <tr><th>Origin</th><th>Destination</th><th>Pickup</th><th>Delivery</th></tr>
       <tr><td>${fields.origin}</td><td>${fields.destination}</td><td>${fields.pickupDate}</td><td>${fields.deliveryDate}</td></tr>
@@ -148,6 +150,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div><Label>Load Number</Label><Input value={fields.loadNumber} onChange={e => update('loadNumber', e.target.value)} /></div>
             <div><Label>Reference Number</Label><Input value={fields.refNumber} onChange={e => update('refNumber', e.target.value)} /></div>
+            <div><Label>Order Number</Label><Input value={fields.orderNumber} onChange={e => update('orderNumber', e.target.value)} placeholder="Shipper's order/PO number" /></div>
           </div>
 
           <h4 className="text-sm font-semibold text-muted-foreground pt-2">Broker</h4>
