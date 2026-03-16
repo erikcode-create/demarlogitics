@@ -56,8 +56,31 @@ const CarrierDetail = () => {
         .order('uploaded_at', { ascending: false });
       setOnboardingDocs((data as OnboardingDoc[]) || []);
     };
+    const fetchRateCons = async () => {
+      const { data } = await supabase
+        .from('carrier_documents')
+        .select('*')
+        .eq('carrier_id', id)
+        .eq('type', 'rate_con')
+        .order('created_at', { ascending: false });
+      setRateCons((data as RateConDoc[]) || []);
+    };
     fetchOnboardingDocs();
+    fetchRateCons();
   }, [id]);
+
+  const handleDeleteRateCon = async (docId: string) => {
+    const { error } = await supabase
+      .from('carrier_documents')
+      .delete()
+      .eq('id', docId);
+    if (error) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setRateCons(prev => prev.filter(d => d.id !== docId));
+    toast({ title: 'Rate confirmation deleted' });
+  };
 
   const handleDownloadDoc = async (doc: OnboardingDoc) => {
     try {
