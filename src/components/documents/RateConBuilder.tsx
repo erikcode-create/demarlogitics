@@ -22,6 +22,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   const buildFields = () => ({
     loadNumber: load.loadNumber,
     refNumber: load.referenceNumber,
+    orderNumber: '',
     brokerName: 'DeMar Transportation',
     brokerAddress: '123 Broker Lane, Dallas, TX 75201',
     brokerPhone: '(555) 555-0100',
