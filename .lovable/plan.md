@@ -1,17 +1,23 @@
 
 
-# Add Rate Con Deletion on Carrier Detail Page
+## Change Sales Page Route to Root Path
 
-## Problem
-Carriers accumulate too many rate confirmations and there's no way to delete them from the Carrier Detail page. Deletion exists on LoadDetail but not on the carrier view.
+Since the sales/landing page is the public-facing website, it makes sense to serve it at `/` (the root) — the natural "homepage" URL.
 
-## Changes
+### Changes
 
-### `src/pages/CarrierDetail.tsx`
-1. Add a new **"Rate Confirmations"** tab that fetches `carrier_documents` (type = `rate_con`) for the carrier
-2. Display each rate con with its load ID, status, date, and a **Delete** button with confirmation dialog
-3. Reuse the same delete pattern from `LoadDetail.tsx` — call `supabase.from('carrier_documents').delete().eq('id', docId)` and update local state
-4. Show document count in the tab label
+**1. `src/App.tsx`** — Change the route from `/sales-page` to `/`; move the CRM app routes under a `/app/*` or `/crm/*` prefix, or keep them as-is with the sales page taking priority at `/`.
 
-This is a single-file change. The RLS policies already allow authenticated non-carrier-portal users full access to `carrier_documents`, so no database changes are needed.
+Actually, looking at the current routing: the `Index` page currently lives at `/` inside the AppLayout. The simplest approach:
+- Move `SalesLanding` to `/` 
+- Change `/sales-page` → `/`
+- Keep the CRM routes as they are (they all have specific paths like `/dashboard`, `/loads`, etc.)
+- Update the `Index` redirect or remove it
+
+**2. `src/components/layout/AppSidebar.tsx`** — Update the logo link from `/sales-page` to `/`.
+
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Route `/sales-page` → `/`, adjust Index route |
+| `src/components/layout/AppSidebar.tsx` | Logo link href `/sales-page` → `/` |
 
