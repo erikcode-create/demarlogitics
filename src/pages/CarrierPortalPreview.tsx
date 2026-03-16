@@ -139,7 +139,7 @@ const CarrierPortalPreview = () => {
           <CardContent className="space-y-3">
             <Progress value={(completedCount / REQUIRED_DOCS.length) * 100} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {REQUIRED_DOCS.map((doc) => (
+              {ALL_DOCS.map((doc) => (
                 <div key={doc.key} className="flex items-center gap-2 text-sm">
                   {uploadedDocs.includes(doc.key) ? (
                     <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />

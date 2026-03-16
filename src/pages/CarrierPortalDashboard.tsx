@@ -209,9 +209,10 @@ const CarrierPortalDashboard = () => {
               </div>
 
               <div className="space-y-3">
-                {REQUIRED_DOCS.map((doc) => {
+                {ALL_DOCS.map((doc) => {
                   const uploaded = uploadedDocs[doc.key];
                   const isUploading = uploading === doc.key;
+                  const isOptional = OPTIONAL_DOCS.some(o => o.key === doc.key);
 
                   return (
                     <div
@@ -224,7 +225,12 @@ const CarrierPortalDashboard = () => {
                         <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30 shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{doc.label}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {doc.label}
+                          {isOptional && !uploaded && (
+                            <span className="text-xs text-muted-foreground ml-1">(not required)</span>
+                          )}
+                        </p>
                         {uploaded && (
                           <p className="text-xs text-muted-foreground truncate">{uploaded.file_name}</p>
                         )}
