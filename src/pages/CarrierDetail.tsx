@@ -44,6 +44,7 @@ const CarrierDetail = () => {
   const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const [sendingLink, setSendingLink] = useState(false);
   const [onboardingDocs, setOnboardingDocs] = useState<OnboardingDoc[]>([]);
+  const [rateCons, setRateCons] = useState<RateConDoc[]>([]);
 
   useEffect(() => {
     if (!id) return;
