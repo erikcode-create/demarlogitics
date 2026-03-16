@@ -232,11 +232,54 @@ const CarrierDetail = () => {
 
       <Tabs defaultValue="onboarding">
         <TabsList>
+          <TabsTrigger value="ratecons">Rate Cons ({rateCons.length})</TabsTrigger>
           <TabsTrigger value="onboarding">Onboarding Docs ({onboardingDocs.length})</TabsTrigger>
           <TabsTrigger value="documents">Compliance</TabsTrigger>
           <TabsTrigger value="factoring">Factoring</TabsTrigger>
           <TabsTrigger value="activity">Activity ({carrierActivities.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ratecons">
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Rate Confirmations</CardTitle></CardHeader>
+            <CardContent>
+              {rateCons.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No rate confirmations for this carrier.</p>
+              ) : (
+                <div className="space-y-3">
+                  {rateCons.map(doc => (
+                    <div key={doc.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                      <FileCheck className="h-5 w-5 text-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Load: {doc.load_id.slice(0, 8)}...</p>
+                        <p className="text-xs text-muted-foreground">
+                          Created {new Date(doc.created_at).toLocaleDateString()}
+                          {doc.signed_at && ` · Signed ${new Date(doc.signed_at).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                      <Badge variant={doc.status === 'signed' ? 'default' : 'outline'} className="capitalize">{doc.status}</Badge>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm"><Trash2 className="h-3 w-3 mr-1" />Delete</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete this rate confirmation?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently remove this rate confirmation. This action cannot be undone.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDeleteRateCon(doc.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="onboarding">
           <Card>
