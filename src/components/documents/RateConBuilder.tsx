@@ -98,6 +98,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
   </div>
   <div class="section">
     <div class="section-title">Shipment Details</div>
+    ${fields.orderNumber ? `<div class="field" style="margin-bottom:8px"><div class="field-label">ORDER / PO NUMBER</div><div class="field-value" style="font-size:14px;font-weight:bold;color:#1a365d">${fields.orderNumber}</div></div>` : ''}
     <table>
       <tr><th>Origin</th><th>Destination</th><th>Pickup</th><th>Delivery</th></tr>
       <tr><td>${fields.origin}</td><td>${fields.destination}</td><td>${fields.pickupDate}</td><td>${fields.deliveryDate}</td></tr>
