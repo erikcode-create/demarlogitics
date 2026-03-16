@@ -21,6 +21,16 @@ interface OnboardingDoc {
   uploaded_at: string;
 }
 
+interface RateConDoc {
+  id: string;
+  load_id: string;
+  status: string;
+  created_at: string;
+  signed_at: string | null;
+  signed_by_name: string;
+  document_data: Record<string, unknown>;
+}
+
 const getInsuranceStatus = (expiry: string) => {
   const days = Math.ceil((new Date(expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   if (days <= 0) return { color: 'text-destructive bg-destructive/10', label: 'Expired', icon: AlertTriangle, days };
