@@ -30,7 +30,9 @@ const emptyForm = {
 };
 
 const Loads = () => {
-  const { loads, setLoads, shippers, carriers, deleteRecord } = useAppContext();
+  const { loads, setLoads, shippers, carriers, deleteRecord, loading } = useAppContext();
+
+  if (loading) return <TableLoader />;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

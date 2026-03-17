@@ -105,8 +105,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
+        <Sonner richColors position="top-right" />
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthGate />} />

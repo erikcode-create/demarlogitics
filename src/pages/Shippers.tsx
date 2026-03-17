@@ -32,7 +32,9 @@ const stageColors: Record<string, string> = {
 };
 
 const Shippers = () => {
-  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, stageChangeLogs, setStageChangeLogs, deleteRecord } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, stageChangeLogs, setStageChangeLogs, deleteRecord, loading } = useAppContext();
+
+  if (loading) return <TableLoader />;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
