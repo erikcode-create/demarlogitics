@@ -175,9 +175,23 @@ const Loads = () => {
       </div>
 
       {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingLoad(null); setFormData(emptyForm); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingLoad(null); } }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editingLoad ? 'Edit Load' : 'Create Load'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {editingLoad ? 'Edit Load' : 'Create Load'}
+              {!editingLoad && hasDraft && (
+                <span className="inline-flex items-center gap-1">
+                  <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+                    <FileEdit className="h-3 w-3" />Draft
+                  </Badge>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive" onClick={clearDraft} title="Discard draft">
+                    <X className="h-3 w-3" />
+                  </Button>
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>Shipper</Label>

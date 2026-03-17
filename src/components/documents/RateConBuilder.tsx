@@ -233,8 +233,9 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
                   if (emailError) {
                     toast({ title: 'Saved', description: 'Rate con saved but email failed to send.', variant: 'destructive' });
                   } else {
-                    toast({ title: 'Sent to Carrier', description: `Rate con saved and email sent to ${carrier.email}` });
+                   toast({ title: 'Sent to Carrier', description: `Rate con saved and email sent to ${carrier.email}` });
                   }
+                  clearDraft();
                   setOpen(false);
                 }
               }}

@@ -279,6 +279,7 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
                     body: { carrier_id: load.carrierId },
                   });
                   toast({ title: 'Sent to Carrier Portal', description: `BOL saved and magic link sent to ${carrier.email}` });
+                  clearDraft();
                   setOpen(false);
                 }
               }}

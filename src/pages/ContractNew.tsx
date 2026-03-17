@@ -138,9 +138,29 @@ export default function ContractNew() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
-        <ArrowLeft className="h-4 w-4" /> Back to Contracts
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back to Contracts
+        </Button>
+        {hasWizardDraft && (
+          <span className="inline-flex items-center gap-1">
+            <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+              <FileEdit className="h-3 w-3" />Draft
+            </Badge>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive gap-1" onClick={() => {
+              clearWizardDraft();
+              setStepRaw('type');
+              setContractTypeRaw('');
+              setEntityIdRaw('');
+              setLoadIdRaw('');
+              setSignerNameRaw('');
+              setAgreed(false);
+            }}>
+              <X className="h-3 w-3" />Discard
+            </Button>
+          </span>
+        )}
+      </div>
 
       {/* Stepper */}
       <div className="flex items-center gap-2 text-sm">
