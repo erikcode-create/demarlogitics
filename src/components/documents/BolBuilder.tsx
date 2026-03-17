@@ -51,15 +51,26 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
     specialInstructions: load.notes || '',
   });
 
-  const [fields, setFields] = useState(buildFields);
-  const [commodities, setCommodities] = useState<CommodityLine[]>([
-    { ...emptyLine(), weight: load.weight.toLocaleString() },
-  ]);
+  const defaultFields = buildFields();
+  const defaultCommodities: CommodityLine[] = [{ ...emptyLine(), weight: load.weight.toLocaleString() }];
+  
+  const { data: bolDraft, setData: setBolDraft, hasDraft, clearDraft } = useDraft({
+    key: `bol:${load.id}`,
+    defaultValue: { fields: defaultFields, commodities: defaultCommodities },
+  });
+  
+  const fields = bolDraft.fields;
+  const commodities = bolDraft.commodities;
+  const setFields = (updater: React.SetStateAction<typeof defaultFields>) => {
+    setBolDraft(prev => ({ ...prev, fields: typeof updater === 'function' ? updater(prev.fields) : updater }));
+  };
+  const setCommodities = (updater: React.SetStateAction<CommodityLine[]>) => {
+    setBolDraft(prev => ({ ...prev, commodities: typeof updater === 'function' ? updater(prev.commodities) : updater }));
+  };
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      setFields(buildFields());
-      setCommodities([{ ...emptyLine(), weight: load.weight.toLocaleString() }]);
+    if (isOpen && !hasDraft) {
+      setBolDraft({ fields: buildFields(), commodities: [{ ...emptyLine(), weight: load.weight.toLocaleString() }] });
     }
     setOpen(isOpen);
   };
