@@ -77,9 +77,11 @@ const Shippers = () => {
     setShippers(prev => [...prev, shipper]);
     setDialogOpen(false);
     setNewShipper({ companyName: '', city: '', state: '', phone: '', email: '', salesStage: 'lead', shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '' });
+    toast.success('Shipper created');
   };
 
   const handleDelete = (id: string) => {
+    const name = shippers.find(s => s.id === id)?.companyName;
     deleteRecord('shippers', id);
     // Also delete related records from DB
     contacts.filter(c => c.shipperId === id).forEach(c => deleteRecord('contacts', c.id));
