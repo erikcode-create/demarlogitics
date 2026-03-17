@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Search, Plus, AlertTriangle, CheckCircle, Clock, Trash2, Eye } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Carrier, CarrierPacketStatus, EquipmentType } from '@/types';
+import { TableLoader } from '@/components/ui/page-loader';
+import { toast } from 'sonner';
 
 const getInsuranceStatus = (expiry: string) => {
   const days = Math.ceil((new Date(expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
