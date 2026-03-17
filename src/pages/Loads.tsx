@@ -39,7 +39,10 @@ const Loads = () => {
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
-  const [formData, setFormData] = useState(emptyForm);
+  const { data: formData, setData: setFormData, hasDraft, clearDraft, draftRestoredRef } = useDraft({
+    key: 'load:new',
+    defaultValue: emptyForm,
+  });
   const [bulkCount, setBulkCount] = useState('4');
 
   if (loading) return <TableLoader />;
