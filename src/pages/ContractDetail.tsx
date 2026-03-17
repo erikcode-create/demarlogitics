@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download, Trash2 } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, AlertTriangle, Download, Trash2 } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useRef, useCallback } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
