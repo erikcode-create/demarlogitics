@@ -55,7 +55,10 @@ function syncToSupabase<T extends { id: string }>(
   if (inserts.length > 0) {
     const rows = inserts.map(i => frontendToRow(i as any));
     db.from(table).insert(rows).then(({ error }: any) => {
-      if (error) console.error(`Insert error (${table}):`, error);
+      if (error) {
+        console.error(`Insert error (${table}):`, error);
+        toast.error(`Failed to save ${table.replace(/_/g, ' ')}`);
+      }
     });
   }
 
