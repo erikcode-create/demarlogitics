@@ -85,7 +85,10 @@ function syncToSupabase<T extends { id: string }>(
 
 function deleteFromSupabase(table: string, id: string) {
   db.from(table).delete().eq('id', id).then(({ error }: any) => {
-    if (error) console.error(`Delete error (${table}):`, error);
+    if (error) {
+      console.error(`Delete error (${table}):`, error);
+      toast.error(`Failed to delete ${table.replace(/_/g, ' ')}`);
+    }
   });
 }
 
