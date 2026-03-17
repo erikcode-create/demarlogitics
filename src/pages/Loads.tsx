@@ -69,7 +69,8 @@ const Loads = () => {
 
   const openCreate = () => {
     setEditingLoad(null);
-    setFormData(emptyForm);
+    // If there's a draft, it's already loaded; otherwise reset
+    if (!hasDraft) setFormData(emptyForm);
     setDialogOpen(true);
   };
 
