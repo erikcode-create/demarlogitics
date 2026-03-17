@@ -114,6 +114,7 @@ const Loads = () => {
     setDialogOpen(false);
     setEditingLoad(null);
     setFormData(emptyForm);
+    toast.success(editingLoad ? 'Load updated' : 'Load created');
   };
 
   const handleBulkCreate = () => {
