@@ -22,12 +22,25 @@ export default function ContractNew() {
   const { shippers, carriers, loads, contracts, setContracts } = useAppContext();
   const { toast } = useToast();
 
-  const [step, setStep] = useState<Step>('type');
-  const [contractType, setContractType] = useState<ContractType | ''>('');
-  const [entityId, setEntityId] = useState('');
-  const [loadId, setLoadId] = useState('');
+  const defaultWizard = { step: 'type' as Step, contractType: '' as ContractType | '', entityId: '', loadId: '', signerName: '' };
+  const { data: wizardDraft, setData: setWizardDraft, hasDraft: hasWizardDraft, clearDraft: clearWizardDraft } = useDraft({
+    key: 'contract:new',
+    defaultValue: defaultWizard,
+  });
+
+  const [step, setStepRaw] = useState<Step>(wizardDraft.step);
+  const [contractType, setContractTypeRaw] = useState<ContractType | ''>(wizardDraft.contractType);
+  const [entityId, setEntityIdRaw] = useState(wizardDraft.entityId);
+  const [loadId, setLoadIdRaw] = useState(wizardDraft.loadId);
   const [agreed, setAgreed] = useState(false);
-  const [signerName, setSignerName] = useState('');
+  const [signerName, setSignerNameRaw] = useState(wizardDraft.signerName);
+
+  // Sync to draft
+  const setStep = (s: Step) => { setStepRaw(s); setWizardDraft(p => ({ ...p, step: s })); };
+  const setContractType = (t: ContractType | '') => { setContractTypeRaw(t); setWizardDraft(p => ({ ...p, contractType: t })); };
+  const setEntityId = (id: string) => { setEntityIdRaw(id); setWizardDraft(p => ({ ...p, entityId: id })); };
+  const setLoadId = (id: string) => { setLoadIdRaw(id); setWizardDraft(p => ({ ...p, loadId: id })); };
+  const setSignerName = (name: string) => { setSignerNameRaw(name); setWizardDraft(p => ({ ...p, signerName: name })); };
 
   // Handle editing a draft
   const draftId = searchParams.get('draft');
