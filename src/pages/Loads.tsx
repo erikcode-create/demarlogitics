@@ -31,8 +31,6 @@ const emptyForm = {
 
 const Loads = () => {
   const { loads, setLoads, shippers, carriers, deleteRecord, loading } = useAppContext();
-
-  if (loading) return <TableLoader />;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -42,6 +40,8 @@ const Loads = () => {
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [bulkCount, setBulkCount] = useState('4');
+
+  if (loading) return <TableLoader />;
 
   const generateRefNumber = (): string => {
     const existing = new Set(loads.map(l => l.referenceNumber));

@@ -25,13 +25,13 @@ const getInsuranceStatus = (expiry: string) => {
 
 const Carriers = () => {
   const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord, loading } = useAppContext();
-
-  if (loading) return <TableLoader />;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newCarrier, setNewCarrier] = useState({ companyName: '', mcNumber: '', dotNumber: '', city: '', state: '', phone: '', email: '' });
+
+  if (loading) return <TableLoader />;
 
   const filtered = carriers.filter(c => {
     const matchSearch = c.companyName.toLowerCase().includes(search.toLowerCase()) || c.mcNumber.toLowerCase().includes(search.toLowerCase());

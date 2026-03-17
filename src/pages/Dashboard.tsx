@@ -14,9 +14,9 @@ import { addDays, isAfter, isBefore, subDays } from 'date-fns';
 const Dashboard = () => {
   const { loads, shippers, carriers, activities, followUps, contracts, loading } = useAppContext();
   const navigate = useNavigate();
+  const alerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
 
   if (loading) return <PageLoader />;
-  const alerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
   const criticalCount = alerts.filter(a => a.severity === 'critical').length;
   const warningCount = alerts.filter(a => a.severity === 'warning').length;
   const infoCount = alerts.filter(a => a.severity === 'info').length;

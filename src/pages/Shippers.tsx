@@ -33,8 +33,6 @@ const stageColors: Record<string, string> = {
 
 const Shippers = () => {
   const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, stageChangeLogs, setStageChangeLogs, deleteRecord, loading } = useAppContext();
-
-  if (loading) return <TableLoader />;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
@@ -44,6 +42,8 @@ const Shippers = () => {
     salesStage: 'lead' as SalesStage,
     shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '',
   });
+
+  if (loading) return <TableLoader />;
 
   const filtered = shippers.filter(s => {
     const matchSearch = s.companyName.toLowerCase().includes(search.toLowerCase()) ||
