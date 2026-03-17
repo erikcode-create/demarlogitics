@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDraft } from '@/hooks/useDraft';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Send } from 'lucide-react';
+import { FileText, Send, FileEdit, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Load, Shipper, Carrier } from '@/types';
 import { equipmentTypeLabels } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,10 +47,15 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     specialInstructions: load.notes || '',
   });
 
-  const [fields, setFields] = useState(buildFields);
+  const draftKey = `ratecon:${load.id}`;
+  const defaultFields = buildFields();
+  const { data: fields, setData: setFields, hasDraft, clearDraft } = useDraft({
+    key: draftKey,
+    defaultValue: defaultFields,
+  });
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) setFields(buildFields());
+    if (isOpen && !hasDraft) setFields(buildFields());
     setOpen(isOpen);
   };
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
@@ -144,7 +151,19 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Rate Confirmation — {fields.loadNumber}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Rate Confirmation — {fields.loadNumber}
+            {hasDraft && (
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+                  <FileEdit className="h-3 w-3" />Draft
+                </Badge>
+                <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive" onClick={() => { clearDraft(); setFields(buildFields()); }} title="Discard draft">
+                  <X className="h-3 w-3" />
+                </Button>
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -214,8 +233,9 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
                   if (emailError) {
                     toast({ title: 'Saved', description: 'Rate con saved but email failed to send.', variant: 'destructive' });
                   } else {
-                    toast({ title: 'Sent to Carrier', description: `Rate con saved and email sent to ${carrier.email}` });
+                   toast({ title: 'Sent to Carrier', description: `Rate con saved and email sent to ${carrier.email}` });
                   }
+                  clearDraft();
                   setOpen(false);
                 }
               }}

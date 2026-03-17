@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { useDraft } from '@/hooks/useDraft';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Pencil, Trash2, Copy } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Copy, FileEdit, X } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
@@ -38,7 +39,10 @@ const Loads = () => {
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
-  const [formData, setFormData] = useState(emptyForm);
+  const { data: formData, setData: setFormData, hasDraft, clearDraft, draftRestoredRef } = useDraft({
+    key: 'load:new',
+    defaultValue: emptyForm,
+  });
   const [bulkCount, setBulkCount] = useState('4');
 
   if (loading) return <TableLoader />;
@@ -65,7 +69,8 @@ const Loads = () => {
 
   const openCreate = () => {
     setEditingLoad(null);
-    setFormData(emptyForm);
+    // If there's a draft, it's already loaded; otherwise reset
+    if (!hasDraft) setFormData(emptyForm);
     setDialogOpen(true);
   };
 
@@ -113,7 +118,7 @@ const Loads = () => {
     }
     setDialogOpen(false);
     setEditingLoad(null);
-    setFormData(emptyForm);
+    clearDraft();
     toast.success(editingLoad ? 'Load updated' : 'Load created');
   };
 
@@ -170,9 +175,23 @@ const Loads = () => {
       </div>
 
       {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingLoad(null); setFormData(emptyForm); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingLoad(null); } }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editingLoad ? 'Edit Load' : 'Create Load'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {editingLoad ? 'Edit Load' : 'Create Load'}
+              {!editingLoad && hasDraft && (
+                <span className="inline-flex items-center gap-1">
+                  <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+                    <FileEdit className="h-3 w-3" />Draft
+                  </Badge>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive" onClick={clearDraft} title="Discard draft">
+                    <X className="h-3 w-3" />
+                  </Button>
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
             <div>
               <Label>Shipper</Label>

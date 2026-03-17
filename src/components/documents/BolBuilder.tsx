@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDraft } from '@/hooks/useDraft';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ClipboardList, Plus, Trash2, Send } from 'lucide-react';
+import { ClipboardList, Plus, Trash2, Send, FileEdit, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Load, Shipper, Carrier } from '@/types';
 import { equipmentTypeLabels } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,15 +51,26 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
     specialInstructions: load.notes || '',
   });
 
-  const [fields, setFields] = useState(buildFields);
-  const [commodities, setCommodities] = useState<CommodityLine[]>([
-    { ...emptyLine(), weight: load.weight.toLocaleString() },
-  ]);
+  const defaultFields = buildFields();
+  const defaultCommodities: CommodityLine[] = [{ ...emptyLine(), weight: load.weight.toLocaleString() }];
+  
+  const { data: bolDraft, setData: setBolDraft, hasDraft, clearDraft } = useDraft({
+    key: `bol:${load.id}`,
+    defaultValue: { fields: defaultFields, commodities: defaultCommodities },
+  });
+  
+  const fields = bolDraft.fields;
+  const commodities = bolDraft.commodities;
+  const setFields = (updater: React.SetStateAction<typeof defaultFields>) => {
+    setBolDraft(prev => ({ ...prev, fields: typeof updater === 'function' ? updater(prev.fields) : updater }));
+  };
+  const setCommodities = (updater: React.SetStateAction<CommodityLine[]>) => {
+    setBolDraft(prev => ({ ...prev, commodities: typeof updater === 'function' ? updater(prev.commodities) : updater }));
+  };
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      setFields(buildFields());
-      setCommodities([{ ...emptyLine(), weight: load.weight.toLocaleString() }]);
+    if (isOpen && !hasDraft) {
+      setBolDraft({ fields: buildFields(), commodities: [{ ...emptyLine(), weight: load.weight.toLocaleString() }] });
     }
     setOpen(isOpen);
   };
@@ -172,7 +185,19 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Bill of Lading — {fields.bolNumber}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Bill of Lading — {fields.bolNumber}
+            {hasDraft && (
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+                  <FileEdit className="h-3 w-3" />Draft
+                </Badge>
+                <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive" onClick={() => { clearDraft(); setBolDraft({ fields: buildFields(), commodities: [{ ...emptyLine(), weight: load.weight.toLocaleString() }] }); }} title="Discard draft">
+                  <X className="h-3 w-3" />
+                </Button>
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -254,6 +279,7 @@ const BolBuilder = ({ load, shipper, carrier }: BolBuilderProps) => {
                     body: { carrier_id: load.carrierId },
                   });
                   toast({ title: 'Sent to Carrier Portal', description: `BOL saved and magic link sent to ${carrier.email}` });
+                  clearDraft();
                   setOpen(false);
                 }
               }}

@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { useDraft } from '@/hooks/useDraft';
+import { ArrowLeft, ArrowRight, Check, FileEdit, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/context/AppContext';
 import { ContractType, Contract } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -20,12 +22,25 @@ export default function ContractNew() {
   const { shippers, carriers, loads, contracts, setContracts } = useAppContext();
   const { toast } = useToast();
 
-  const [step, setStep] = useState<Step>('type');
-  const [contractType, setContractType] = useState<ContractType | ''>('');
-  const [entityId, setEntityId] = useState('');
-  const [loadId, setLoadId] = useState('');
+  const defaultWizard = { step: 'type' as Step, contractType: '' as ContractType | '', entityId: '', loadId: '', signerName: '' };
+  const { data: wizardDraft, setData: setWizardDraft, hasDraft: hasWizardDraft, clearDraft: clearWizardDraft } = useDraft({
+    key: 'contract:new',
+    defaultValue: defaultWizard,
+  });
+
+  const [step, setStepRaw] = useState<Step>(wizardDraft.step);
+  const [contractType, setContractTypeRaw] = useState<ContractType | ''>(wizardDraft.contractType);
+  const [entityId, setEntityIdRaw] = useState(wizardDraft.entityId);
+  const [loadId, setLoadIdRaw] = useState(wizardDraft.loadId);
   const [agreed, setAgreed] = useState(false);
-  const [signerName, setSignerName] = useState('');
+  const [signerName, setSignerNameRaw] = useState(wizardDraft.signerName);
+
+  // Sync to draft
+  const setStep = (s: Step) => { setStepRaw(s); setWizardDraft(p => ({ ...p, step: s })); };
+  const setContractType = (t: ContractType | '') => { setContractTypeRaw(t); setWizardDraft(p => ({ ...p, contractType: t })); };
+  const setEntityId = (id: string) => { setEntityIdRaw(id); setWizardDraft(p => ({ ...p, entityId: id })); };
+  const setLoadId = (id: string) => { setLoadIdRaw(id); setWizardDraft(p => ({ ...p, loadId: id })); };
+  const setSignerName = (name: string) => { setSignerNameRaw(name); setWizardDraft(p => ({ ...p, signerName: name })); };
 
   // Handle editing a draft
   const draftId = searchParams.get('draft');
@@ -116,15 +131,36 @@ export default function ContractNew() {
       setContracts(prev => [...prev, newContract]);
     }
 
+    clearWizardDraft();
     toast({ title: 'Contract signed', description: `${title} has been signed successfully.` });
     navigate(`/contracts/${newContract.id}`);
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
-        <ArrowLeft className="h-4 w-4" /> Back to Contracts
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back to Contracts
+        </Button>
+        {hasWizardDraft && (
+          <span className="inline-flex items-center gap-1">
+            <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+              <FileEdit className="h-3 w-3" />Draft
+            </Badge>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive gap-1" onClick={() => {
+              clearWizardDraft();
+              setStepRaw('type');
+              setContractTypeRaw('');
+              setEntityIdRaw('');
+              setLoadIdRaw('');
+              setSignerNameRaw('');
+              setAgreed(false);
+            }}>
+              <X className="h-3 w-3" />Discard
+            </Button>
+          </span>
+        )}
+      </div>
 
       {/* Stepper */}
       <div className="flex items-center gap-2 text-sm">
