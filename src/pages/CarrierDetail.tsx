@@ -162,8 +162,14 @@ const CarrierDetail = () => {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem><BreadcrumbLink asChild><Link to="/carriers">Carriers</Link></BreadcrumbLink></BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem><BreadcrumbPage>{carrier.companyName}</BreadcrumbPage></BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/carriers')}><ArrowLeft className="h-4 w-4" /></Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{carrier.companyName}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
