@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useDraft } from '@/hooks/useDraft';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { ContractType, Contract } from '@/types';
