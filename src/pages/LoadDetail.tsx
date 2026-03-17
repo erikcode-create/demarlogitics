@@ -1,11 +1,12 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
@@ -94,16 +95,46 @@ const LoadDetail = () => {
     setLoads(prev => prev.map(l => l.id === id ? { ...l, podUploaded: !l.podUploaded } : l));
   };
 
+  const quickStatus = (status: LoadStatus, label: string) => {
+    updateStatus(status);
+    toast.success(`${load.loadNumber} → ${label}`);
+  };
+
+  const nextActions: { status: LoadStatus; label: string; icon: React.ReactNode }[] = [];
+  if (load.status === 'available') nextActions.push({ status: 'booked', label: 'Mark Booked', icon: <Package className="h-4 w-4" /> });
+  if (load.status === 'booked') nextActions.push({ status: 'in_transit', label: 'Mark In Transit', icon: <TruckIcon className="h-4 w-4" /> });
+  if (load.status === 'in_transit') nextActions.push({ status: 'delivered', label: 'Mark Delivered', icon: <CheckCircle className="h-4 w-4" /> });
+  if (load.status === 'delivered') nextActions.push({ status: 'invoiced', label: 'Mark Invoiced', icon: <DollarSign className="h-4 w-4" /> });
+  if (load.status === 'invoiced') nextActions.push({ status: 'paid', label: 'Mark Paid', icon: <CheckCircle className="h-4 w-4" /> });
+
   return (
     <div className="space-y-6">
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild><Link to="/loads">Loads</Link></BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{load.loadNumber}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/loads')}><ArrowLeft className="h-4 w-4" /></Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{load.loadNumber}</h1>
           {load.referenceNumber && <p className="text-sm text-muted-foreground">Ref: {load.referenceNumber}</p>}
           <p className="text-sm text-muted-foreground">{load.origin} → {load.destination}</p>
         </div>
-        <Select value={load.status} onValueChange={(v: LoadStatus) => updateStatus(v)}>
+        {/* Quick action buttons */}
+        {nextActions.map(a => (
+          <Button key={a.status} variant="outline" size="sm" onClick={() => quickStatus(a.status, a.label)} className="gap-1.5">
+            {a.icon}{a.label}
+          </Button>
+        ))}
+        <Select value={load.status} onValueChange={(v: LoadStatus) => { updateStatus(v); toast.success(`Status → ${loadStatusLabels[v]}`); }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>{Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>

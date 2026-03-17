@@ -313,7 +313,17 @@ const Loads = () => {
                     <TableCell className="text-sm">{shipper?.companyName || '—'}</TableCell>
                     <TableCell className="text-sm">{l.origin} → {l.destination}</TableCell>
                     <TableCell className="text-sm">{l.pickupDate ? new Date(l.pickupDate).toLocaleDateString() : '—'}</TableCell>
-                    <TableCell><Badge className={statusColors[l.status]}>{loadStatusLabels[l.status]}</Badge></TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Select value={l.status} onValueChange={(v: LoadStatus) => {
+                        setLoads(prev => prev.map(ld => ld.id === l.id ? { ...ld, status: v as LoadStatus } : ld));
+                        toast.success(`${l.loadNumber} → ${loadStatusLabels[v as LoadStatus]}`);
+                      }}>
+                        <SelectTrigger className="h-7 w-[120px] text-xs border-0 bg-transparent hover:bg-accent">
+                          <Badge className={statusColors[l.status]}>{loadStatusLabels[l.status]}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>{Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="text-right font-medium">${l.shipperRate.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                       {margin !== null ? (

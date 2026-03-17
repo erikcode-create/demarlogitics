@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle2, Clock, AlertTriangle, Download, Trash2 } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, AlertTriangle, Download, Trash2 } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useRef, useCallback } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { contractTypeLabels, contractStatusLabels } from '@/data/mockData';
@@ -70,10 +71,15 @@ export default function ContractDetail() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem><BreadcrumbLink asChild><Link to="/contracts">Contracts</Link></BreadcrumbLink></BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem><BreadcrumbPage>{contract.title || 'Untitled'}</BreadcrumbPage></BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate('/contracts')} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Back to Contracts
-        </Button>
+        <div />
         <div className="flex gap-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
