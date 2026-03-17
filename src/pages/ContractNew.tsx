@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDraft } from '@/hooks/useDraft';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileEdit, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/context/AppContext';
 import { ContractType, Contract } from '@/types';
 import { Button } from '@/components/ui/button';
