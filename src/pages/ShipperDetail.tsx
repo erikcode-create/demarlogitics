@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2, Send, Eye } from 'lucide-react';
+import { Plus, Phone, Mail, MapPin, Calendar, User, TruckIcon, History, CheckSquare, Trash2, Send, Eye } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { toast } from 'sonner';
 import { salesStageLabels, equipmentTypeLabels } from '@/data/mockData';
 import { callOutcomeLabels, nextStepLabels } from '@/utils/cadenceEngine';
