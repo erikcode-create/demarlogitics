@@ -226,6 +226,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       logStageChange,
       triggerCadence,
       deleteRecord,
+      loading,
     }}>
       {children}
     </AppContext.Provider>
