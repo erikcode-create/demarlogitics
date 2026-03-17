@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Search, Plus, Trash2 } from 'lucide-react';
 import { salesStageLabels } from '@/data/mockData';
 import { Shipper, SalesStage } from '@/types';
+import { TableLoader } from '@/components/ui/page-loader';
+import { toast } from 'sonner';
 
 const stageColors: Record<string, string> = {
   lead: 'bg-muted text-muted-foreground',
