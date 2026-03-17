@@ -47,10 +47,15 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     specialInstructions: load.notes || '',
   });
 
-  const [fields, setFields] = useState(buildFields);
+  const draftKey = `ratecon:${load.id}`;
+  const defaultFields = buildFields();
+  const { data: fields, setData: setFields, hasDraft, clearDraft } = useDraft({
+    key: draftKey,
+    defaultValue: defaultFields,
+  });
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) setFields(buildFields());
+    if (isOpen && !hasDraft) setFields(buildFields());
     setOpen(isOpen);
   };
   const update = (key: string, value: string) => setFields(prev => ({ ...prev, [key]: value }));
