@@ -183,6 +183,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       // Enable sync after initial load
       readyRef.current = true;
+      setLoading(false);
     }
     loadAll();
   }, []);
