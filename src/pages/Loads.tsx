@@ -118,7 +118,7 @@ const Loads = () => {
     }
     setDialogOpen(false);
     setEditingLoad(null);
-    setFormData(emptyForm);
+    clearDraft();
     toast.success(editingLoad ? 'Load updated' : 'Load created');
   };
 
