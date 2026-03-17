@@ -60,6 +60,7 @@ const Carriers = () => {
     setCarriers(prev => prev.filter(c => c.id !== id));
     setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'carrier')));
     setLoads(prev => prev.map(l => l.carrierId === id ? { ...l, carrierId: null } : l));
+    toast.success(`${name || 'Carrier'} deleted`);
   };
 
   return (

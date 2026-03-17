@@ -149,6 +149,7 @@ const Loads = () => {
     deleteRecord('loads', deleteTarget.id);
     setLoads(prev => prev.filter(l => l.id !== deleteTarget.id));
     setDeleteTarget(null);
+    toast.success('Load deleted');
   };
 
   const confirmDelete = (e: React.MouseEvent, load: Load) => {

@@ -99,6 +99,7 @@ const Shippers = () => {
     setOutboundCalls(prev => prev.filter(c => c.shipperId !== id));
     setSalesTasks(prev => prev.filter(t => t.shipperId !== id));
     setStageChangeLogs(prev => prev.filter(l => l.shipperId !== id));
+    toast.success(`${name || 'Shipper'} deleted`);
   };
 
   return (
