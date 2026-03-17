@@ -131,6 +131,7 @@ export default function ContractNew() {
       setContracts(prev => [...prev, newContract]);
     }
 
+    clearWizardDraft();
     toast({ title: 'Contract signed', description: `${title} has been signed successfully.` });
     navigate(`/contracts/${newContract.id}`);
   };
