@@ -70,7 +70,10 @@ function syncToSupabase<T extends { id: string }>(
         const row = frontendToRow(item as any);
         const { id, ...rest } = row;
         db.from(table).update(rest).eq('id', id).then(({ error }: any) => {
-          if (error) console.error(`Update error (${table}):`, error);
+          if (error) {
+            console.error(`Update error (${table}):`, error);
+            toast.error(`Failed to update ${table.replace(/_/g, ' ')}`);
+          }
         });
       }
     }
