@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Pencil, Trash2, Copy } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Copy, FileEdit, X } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
