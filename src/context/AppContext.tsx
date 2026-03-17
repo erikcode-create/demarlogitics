@@ -97,6 +97,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [emailTemplates, setEmailTemplatesRaw] = useState<EmailTemplate[]>([]);
   const [stageChangeLogs, setStageChangeLogsRaw] = useState<StageChangeLog[]>([]);
 
+  const [loading, setLoading] = useState(true);
   const readyRef = useRef(false);
 
   // Create synced setters
