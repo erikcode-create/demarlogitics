@@ -3,6 +3,7 @@ import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, Ou
 import { generateCadenceTasks } from '@/utils/cadenceEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { rowsToFrontend, frontendToRow } from '@/utils/supabaseHelpers';
+import { toast } from 'sonner';
 
 interface AppContextType {
   shippers: Shipper[];
@@ -32,6 +33,7 @@ interface AppContextType {
   logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
   triggerCadence: (shipperId: string) => void;
   deleteRecord: (table: string, id: string) => void;
+  loading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -53,7 +55,10 @@ function syncToSupabase<T extends { id: string }>(
   if (inserts.length > 0) {
     const rows = inserts.map(i => frontendToRow(i as any));
     db.from(table).insert(rows).then(({ error }: any) => {
-      if (error) console.error(`Insert error (${table}):`, error);
+      if (error) {
+        console.error(`Insert error (${table}):`, error);
+        toast.error(`Failed to save ${table.replace(/_/g, ' ')}`);
+      }
     });
   }
 
@@ -65,7 +70,10 @@ function syncToSupabase<T extends { id: string }>(
         const row = frontendToRow(item as any);
         const { id, ...rest } = row;
         db.from(table).update(rest).eq('id', id).then(({ error }: any) => {
-          if (error) console.error(`Update error (${table}):`, error);
+          if (error) {
+            console.error(`Update error (${table}):`, error);
+            toast.error(`Failed to update ${table.replace(/_/g, ' ')}`);
+          }
         });
       }
     }
@@ -77,7 +85,10 @@ function syncToSupabase<T extends { id: string }>(
 
 function deleteFromSupabase(table: string, id: string) {
   db.from(table).delete().eq('id', id).then(({ error }: any) => {
-    if (error) console.error(`Delete error (${table}):`, error);
+    if (error) {
+      console.error(`Delete error (${table}):`, error);
+      toast.error(`Failed to delete ${table.replace(/_/g, ' ')}`);
+    }
   });
 }
 
@@ -95,6 +106,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [emailTemplates, setEmailTemplatesRaw] = useState<EmailTemplate[]>([]);
   const [stageChangeLogs, setStageChangeLogsRaw] = useState<StageChangeLog[]>([]);
 
+  const [loading, setLoading] = useState(true);
   const readyRef = useRef(false);
 
   // Create synced setters
@@ -171,6 +183,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       // Enable sync after initial load
       readyRef.current = true;
+      setLoading(false);
     }
     loadAll();
   }, []);
@@ -213,6 +226,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       logStageChange,
       triggerCadence,
       deleteRecord,
+      loading,
     }}>
       {children}
     </AppContext.Provider>

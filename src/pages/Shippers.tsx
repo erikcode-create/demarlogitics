@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Search, Plus, Trash2 } from 'lucide-react';
 import { salesStageLabels } from '@/data/mockData';
 import { Shipper, SalesStage } from '@/types';
+import { TableLoader } from '@/components/ui/page-loader';
+import { toast } from 'sonner';
 
 const stageColors: Record<string, string> = {
   lead: 'bg-muted text-muted-foreground',
@@ -30,7 +32,7 @@ const stageColors: Record<string, string> = {
 };
 
 const Shippers = () => {
-  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, stageChangeLogs, setStageChangeLogs, deleteRecord } = useAppContext();
+  const { shippers, setShippers, contacts, setContacts, lanes, setLanes, followUps, setFollowUps, activities, setActivities, outboundCalls, setOutboundCalls, salesTasks, setSalesTasks, stageChangeLogs, setStageChangeLogs, deleteRecord, loading } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
@@ -40,6 +42,8 @@ const Shippers = () => {
     salesStage: 'lead' as SalesStage,
     shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '',
   });
+
+  if (loading) return <TableLoader />;
 
   const filtered = shippers.filter(s => {
     const matchSearch = s.companyName.toLowerCase().includes(search.toLowerCase()) ||
@@ -73,9 +77,11 @@ const Shippers = () => {
     setShippers(prev => [...prev, shipper]);
     setDialogOpen(false);
     setNewShipper({ companyName: '', city: '', state: '', phone: '', email: '', salesStage: 'lead', shippingManagerName: '', directPhone: '', estimatedMonthlyLoads: '' });
+    toast.success('Shipper created');
   };
 
   const handleDelete = (id: string) => {
+    const name = shippers.find(s => s.id === id)?.companyName;
     deleteRecord('shippers', id);
     // Also delete related records from DB
     contacts.filter(c => c.shipperId === id).forEach(c => deleteRecord('contacts', c.id));
@@ -93,6 +99,7 @@ const Shippers = () => {
     setOutboundCalls(prev => prev.filter(c => c.shipperId !== id));
     setSalesTasks(prev => prev.filter(t => t.shipperId !== id));
     setStageChangeLogs(prev => prev.filter(l => l.shipperId !== id));
+    toast.success(`${name || 'Shipper'} deleted`);
   };
 
   return (

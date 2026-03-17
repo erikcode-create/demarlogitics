@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Search, Plus, AlertTriangle, CheckCircle, Clock, Trash2, Eye } from 'lucide-react';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Carrier, CarrierPacketStatus, EquipmentType } from '@/types';
+import { TableLoader } from '@/components/ui/page-loader';
+import { toast } from 'sonner';
 
 const getInsuranceStatus = (expiry: string) => {
   const days = Math.ceil((new Date(expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -22,12 +24,14 @@ const getInsuranceStatus = (expiry: string) => {
 };
 
 const Carriers = () => {
-  const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
+  const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord, loading } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newCarrier, setNewCarrier] = useState({ companyName: '', mcNumber: '', dotNumber: '', city: '', state: '', phone: '', email: '' });
+
+  if (loading) return <TableLoader />;
 
   const filtered = carriers.filter(c => {
     const matchSearch = c.companyName.toLowerCase().includes(search.toLowerCase()) || c.mcNumber.toLowerCase().includes(search.toLowerCase());
@@ -46,14 +50,17 @@ const Carriers = () => {
     setCarriers(prev => [...prev, carrier]);
     setDialogOpen(false);
     setNewCarrier({ companyName: '', mcNumber: '', dotNumber: '', city: '', state: '', phone: '', email: '' });
+    toast.success('Carrier created');
   };
 
   const handleDelete = (id: string) => {
+    const name = carriers.find(c => c.id === id)?.companyName;
     deleteRecord('carriers', id);
     activities.filter(a => a.entityId === id && a.entityType === 'carrier').forEach(a => deleteRecord('activities', a.id));
     setCarriers(prev => prev.filter(c => c.id !== id));
     setActivities(prev => prev.filter(a => !(a.entityId === id && a.entityType === 'carrier')));
     setLoads(prev => prev.map(l => l.carrierId === id ? { ...l, carrierId: null } : l));
+    toast.success(`${name || 'Carrier'} deleted`);
   };
 
   return (

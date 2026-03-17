@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,11 @@ import { generateAlerts } from '@/utils/alertEngine';
 import { addDays, isAfter, isBefore, subDays } from 'date-fns';
 
 const Dashboard = () => {
-  const { loads, shippers, carriers, activities, followUps, contracts } = useAppContext();
+  const { loads, shippers, carriers, activities, followUps, contracts, loading } = useAppContext();
   const navigate = useNavigate();
   const alerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
+
+  if (loading) return <PageLoader />;
   const criticalCount = alerts.filter(a => a.severity === 'critical').length;
   const warningCount = alerts.filter(a => a.severity === 'warning').length;
   const infoCount = alerts.filter(a => a.severity === 'info').length;

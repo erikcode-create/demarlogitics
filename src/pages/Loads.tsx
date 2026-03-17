@@ -13,6 +13,7 @@ import { Search, Plus, Pencil, Trash2, Copy } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
+import { TableLoader } from '@/components/ui/page-loader';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
@@ -29,7 +30,7 @@ const emptyForm = {
 };
 
 const Loads = () => {
-  const { loads, setLoads, shippers, carriers, deleteRecord } = useAppContext();
+  const { loads, setLoads, shippers, carriers, deleteRecord, loading } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -39,6 +40,8 @@ const Loads = () => {
   const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [bulkCount, setBulkCount] = useState('4');
+
+  if (loading) return <TableLoader />;
 
   const generateRefNumber = (): string => {
     const existing = new Set(loads.map(l => l.referenceNumber));
@@ -111,6 +114,7 @@ const Loads = () => {
     setDialogOpen(false);
     setEditingLoad(null);
     setFormData(emptyForm);
+    toast.success(editingLoad ? 'Load updated' : 'Load created');
   };
 
   const handleBulkCreate = () => {
@@ -145,6 +149,7 @@ const Loads = () => {
     deleteRecord('loads', deleteTarget.id);
     setLoads(prev => prev.filter(l => l.id !== deleteTarget.id));
     setDeleteTarget(null);
+    toast.success('Load deleted');
   };
 
   const confirmDelete = (e: React.MouseEvent, load: Load) => {
