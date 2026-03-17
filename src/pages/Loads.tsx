@@ -13,6 +13,7 @@ import { Search, Plus, Pencil, Trash2, Copy } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
+import { TableLoader } from '@/components/ui/page-loader';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
