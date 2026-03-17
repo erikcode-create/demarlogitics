@@ -3,6 +3,7 @@ import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, Ou
 import { generateCadenceTasks } from '@/utils/cadenceEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { rowsToFrontend, frontendToRow } from '@/utils/supabaseHelpers';
+import { toast } from 'sonner';
 
 interface AppContextType {
   shippers: Shipper[];
