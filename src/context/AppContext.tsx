@@ -32,6 +32,7 @@ interface AppContextType {
   logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
   triggerCadence: (shipperId: string) => void;
   deleteRecord: (table: string, id: string) => void;
+  loading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
