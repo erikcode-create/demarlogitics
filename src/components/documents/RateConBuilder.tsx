@@ -151,7 +151,19 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Rate Confirmation — {fields.loadNumber}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Rate Confirmation — {fields.loadNumber}
+            {hasDraft && (
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="outline" className="text-xs gap-1 border-warning text-warning">
+                  <FileEdit className="h-3 w-3" />Draft
+                </Badge>
+                <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-destructive" onClick={() => { clearDraft(); setFields(buildFields()); }} title="Discard draft">
+                  <X className="h-3 w-3" />
+                </Button>
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
