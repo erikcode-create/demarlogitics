@@ -41,7 +41,19 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
     const body = await req.json()
-    const { action, load_number, origin, destination, equipment_type, proposed_rate } = body
+
+    // Input sanitization: strip to safe characters, limit length
+    function sanitize(input: unknown, maxLen = 200): string {
+      if (typeof input !== 'string') return ''
+      return input.replace(/[<>"';\\]/g, '').trim().slice(0, maxLen)
+    }
+
+    const action = sanitize(body.action, 50)
+    const load_number = sanitize(body.load_number, 20)
+    const origin = sanitize(body.origin, 200)
+    const destination = sanitize(body.destination, 200)
+    const equipment_type = sanitize(body.equipment_type, 50)
+    const proposed_rate = body.proposed_rate
 
     // Action: lookup_load — find a specific load by load number
     if (action === 'lookup_load') {
@@ -260,7 +272,8 @@ Deno.serve(async (req) => {
 
     // Action: update_load_number — change a load's load number
     if (action === 'update_load_number') {
-      const { old_load_number, new_load_number } = body
+      const old_load_number = sanitize(body.old_load_number, 20)
+      const new_load_number = sanitize(body.new_load_number, 20)
       if (!old_load_number || !new_load_number) {
         return jsonResponse({ error: 'old_load_number and new_load_number are required' }, 400)
       }
