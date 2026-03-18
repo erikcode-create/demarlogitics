@@ -184,6 +184,32 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       // Enable sync after initial load
       readyRef.current = true;
       setLoading(false);
+
+      // One-time migration: convert old DT-2026-XXX load numbers to 6-digit numeric
+      const loadsData = rowsToFrontend(results[tableConfigs.findIndex(t => t.table === 'loads')]?.data || []) as Load[];
+      const oldFormatLoads = loadsData.filter((l: Load) => /[^0-9]/.test(l.loadNumber));
+      if (oldFormatLoads.length > 0) {
+        const existingNums = new Set(loadsData.map((l: Load) => l.loadNumber));
+        const updates: { id: string; newNum: string }[] = [];
+        for (const load of oldFormatLoads) {
+          let num: string;
+          do { num = String(Math.floor(100000 + Math.random() * 900000)); } while (existingNums.has(num));
+          existingNums.add(num);
+          updates.push({ id: load.id, newNum: num });
+        }
+        // Update each load directly in the database
+        for (const u of updates) {
+          db.from('loads').update({ load_number: u.newNum }).eq('id', u.id).then(({ error }: any) => {
+            if (error) console.error('Load number migration error:', error);
+          });
+        }
+        // Update local state
+        setLoadsRaw(prev => prev.map(l => {
+          const update = updates.find(u => u.id === l.id);
+          return update ? { ...l, loadNumber: update.newNum } : l;
+        }));
+        console.log('Migrated load numbers:', updates.map(u => u.newNum));
+      }
     }
     loadAll();
   }, []);
