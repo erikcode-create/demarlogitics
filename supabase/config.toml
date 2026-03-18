@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.telnyx-load-lookup]
 verify_jwt = false
+
+[functions.telnyx-voice-handler]
+verify_jwt = false
