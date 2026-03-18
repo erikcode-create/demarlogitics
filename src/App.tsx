@@ -40,18 +40,22 @@ const queryClient = new QueryClient();
 
 const isPreviewMode = window.location.hostname.includes('preview') || window.location.hostname.includes('lovableproject.com') || window.location.hostname === 'localhost';
 
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        <p className="text-sm text-muted-foreground animate-pulse">Loading your workspace...</p>
+      </div>
+    </div>
+  );
+}
+
 function ProtectedRoutes() {
   const { session, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground animate-pulse">Loading your workspace...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!session && !isPreviewMode) {
@@ -60,35 +64,30 @@ function ProtectedRoutes() {
 
   return (
     <AppProvider>
-      <Routes>
-        <Route path="/" element={<SalesLanding />} />
-        <Route path="/*" element={
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/shippers" element={<Shippers />} />
-              <Route path="/shippers/:id" element={<ShipperDetail />} />
-              <Route path="/carriers" element={<Carriers />} />
-              <Route path="/carriers/:id" element={<CarrierDetail />} />
-              <Route path="/loads" element={<Loads />} />
-              <Route path="/loads/:id" element={<LoadDetail />} />
-              <Route path="/contracts" element={<Contracts />} />
-              <Route path="/contracts/new" element={<ContractNew />} />
-              <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
-              <Route path="/contracts/:id" element={<ContractDetail />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/sales/calls" element={<OutboundCalls />} />
-              <Route path="/sales/pipeline" element={<SalesPipeline />} />
-              <Route path="/sales/tasks" element={<SalesTasks />} />
-              <Route path="/sales/templates" element={<EmailTemplates />} />
-              <Route path="/sales/dashboard" element={<SalesDashboard />} />
-              <Route path="/sales/performance" element={<PerformanceTracker />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        } />
-      </Routes>
+      <AppLayout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
+          <Route path="/shippers" element={<Shippers />} />
+          <Route path="/shippers/:id" element={<ShipperDetail />} />
+          <Route path="/carriers" element={<Carriers />} />
+          <Route path="/carriers/:id" element={<CarrierDetail />} />
+          <Route path="/loads" element={<Loads />} />
+          <Route path="/loads/:id" element={<LoadDetail />} />
+          <Route path="/contracts" element={<Contracts />} />
+          <Route path="/contracts/new" element={<ContractNew />} />
+          <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
+          <Route path="/contracts/:id" element={<ContractDetail />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/sales/calls" element={<OutboundCalls />} />
+          <Route path="/sales/pipeline" element={<SalesPipeline />} />
+          <Route path="/sales/tasks" element={<SalesTasks />} />
+          <Route path="/sales/templates" element={<EmailTemplates />} />
+          <Route path="/sales/dashboard" element={<SalesDashboard />} />
+          <Route path="/sales/performance" element={<PerformanceTracker />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AppLayout>
     </AppProvider>
   );
 }
@@ -96,8 +95,8 @@ function ProtectedRoutes() {
 function AuthGate() {
   const { session, loading } = useAuth();
 
-  if (loading) return null;
-  if (session) return <Navigate to="/dashboard" replace />;
+  if (loading) return <LoadingScreen />;
+  if (session) return <Navigate to="/sales/dashboard" replace />;
   return <Auth />;
 }
 
@@ -108,6 +107,7 @@ const App = () => (
         <Sonner richColors position="top-right" />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<SalesLanding />} />
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/portal" element={<CarrierPortalLogin />} />
