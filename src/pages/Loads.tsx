@@ -56,6 +56,15 @@ const Loads = () => {
     return ref;
   };
 
+  const generateLoadNumber = (): string => {
+    const existing = new Set(loads.map(l => l.loadNumber));
+    let num: string;
+    do {
+      num = String(Math.floor(100000 + Math.random() * 900000));
+    } while (existing.has(num));
+    return num;
+  };
+
   const filtered = loads.filter(l => {
     const shipper = shippers.find(s => s.id === l.shipperId);
     const matchSearch = l.loadNumber.toLowerCase().includes(search.toLowerCase()) ||
@@ -104,7 +113,7 @@ const Loads = () => {
         equipmentType: formData.equipmentType,
       } : l));
     } else {
-      const loadNum = `DT-2026-${String(loads.length + 1).padStart(3, '0')}`;
+      const loadNum = generateLoadNumber();
       const load: Load = {
         id: crypto.randomUUID(), loadNumber: loadNum, shipperId: formData.shipperId, carrierId: null,
         origin: formData.origin, destination: formData.destination,
@@ -126,12 +135,15 @@ const Loads = () => {
     const count = Number(bulkCount);
     if (!formData.shipperId || !formData.origin || count < 1) return;
     const existingRefs = new Set(loads.map(l => l.referenceNumber));
+    const existingLoadNums = new Set(loads.map(l => l.loadNumber));
     const newLoads: Load[] = [];
     for (let i = 0; i < count; i++) {
       let ref: string;
       do { ref = String(Math.floor(10000000 + Math.random() * 90000000)); } while (existingRefs.has(ref));
       existingRefs.add(ref);
-      const loadNum = `DT-2026-${String(loads.length + newLoads.length + 1).padStart(3, '0')}`;
+      let loadNum: string;
+      do { loadNum = String(Math.floor(100000 + Math.random() * 900000)); } while (existingLoadNums.has(loadNum));
+      existingLoadNums.add(loadNum);
       newLoads.push({
         id: crypto.randomUUID(), loadNumber: loadNum, shipperId: formData.shipperId, carrierId: null,
         origin: formData.origin, destination: formData.destination,
