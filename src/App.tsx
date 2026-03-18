@@ -107,7 +107,14 @@ const App = () => (
         <Sonner richColors position="top-right" />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<SalesLanding />} />
+            <Route
+              path="/"
+              element={
+                <AppProvider>
+                  <SalesLanding />
+                </AppProvider>
+              }
+            />
             <Route path="/auth" element={<AuthGate />} />
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/portal" element={<CarrierPortalLogin />} />
