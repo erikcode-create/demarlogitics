@@ -233,6 +233,22 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Action: update_load_number — change a load's load number
+    if (action === 'update_load_number') {
+      const { old_load_number, new_load_number } = body
+      if (!old_load_number || !new_load_number) {
+        return jsonResponse({ error: 'old_load_number and new_load_number are required' }, 400)
+      }
+      const { error: updateErr } = await supabase
+        .from('loads')
+        .update({ load_number: new_load_number })
+        .eq('load_number', old_load_number)
+      if (updateErr) {
+        return jsonResponse({ error: updateErr.message }, 500)
+      }
+      return jsonResponse({ success: true, old: old_load_number, new: new_load_number })
+    }
+
     return jsonResponse({ error: `Unknown action: ${action}` }, 400)
 
   } catch (err: unknown) {
