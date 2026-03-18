@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
           destination: l.destination,
           rate: l.rate,
           equipment_type: l.equipment_type,
-          shipper: l.shippers?.company_name,
+          shipper: (l.shippers as any)?.company_name,
           notes: l.notes,
         })),
       })
@@ -235,8 +235,9 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400)
 
-  } catch (err) {
-    return jsonResponse({ error: err.message }, 500)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return jsonResponse({ error: message }, 500)
   }
 })
 
