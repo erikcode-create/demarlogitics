@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
           destination: l.destination,
           rate: l.rate,
           equipment_type: l.equipment_type,
-          shipper: l.shippers?.company_name,
+          shipper: (l.shippers as any)?.company_name,
           notes: l.notes,
         })),
       })
