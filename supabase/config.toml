@@ -2,3 +2,6 @@ project_id = "gfghymhzrcwtgucpzwcy"
 
 [functions.send-ratecon-email]
 verify_jwt = false
+
+[functions.telnyx-load-lookup]
+verify_jwt = false
