@@ -364,7 +364,7 @@ const CarrierPortalDashboard = () => {
             ) : (
               <div className="space-y-3">
                 {loads.map((load) => (
-                  <Card key={load.id}>
+                  <Card key={load.id} className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate(`/portal/loads/${load.id}`)}>
                     <CardContent className="py-4 flex items-center gap-4">
                       <Truck className="h-8 w-8 text-primary shrink-0" />
                       <div className="flex-1 min-w-0">
