@@ -136,7 +136,7 @@ const LoadDetail = () => {
     setResending(null);
   };
 
-  useEffect(() => { fetchCarrierDocs(); }, [id]);
+  useEffect(() => { fetchCarrierDocs(); fetchLoadDocs(); }, [id]);
 
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
 
