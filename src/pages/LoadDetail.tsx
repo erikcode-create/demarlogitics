@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package } from 'lucide-react';
+import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Download } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
 import { LoadStatus, PaymentStatus } from '@/types';
 import RateConBuilder from '@/components/documents/RateConBuilder';
 import BolBuilder from '@/components/documents/BolBuilder';
+import DocumentViewer from '@/components/documents/DocumentViewer';
 import { supabase } from '@/integrations/supabase/client';
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
