@@ -411,13 +411,106 @@ export type Database = {
           },
         ]
       }
+      load_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          id: string
+          load_id: string
+          metadata: Json | null
+          mime_type: string
+          uploaded_by_phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          id?: string
+          load_id: string
+          metadata?: Json | null
+          mime_type: string
+          uploaded_by_phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          load_id?: string
+          metadata?: Json | null
+          mime_type?: string
+          uploaded_by_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "load_documents_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      load_events: {
+        Row: {
+          actor: string | null
+          created_at: string | null
+          description: string | null
+          event_type: string
+          from_status: string | null
+          id: string
+          load_id: string
+          metadata: Json | null
+          to_status: string | null
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_type: string
+          from_status?: string | null
+          id?: string
+          load_id: string
+          metadata?: Json | null
+          to_status?: string | null
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          load_id?: string
+          metadata?: Json | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "load_events_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loads: {
         Row: {
           carrier_id: string | null
           carrier_rate: number
+          completed_at: string | null
           created_at: string
+          delivered_at: string | null
           delivery_date: string
           destination: string
+          dispatched_at: string | null
+          driver_name: string | null
+          driver_phone: string | null
           equipment_type: string
           id: string
           invoice_amount: number
@@ -427,8 +520,11 @@ export type Database = {
           notes: string
           origin: string
           payment_status: string
+          picked_up_at: string | null
           pickup_date: string
+          pod_submitted_at: string | null
           pod_uploaded: boolean
+          rate_con_signed_at: string | null
           reference_number: string
           shipper_id: string
           shipper_rate: number
@@ -438,9 +534,14 @@ export type Database = {
         Insert: {
           carrier_id?: string | null
           carrier_rate?: number
+          completed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           delivery_date?: string
           destination?: string
+          dispatched_at?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
           equipment_type?: string
           id?: string
           invoice_amount?: number
@@ -450,8 +551,11 @@ export type Database = {
           notes?: string
           origin?: string
           payment_status?: string
+          picked_up_at?: string | null
           pickup_date?: string
+          pod_submitted_at?: string | null
           pod_uploaded?: boolean
+          rate_con_signed_at?: string | null
           reference_number?: string
           shipper_id: string
           shipper_rate?: number
@@ -461,9 +565,14 @@ export type Database = {
         Update: {
           carrier_id?: string | null
           carrier_rate?: number
+          completed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           delivery_date?: string
           destination?: string
+          dispatched_at?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
           equipment_type?: string
           id?: string
           invoice_amount?: number
@@ -473,8 +582,11 @@ export type Database = {
           notes?: string
           origin?: string
           payment_status?: string
+          picked_up_at?: string | null
           pickup_date?: string
+          pod_submitted_at?: string | null
           pod_uploaded?: boolean
+          rate_con_signed_at?: string | null
           reference_number?: string
           shipper_id?: string
           shipper_rate?: number
