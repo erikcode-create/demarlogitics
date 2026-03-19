@@ -26,6 +26,8 @@ import SalesTasks from "./pages/SalesTasks";
 import EmailTemplates from "./pages/EmailTemplates";
 import SalesDashboard from "./pages/SalesDashboard";
 import PerformanceTracker from "./pages/PerformanceTracker";
+import Invoices from "./pages/Invoices";
+import InvoiceDetail from "./pages/InvoiceDetail";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import CarrierPortalLogin from "./pages/CarrierPortalLogin";
@@ -75,6 +77,8 @@ function ProtectedRoutes() {
           <Route path="/carriers/:id" element={<CarrierDetail />} />
           <Route path="/loads" element={<Loads />} />
           <Route path="/loads/:id" element={<LoadDetail />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/invoices/:id" element={<InvoiceDetail />} />
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/contracts/new" element={<ContractNew />} />
           <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />

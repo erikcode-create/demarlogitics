@@ -19,8 +19,14 @@ import { TableLoader } from '@/components/ui/page-loader';
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
   booked: 'bg-blue-500/20 text-blue-400',
+  dispatched: 'bg-cyan-500/20 text-cyan-400',
+  rate_con_signed: 'bg-teal-500/20 text-teal-400',
+  at_pickup: 'bg-amber-500/20 text-amber-400',
+  picked_up: 'bg-orange-500/20 text-orange-400',
   in_transit: 'bg-warning/20 text-warning',
+  at_delivery: 'bg-lime-500/20 text-lime-400',
   delivered: 'bg-success/20 text-success',
+  pod_submitted: 'bg-emerald-500/20 text-emerald-400',
   invoiced: 'bg-purple-500/20 text-purple-400',
   paid: 'bg-primary/20 text-primary',
 };

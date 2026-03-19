@@ -1,9 +1,13 @@
 export type SalesStage = 'prospect' | 'contacted' | 'engaged' | 'lane_discussed' | 'quoting' | 'contract_sent' | 'active' | 'dormant' | 'closed_lost' | 'lead' | 'quoted' | 'inactive';
 export type CarrierPacketStatus = 'not_started' | 'in_progress' | 'complete' | 'expired';
-export type LoadStatus = 'available' | 'booked' | 'in_transit' | 'delivered' | 'invoiced' | 'paid';
+export type LoadStatus = 'available' | 'booked' | 'dispatched' | 'rate_con_signed' | 'at_pickup' | 'picked_up' | 'in_transit' | 'at_delivery' | 'delivered' | 'pod_submitted' | 'invoiced' | 'paid';
+
+export type LoadDocumentType = 'rate_con_signed' | 'bol_photo' | 'delivery_photo' | 'pod_signature';
+export type LoadEventType = 'status_change' | 'document_uploaded' | 'note';
 export type EquipmentType = 'dry_van' | 'reefer' | 'flatbed' | 'step_deck' | 'conestoga' | 'power_only';
 export type ActivityType = 'call' | 'email' | 'note' | 'meeting';
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
 export type ContractType = 'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation';
 export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired';
 
@@ -117,6 +121,38 @@ export interface Load {
   referenceNumber: string;
   notes: string;
   createdAt: string;
+  driverPhone?: string;
+  driverName?: string;
+  dispatchedAt?: string;
+  rateConSignedAt?: string;
+  pickedUpAt?: string;
+  deliveredAt?: string;
+  podSubmittedAt?: string;
+  completedAt?: string;
+}
+
+export interface LoadDocument {
+  id: string;
+  loadId: string;
+  documentType: LoadDocumentType;
+  filePath: string;
+  fileName: string;
+  mimeType: string;
+  uploadedByPhone?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface LoadEvent {
+  id: string;
+  loadId: string;
+  eventType: LoadEventType;
+  fromStatus?: string;
+  toStatus?: string;
+  description?: string;
+  actor?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
 }
 
 export interface Contract {
@@ -172,6 +208,20 @@ export interface EmailTemplate {
   subject: string;
   body: string;
   createdAt: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  shipperId: string;
+  loadIds: string[];
+  amount: number;
+  dueDate: string;
+  status: InvoiceStatus;
+  notes: string;
+  pdfPath: string;
+  createdAt: string;
+  paidAt?: string;
 }
 
 export interface StageChangeLog {

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Download } from 'lucide-react';
+import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Download, Receipt } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
@@ -14,13 +14,20 @@ import { LoadStatus } from '@/types';
 import RateConBuilder from '@/components/documents/RateConBuilder';
 import BolBuilder from '@/components/documents/BolBuilder';
 import DocumentViewer from '@/components/documents/DocumentViewer';
+import InvoiceBuilder from '@/components/invoices/InvoiceBuilder';
 import { supabase } from '@/integrations/supabase/client';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
   booked: 'bg-blue-500/20 text-blue-400',
+  dispatched: 'bg-cyan-500/20 text-cyan-400',
+  rate_con_signed: 'bg-teal-500/20 text-teal-400',
+  at_pickup: 'bg-amber-500/20 text-amber-400',
+  picked_up: 'bg-orange-500/20 text-orange-400',
   in_transit: 'bg-warning/20 text-warning',
+  at_delivery: 'bg-lime-500/20 text-lime-400',
   delivered: 'bg-success/20 text-success',
+  pod_submitted: 'bg-emerald-500/20 text-emerald-400',
   invoiced: 'bg-purple-500/20 text-purple-400',
   paid: 'bg-primary/20 text-primary',
 };
@@ -28,7 +35,8 @@ const statusColors: Record<string, string> = {
 const LoadDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { loads, setLoads, shippers, carriers } = useAppContext();
+  const { loads, setLoads, shippers, carriers, invoices } = useAppContext();
+  const [invoiceBuilderOpen, setInvoiceBuilderOpen] = useState(false);
 
   const [carrierDocs, setCarrierDocs] = useState<any[]>([]);
   const [loadDocs, setLoadDocs] = useState<any[]>([]);
@@ -175,9 +183,15 @@ const LoadDetail = () => {
 
   const nextActions: { status: LoadStatus; label: string; icon: React.ReactNode }[] = [];
   if (load.status === 'available') nextActions.push({ status: 'booked', label: 'Mark Booked', icon: <Package className="h-4 w-4" /> });
-  if (load.status === 'booked') nextActions.push({ status: 'in_transit', label: 'Mark In Transit', icon: <TruckIcon className="h-4 w-4" /> });
-  if (load.status === 'in_transit') nextActions.push({ status: 'delivered', label: 'Mark Delivered', icon: <CheckCircle className="h-4 w-4" /> });
-  if (load.status === 'delivered') nextActions.push({ status: 'invoiced', label: 'Mark Invoiced', icon: <DollarSign className="h-4 w-4" /> });
+  if (load.status === 'booked') nextActions.push({ status: 'dispatched', label: 'Dispatch', icon: <Send className="h-4 w-4" /> });
+  if (load.status === 'dispatched') nextActions.push({ status: 'rate_con_signed', label: 'Rate Con Signed', icon: <FileCheck className="h-4 w-4" /> });
+  if (load.status === 'rate_con_signed') nextActions.push({ status: 'at_pickup', label: 'At Pickup', icon: <MapPin className="h-4 w-4" /> });
+  if (load.status === 'at_pickup') nextActions.push({ status: 'picked_up', label: 'Picked Up', icon: <Package className="h-4 w-4" /> });
+  if (load.status === 'picked_up') nextActions.push({ status: 'in_transit', label: 'In Transit', icon: <TruckIcon className="h-4 w-4" /> });
+  if (load.status === 'in_transit') nextActions.push({ status: 'at_delivery', label: 'At Delivery', icon: <MapPin className="h-4 w-4" /> });
+  if (load.status === 'at_delivery') nextActions.push({ status: 'delivered', label: 'Delivered', icon: <CheckCircle className="h-4 w-4" /> });
+  if (load.status === 'delivered') nextActions.push({ status: 'pod_submitted', label: 'POD Submitted', icon: <FileCheck className="h-4 w-4" /> });
+  if (load.status === 'pod_submitted') nextActions.push({ status: 'invoiced', label: 'Mark Invoiced', icon: <DollarSign className="h-4 w-4" /> });
   if (load.status === 'invoiced') nextActions.push({ status: 'paid', label: 'Mark Paid', icon: <CheckCircle className="h-4 w-4" /> });
 
   return (
@@ -454,20 +468,54 @@ const LoadDetail = () => {
       <Card>
         <CardHeader><CardTitle className="text-sm">Invoice & Payment</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Invoice #</span>
-            <span className="font-medium">{load.invoiceNumber || '—'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Amount</span>
-            <span className="font-medium">{load.invoiceAmount ? `$${load.invoiceAmount.toLocaleString()}` : '—'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Payment Status</span>
-            <Badge variant="outline">{paymentStatusLabels[load.paymentStatus]}</Badge>
-          </div>
+          {(() => {
+            const existingInvoice = invoices.find(i => i.loadIds.includes(load.id));
+            if (existingInvoice) {
+              return (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Invoice #</span>
+                    <Link to={`/invoices/${existingInvoice.id}`} className="font-medium text-primary hover:underline">{existingInvoice.invoiceNumber}</Link>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="font-medium">${existingInvoice.amount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Status</span>
+                    <Badge variant="outline">{paymentStatusLabels[load.paymentStatus]}</Badge>
+                  </div>
+                </>
+              );
+            }
+            const canInvoice = ['delivered', 'pod_submitted'].includes(load.status);
+            return (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Invoice #</span>
+                  <span className="font-medium">{load.invoiceNumber || '—'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Payment Status</span>
+                  <Badge variant="outline">{paymentStatusLabels[load.paymentStatus]}</Badge>
+                </div>
+                {canInvoice && (
+                  <Button size="sm" className="w-full mt-2 gap-1" onClick={() => setInvoiceBuilderOpen(true)}>
+                    <Receipt className="h-4 w-4" />Create Invoice
+                  </Button>
+                )}
+              </>
+            );
+          })()}
         </CardContent>
       </Card>
+
+      <InvoiceBuilder
+        open={invoiceBuilderOpen}
+        onOpenChange={setInvoiceBuilderOpen}
+        preSelectedShipperId={load.shipperId}
+        preSelectedLoadIds={[load.id]}
+      />
     </div>
   );
 };
