@@ -329,6 +329,12 @@ const LoadDetail = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
+                      <DocumentViewer
+                        doc={doc}
+                        carrierName={carrierName}
+                        editable={true}
+                        onUpdated={fetchCarrierDocs}
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
@@ -365,38 +371,98 @@ const LoadDetail = () => {
           )}
         </CardContent>
       </Card>
-      {/* POD & Invoice */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Proof of Delivery</CardTitle></CardHeader>
-          <CardContent className="flex items-center gap-4">
-            {load.podUploaded ? <FileCheck className="h-8 w-8 text-success" /> : <Upload className="h-8 w-8 text-muted-foreground" />}
-            <div>
-              <Badge variant={load.podUploaded ? 'default' : 'outline'}>{load.podUploaded ? 'Uploaded' : 'Not Uploaded'}</Badge>
-            </div>
-            <Button size="sm" variant="outline" onClick={togglePod}>
-              {load.podUploaded ? 'Remove' : 'Upload POD'}
+
+      {/* Uploaded Documents (POD, BOL files, etc.) */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm">Uploaded Documents</CardTitle>
+          <div>
+            <input
+              type="file"
+              id="pod-upload"
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handlePodUpload(file);
+                e.target.value = '';
+              }}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              disabled={podUploading}
+              onClick={() => document.getElementById('pod-upload')?.click()}
+            >
+              <Upload className="h-3.5 w-3.5" />
+              {podUploading ? 'Uploading...' : 'Upload POD'}
             </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Invoice & Payment</CardTitle></CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Invoice #</span>
-              <span className="font-medium">{load.invoiceNumber || '—'}</span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadDocs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No uploaded documents yet. Upload POD or other files above.</p>
+          ) : (
+            <div className="space-y-3">
+              {loadDocs.map(doc => (
+                <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {doc.document_type === 'pod' ? 'Proof of Delivery' : doc.document_type === 'bol' ? 'Bill of Lading' : doc.document_type}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{doc.file_name} • {new Date(doc.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => viewUploadedDoc(doc)} className="gap-1">
+                      <Eye className="h-3.5 w-3.5" />View
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                          <AlertDialogDescription>This will permanently delete this uploaded document.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteLoadDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Amount</span>
-              <span className="font-medium">{load.invoiceAmount ? `$${load.invoiceAmount.toLocaleString()}` : '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Payment Status</span>
-              <Badge variant="outline">{paymentStatusLabels[load.paymentStatus]}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invoice */}
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Invoice & Payment</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Invoice #</span>
+            <span className="font-medium">{load.invoiceNumber || '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Amount</span>
+            <span className="font-medium">{load.invoiceAmount ? `$${load.invoiceAmount.toLocaleString()}` : '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Payment Status</span>
+            <Badge variant="outline">{paymentStatusLabels[load.paymentStatus]}</Badge>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
