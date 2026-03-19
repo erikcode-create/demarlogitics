@@ -35,6 +35,8 @@ import CarrierPortalPreview from "./pages/CarrierPortalPreview";
 import ShipperPortalLogin from "./pages/ShipperPortalLogin";
 import ShipperPortalDashboard from "./pages/ShipperPortalDashboard";
 import ShipperPortalPreview from "./pages/ShipperPortalPreview";
+import ShipperPortalLoadDetail from "./pages/ShipperPortalLoadDetail";
+import CarrierPortalLoadDetail from "./pages/CarrierPortalLoadDetail";
 
 const queryClient = new QueryClient();
 

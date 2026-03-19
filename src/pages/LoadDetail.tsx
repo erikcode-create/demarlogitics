@@ -157,9 +157,6 @@ const LoadDetail = () => {
     setLoads(prev => prev.map(l => l.id === id ? { ...l, carrierRate: Number(rate) } : l));
   };
 
-  const togglePod = () => {
-    setLoads(prev => prev.map(l => l.id === id ? { ...l, podUploaded: !l.podUploaded } : l));
-  };
 
   const quickStatus = (status: LoadStatus, label: string) => {
     updateStatus(status);
