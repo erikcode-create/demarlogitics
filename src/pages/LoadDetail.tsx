@@ -30,7 +30,9 @@ const LoadDetail = () => {
   const { loads, setLoads, shippers, carriers } = useAppContext();
 
   const [carrierDocs, setCarrierDocs] = useState<any[]>([]);
+  const [loadDocs, setLoadDocs] = useState<any[]>([]);
   const [docsLoading, setDocsLoading] = useState(false);
+  const [podUploading, setPodUploading] = useState(false);
 
   const load = loads.find(l => l.id === id);
 
@@ -39,11 +41,74 @@ const LoadDetail = () => {
     setDocsLoading(true);
     const { data } = await supabase
       .from('carrier_documents')
-      .select('id, type, status, signed_by_name, signed_at, created_at, carrier_id')
+      .select('id, type, status, signed_by_name, signed_at, created_at, carrier_id, document_data, load_id')
       .eq('load_id', id)
       .order('created_at', { ascending: false });
     setCarrierDocs(data || []);
     setDocsLoading(false);
+  };
+
+  const fetchLoadDocs = async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from('load_documents')
+      .select('*')
+      .eq('load_id', id)
+      .order('created_at', { ascending: false });
+    setLoadDocs(data || []);
+  };
+
+  const handlePodUpload = async (file: File) => {
+    if (!id) return;
+    setPodUploading(true);
+    const filePath = `${id}/pod/${file.name}`;
+    const { error: uploadErr } = await supabase.storage
+      .from('load-documents')
+      .upload(filePath, file, { upsert: true });
+    if (uploadErr) {
+      toast.error('Upload failed: ' + uploadErr.message);
+      setPodUploading(false);
+      return;
+    }
+    const { error: dbErr } = await supabase.from('load_documents').insert({
+      load_id: id,
+      document_type: 'pod',
+      file_path: filePath,
+      file_name: file.name,
+      mime_type: file.type || 'application/octet-stream',
+    });
+    if (dbErr) {
+      toast.error('Failed to save document record');
+    } else {
+      toast.success('POD uploaded successfully');
+      setLoads(prev => prev.map(l => l.id === id ? { ...l, podUploaded: true } : l));
+      fetchLoadDocs();
+    }
+    setPodUploading(false);
+  };
+
+  const viewUploadedDoc = async (doc: any) => {
+    const { data } = await supabase.storage.from('load-documents').createSignedUrl(doc.file_path, 300);
+    if (data?.signedUrl) {
+      const resp = await fetch(data.signedUrl);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const deleteLoadDoc = async (docId: string) => {
+    const { error } = await supabase.from('load_documents').delete().eq('id', docId);
+    if (error) {
+      toast.error('Failed to delete document');
+      return;
+    }
+    toast.success('Document deleted');
+    setLoadDocs(prev => prev.filter(d => d.id !== docId));
   };
 
   const deleteCarrierDoc = async (docId: string) => {
