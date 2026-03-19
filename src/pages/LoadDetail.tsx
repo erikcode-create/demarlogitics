@@ -71,6 +71,16 @@ const LoadDetail = () => {
   const handlePodUpload = async (file: File) => {
     if (!id) return;
 
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG, PNG, HEIC, and PDF files are accepted');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File must be under 10MB');
+      return;
+    }
+
     setPodUploading(true);
     const filePath = `${id}/pod/${file.name}`;
 
@@ -395,7 +405,7 @@ const LoadDetail = () => {
               type="file"
               id="pod-upload"
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              accept=".pdf,.jpg,.jpeg,.png,.heic"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) handlePodUpload(file);
