@@ -10,11 +10,12 @@ import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, Refre
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
-import { LoadStatus, PaymentStatus } from '@/types';
+import { LoadStatus } from '@/types';
 import RateConBuilder from '@/components/documents/RateConBuilder';
 import BolBuilder from '@/components/documents/BolBuilder';
 import DocumentViewer from '@/components/documents/DocumentViewer';
 import { supabase } from '@/integrations/supabase/client';
+
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
   booked: 'bg-blue-500/20 text-blue-400',
@@ -33,6 +34,7 @@ const LoadDetail = () => {
   const [loadDocs, setLoadDocs] = useState<any[]>([]);
   const [docsLoading, setDocsLoading] = useState(false);
   const [podUploading, setPodUploading] = useState(false);
+  const [resending, setResending] = useState<string | null>(null);
 
   const load = loads.find(l => l.id === id);
 
@@ -60,30 +62,38 @@ const LoadDetail = () => {
 
   const handlePodUpload = async (file: File) => {
     if (!id) return;
+
     setPodUploading(true);
     const filePath = `${id}/pod/${file.name}`;
+
     const { error: uploadErr } = await supabase.storage
       .from('load-documents')
       .upload(filePath, file, { upsert: true });
+
     if (uploadErr) {
-      toast.error('Upload failed: ' + uploadErr.message);
+      toast.error(`Upload failed: ${uploadErr.message}`);
       setPodUploading(false);
       return;
     }
+
     const { error: dbErr } = await supabase.from('load_documents').insert({
       load_id: id,
-      document_type: 'pod',
+      document_type: 'pod_signature',
       file_path: filePath,
       file_name: file.name,
       mime_type: file.type || 'application/octet-stream',
     });
+
     if (dbErr) {
-      toast.error('Failed to save document record');
-    } else {
-      toast.success('POD uploaded successfully');
-      setLoads(prev => prev.map(l => l.id === id ? { ...l, podUploaded: true } : l));
-      fetchLoadDocs();
+      await supabase.storage.from('load-documents').remove([filePath]);
+      toast.error(`Failed to save document: ${dbErr.message}`);
+      setPodUploading(false);
+      return;
     }
+
+    toast.success('POD uploaded successfully');
+    setLoads(prev => prev.map(l => l.id === id ? { ...l, podUploaded: true } : l));
+    fetchLoadDocs();
     setPodUploading(false);
   };
 
@@ -121,22 +131,23 @@ const LoadDetail = () => {
     setCarrierDocs(prev => prev.filter(d => d.id !== docId));
   };
 
-  const [resending, setResending] = useState<string | null>(null);
-
   const resendToCarrier = async (doc: any) => {
     setResending(doc.id);
-    const { data, error } = await supabase.functions.invoke('send-ratecon-email', {
+    const { error } = await supabase.functions.invoke('send-ratecon-email', {
       body: { carrier_id: doc.carrier_id, document_id: doc.id },
     });
     if (error) {
       toast.error('Failed to resend document');
     } else {
-      toast.success(`Document resent to carrier`);
+      toast.success('Document resent to carrier');
     }
     setResending(null);
   };
 
-  useEffect(() => { fetchCarrierDocs(); fetchLoadDocs(); }, [id]);
+  useEffect(() => {
+    fetchCarrierDocs();
+    fetchLoadDocs();
+  }, [id]);
 
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
 
@@ -157,7 +168,6 @@ const LoadDetail = () => {
     setLoads(prev => prev.map(l => l.id === id ? { ...l, carrierRate: Number(rate) } : l));
   };
 
-
   const quickStatus = (status: LoadStatus, label: string) => {
     updateStatus(status);
     toast.success(`${load.loadNumber} → ${label}`);
@@ -172,7 +182,6 @@ const LoadDetail = () => {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -191,7 +200,6 @@ const LoadDetail = () => {
           {load.referenceNumber && <p className="text-sm text-muted-foreground">Ref: {load.referenceNumber}</p>}
           <p className="text-sm text-muted-foreground">{load.origin} → {load.destination}</p>
         </div>
-        {/* Quick action buttons */}
         {nextActions.map(a => (
           <Button key={a.status} variant="outline" size="sm" onClick={() => quickStatus(a.status, a.label)} className="gap-1.5">
             {a.icon}{a.label}
@@ -203,8 +211,7 @@ const LoadDetail = () => {
         </Select>
       </div>
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Route</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
@@ -239,8 +246,7 @@ const LoadDetail = () => {
         </Card>
       </div>
 
-      {/* Shipper & Carrier */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
           <CardHeader><CardTitle className="text-sm">Shipper</CardTitle></CardHeader>
           <CardContent>
@@ -273,7 +279,7 @@ const LoadDetail = () => {
                   type="number"
                   value={load.carrierRate || ''}
                   onChange={e => updateCarrierRate(e.target.value)}
-                  className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   placeholder="Enter carrier rate"
                 />
               </div>
@@ -282,7 +288,6 @@ const LoadDetail = () => {
         </Card>
       </div>
 
-      {/* Documents */}
       <Card>
         <CardHeader><CardTitle className="text-sm">Documents</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-3">
@@ -291,7 +296,6 @@ const LoadDetail = () => {
         </CardContent>
       </Card>
 
-      {/* Carrier Documents Status */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Carrier Document Status</CardTitle>
@@ -318,11 +322,11 @@ const LoadDetail = () => {
                     <div className="text-right">
                       {doc.status === 'signed' ? (
                         <div>
-                          <Badge className="bg-success/20 text-success border-0">Signed</Badge>
-                          <p className="text-xs text-muted-foreground mt-1">by {doc.signed_by_name} · {new Date(doc.signed_at).toLocaleDateString()}</p>
+                          <Badge className="border-0 bg-success/20 text-success">Signed</Badge>
+                          <p className="mt-1 text-xs text-muted-foreground">by {doc.signed_by_name} · {new Date(doc.signed_at).toLocaleDateString()}</p>
                         </div>
                       ) : (
-                        <Badge variant="outline" className="text-warning border-warning/50">Pending Signature</Badge>
+                        <Badge variant="outline" className="border-warning/50 text-warning">Pending Signature</Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-1">
@@ -369,7 +373,6 @@ const LoadDetail = () => {
         </CardContent>
       </Card>
 
-      {/* Uploaded Documents (POD, BOL files, etc.) */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Uploaded Documents</CardTitle>
@@ -408,7 +411,13 @@ const LoadDetail = () => {
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">
-                        {doc.document_type === 'pod' ? 'Proof of Delivery' : doc.document_type === 'bol' ? 'Bill of Lading' : doc.document_type}
+                        {doc.document_type === 'pod_signature'
+                          ? 'Proof of Delivery'
+                          : doc.document_type === 'bol_photo'
+                            ? 'Bill of Lading'
+                            : doc.document_type === 'delivery_photo'
+                              ? 'Delivery Photo'
+                              : doc.document_type}
                       </p>
                       <p className="text-xs text-muted-foreground">{doc.file_name} • {new Date(doc.created_at).toLocaleDateString()}</p>
                     </div>
@@ -442,7 +451,6 @@ const LoadDetail = () => {
         </CardContent>
       </Card>
 
-      {/* Invoice */}
       <Card>
         <CardHeader><CardTitle className="text-sm">Invoice & Payment</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
