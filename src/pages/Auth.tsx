@@ -10,8 +10,8 @@ import demarLogo from '@/assets/demar-logo.png';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -26,9 +26,18 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin + '/sales/dashboard',
+      },
+    });
+
     if (error) {
       toast({ title: 'Sign in failed', description: error.message, variant: 'destructive' });
+    } else {
+      setSent(true);
+      toast({ title: 'Check your email', description: 'We sent you a magic link to sign in.' });
     }
     setLoading(false);
   };
@@ -39,37 +48,42 @@ export default function Auth() {
         <CardHeader className="text-center space-y-4">
           <img src={demarLogo} alt="Demar Transportation" className="h-20 mx-auto" />
           <CardTitle className="text-2xl text-foreground">Welcome Back</CardTitle>
-          <CardDescription className="text-muted-foreground">Sign in to your account</CardDescription>
+          <CardDescription className="text-muted-foreground">
+            {sent ? 'Check your email for the sign-in link' : 'Enter your email to sign in'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+          {sent ? (
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                We sent a magic link to <span className="font-medium text-foreground">{email}</span>
+              </p>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setSent(false)}
+              >
+                Use a different email
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : 'Sign In'}
-            </Button>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Magic Link'}
+              </Button>
+            </form>
+          )}
           <div className="mt-4 text-center">
             <p className="text-xs text-muted-foreground">
               Access is invite-only. Contact your admin for an invite.
