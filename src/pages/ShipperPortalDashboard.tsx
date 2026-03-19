@@ -349,7 +349,7 @@ const ShipperPortalDashboard = () => {
                 <Card><CardContent className="py-12 text-center text-muted-foreground">No shipments yet.</CardContent></Card>
               ) : (
                 loads.map((load) => (
-                  <Card key={load.id}>
+                  <Card key={load.id} className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate(`/shipper-portal/loads/${load.id}`)}>
                     <CardContent className="py-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
