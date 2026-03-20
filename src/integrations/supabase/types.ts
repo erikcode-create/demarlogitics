@@ -341,56 +341,6 @@ export type Database = {
         }
         Relationships: []
       }
-      invoices: {
-        Row: {
-          id: string
-          invoice_number: string
-          shipper_id: string
-          load_ids: string[]
-          amount: number
-          due_date: string
-          status: string
-          notes: string
-          pdf_path: string
-          created_at: string
-          paid_at: string | null
-        }
-        Insert: {
-          id?: string
-          invoice_number: string
-          shipper_id: string
-          load_ids?: string[]
-          amount?: number
-          due_date: string
-          status?: string
-          notes?: string
-          pdf_path?: string
-          created_at?: string
-          paid_at?: string | null
-        }
-        Update: {
-          id?: string
-          invoice_number?: string
-          shipper_id?: string
-          load_ids?: string[]
-          amount?: number
-          due_date?: string
-          status?: string
-          notes?: string
-          pdf_path?: string
-          created_at?: string
-          paid_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invoices_shipper_id_fkey"
-            columns: ["shipper_id"]
-            isOneToOne: false
-            referencedRelation: "shippers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       follow_ups: {
         Row: {
           completed: boolean
@@ -580,14 +530,6 @@ export type Database = {
           shipper_rate: number
           status: string
           weight: number
-          driver_phone: string | null
-          driver_name: string | null
-          dispatched_at: string | null
-          rate_con_signed_at: string | null
-          picked_up_at: string | null
-          delivered_at: string | null
-          pod_submitted_at: string | null
-          completed_at: string | null
         }
         Insert: {
           carrier_id?: string | null
@@ -619,14 +561,6 @@ export type Database = {
           shipper_rate?: number
           status?: string
           weight?: number
-          driver_phone?: string | null
-          driver_name?: string | null
-          dispatched_at?: string | null
-          rate_con_signed_at?: string | null
-          picked_up_at?: string | null
-          delivered_at?: string | null
-          pod_submitted_at?: string | null
-          completed_at?: string | null
         }
         Update: {
           carrier_id?: string | null
@@ -658,14 +592,6 @@ export type Database = {
           shipper_rate?: number
           status?: string
           weight?: number
-          driver_phone?: string | null
-          driver_name?: string | null
-          dispatched_at?: string | null
-          rate_con_signed_at?: string | null
-          picked_up_at?: string | null
-          delivered_at?: string | null
-          pod_submitted_at?: string | null
-          completed_at?: string | null
         }
         Relationships: [
           {
