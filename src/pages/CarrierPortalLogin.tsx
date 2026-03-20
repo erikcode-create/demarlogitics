@@ -36,7 +36,7 @@ const CarrierPortalLogin = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <img src="/src/assets/demar-logo.png" alt="DeMar Transportation" className="h-12 mx-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img src="/src/assets/demar-logo.png" alt="DeMar Logistics" className="h-12 mx-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <h1 className="text-2xl font-bold text-foreground">Carrier Portal</h1>
           <p className="text-muted-foreground">Access your rate confirmations and bills of lading</p>
         </div>

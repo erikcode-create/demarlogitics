@@ -22,7 +22,7 @@ export const ShipperPortalLayout = ({ children, shipperName }: ShipperPortalLayo
       <header className="border-b border-border bg-card">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/src/assets/demar-logo.png" alt="DeMar Transportation" className="h-8" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src="/src/assets/demar-logo.png" alt="DeMar Logistics" className="h-8" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <div>
               <h1 className="text-lg font-bold text-foreground">Shipper Portal</h1>
               {shipperName && <p className="text-xs text-muted-foreground">{shipperName}</p>}

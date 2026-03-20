@@ -25,7 +25,7 @@ const RateConBuilder = ({ load, shipper, carrier }: RateConBuilderProps) => {
     loadNumber: load.loadNumber,
     refNumber: load.referenceNumber,
     orderNumber: '',
-    brokerName: 'DeMar Transportation',
+    brokerName: 'DeMar Logistics',
     brokerAddress: '10471 Double R Blvd. Suite B, Reno, Nevada 89521',
     brokerPhone: '(555) 555-0100',
     brokerEmail: 'dispatch@demartransportation.com',

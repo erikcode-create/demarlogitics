@@ -290,7 +290,7 @@ const ShipperPortalDashboard = () => {
               <CardHeader><CardTitle className="text-sm">Sign This Contract</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  By signing below, you agree to the terms outlined in this contract with DeMar Transportation.
+                  By signing below, you agree to the terms outlined in this contract with DeMar Logistics.
                 </p>
                 <div>
                   <Label htmlFor="sig-name">Your Full Name</Label>

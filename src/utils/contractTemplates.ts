@@ -4,7 +4,7 @@ export function generateShipperAgreement(shipper: Shipper): string {
   return `FREIGHT BROKERAGE AGREEMENT — SHIPPER
 
 PARTIES:
-This Agreement is entered into between DEMAR Transportation ("Broker") and ${shipper.companyName} ("Shipper"), located at ${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}.
+This Agreement is entered into between DEMAR Logistics ("Broker") and ${shipper.companyName} ("Shipper"), located at ${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}.
 
 SCOPE OF SERVICES:
 Broker agrees to arrange for the transportation of Shipper's freight via motor carriers authorized by the FMCSA. Broker shall exercise reasonable diligence in selecting carriers.
@@ -36,7 +36,7 @@ export function generateCarrierAgreement(carrier: Carrier): string {
   return `CARRIER-BROKER TRANSPORTATION AGREEMENT
 
 PARTIES:
-This Agreement is entered into between DEMAR Transportation ("Broker") and ${carrier.companyName} ("Carrier"), located at ${carrier.address}, ${carrier.city}, ${carrier.state} ${carrier.zip}.
+This Agreement is entered into between DEMAR Logistics ("Broker") and ${carrier.companyName} ("Carrier"), located at ${carrier.address}, ${carrier.city}, ${carrier.state} ${carrier.zip}.
 
 CARRIER AUTHORITY:
 • MC Number: ${carrier.mcNumber}
@@ -72,7 +72,7 @@ export function generateRateConfirmation(load: Load, shipper: Shipper, carrier: 
 
 LOAD NUMBER: ${load.loadNumber}
 
-BROKER: DEMAR Transportation
+BROKER: DEMAR Logistics
 
 SHIPPER: ${shipper.companyName}
 ${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}

@@ -100,9 +100,9 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'DeMar Transportation <carriers@demartransportation.com>',
+        from: 'DeMar Logistics <carriers@demartransportation.com>',
         to: [carrier.email],
-        subject: 'Access Your Carrier Portal — DeMar Transportation',
+        subject: 'Access Your Carrier Portal — DeMar Logistics',
         html: `
 <!DOCTYPE html>
 <html>
@@ -110,12 +110,12 @@ Deno.serve(async (req) => {
 <body style="font-family: Arial, sans-serif; background: #f4f4f5; padding: 40px 0;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e4e4e7;">
     <div style="background: #1a365d; padding: 24px 32px;">
-      <h1 style="color: #ffffff; font-size: 20px; margin: 0;">DeMar Transportation</h1>
+      <h1 style="color: #ffffff; font-size: 20px; margin: 0;">DeMar Logistics</h1>
     </div>
     <div style="padding: 32px;">
       <p style="font-size: 16px; color: #1a1a1a; margin: 0 0 16px;">Hi ${carrier.company_name},</p>
       <p style="font-size: 14px; color: #3f3f46; line-height: 1.6; margin: 0 0 24px;">
-        You've been invited to access your DeMar Transportation Carrier Portal. From there you can view your loads, upload onboarding documents, and review rate confirmations.
+        You've been invited to access your DeMar Logistics Carrier Portal. From there you can view your loads, upload onboarding documents, and review rate confirmations.
       </p>
       <div style="text-align: center; margin: 32px 0;">
         <a href="${actionLink}" style="display: inline-block; background: #1a365d; color: #ffffff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
       </p>
     </div>
     <div style="background: #f4f4f5; padding: 16px 32px; text-align: center;">
-      <p style="font-size: 11px; color: #a1a1aa; margin: 0;">© ${new Date().getFullYear()} DeMar Transportation. All rights reserved.</p>
+      <p style="font-size: 11px; color: #a1a1aa; margin: 0;">© ${new Date().getFullYear()} DeMar Logistics. All rights reserved.</p>
     </div>
   </div>
 </body>
