@@ -21,7 +21,7 @@ export function generateInvoicePdf({ invoice, shipper, loads, podImages }: Invoi
   // Company header
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('DEMAR TRANSPORTATION', margin, y);
+  doc.text('DEMAR LOGISTICS', margin, y);
   y += 7;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
