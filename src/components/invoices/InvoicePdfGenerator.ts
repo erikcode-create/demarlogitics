@@ -139,7 +139,7 @@ export function generateInvoicePdf({ invoice, shipper, loads, podImages }: Invoi
     doc.text(`Payment Terms: ${shipper.paymentTerms}`, margin, y);
     y += 6;
   }
-  doc.text('Remit To: DeMar Transportation', margin, y);
+  doc.text('Remit To: DeMar Logistics', margin, y);
   y += 6;
 
   if (invoice.notes) {
