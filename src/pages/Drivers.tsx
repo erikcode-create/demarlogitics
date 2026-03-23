@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil } from 'lucide-react';
 import { Driver } from '@/types';
 import { TableLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
@@ -18,7 +18,8 @@ const Drivers = () => {
   const [search, setSearch] = useState('');
   const [carrierFilter, setCarrierFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newDriver, setNewDriver] = useState({ name: '', phone: '', email: '', carrierId: '' });
+  const [editDriver, setEditDriver] = useState<Driver | null>(null);
+  const [form, setForm] = useState({ name: '', phone: '', carrierId: '' });
 
   if (loading) return <TableLoader />;
 
@@ -28,20 +29,42 @@ const Drivers = () => {
     return matchSearch && matchCarrier;
   });
 
-  const handleAdd = () => {
-    if (!newDriver.name.trim()) return;
-    const driver: Driver = {
-      id: crypto.randomUUID(),
-      name: newDriver.name.trim(),
-      phone: newDriver.phone.trim(),
-      email: newDriver.email.trim(),
-      carrierId: newDriver.carrierId || null,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setDrivers(prev => [...prev, driver]);
+  const openAdd = () => {
+    setEditDriver(null);
+    setForm({ name: '', phone: '', carrierId: '' });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (d: Driver) => {
+    setEditDriver(d);
+    setForm({ name: d.name, phone: d.phone || '', carrierId: d.carrierId || '' });
+    setDialogOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.carrierId) return;
+
+    if (editDriver) {
+      setDrivers(prev => prev.map(d => d.id === editDriver.id ? {
+        ...d,
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        carrierId: form.carrierId,
+      } : d));
+      toast.success('Driver updated');
+    } else {
+      const driver: Driver = {
+        id: crypto.randomUUID(),
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: '',
+        carrierId: form.carrierId,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      setDrivers(prev => [...prev, driver]);
+      toast.success('Driver added');
+    }
     setDialogOpen(false);
-    setNewDriver({ name: '', phone: '', email: '', carrierId: '' });
-    toast.success('Driver added');
   };
 
   const handleDelete = (id: string) => {
@@ -58,28 +81,30 @@ const Drivers = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Drivers</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus className="mr-1 h-4 w-4" />Add Driver</Button></DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>New Driver</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <div><Label>Name</Label><Input value={newDriver.name} onChange={e => setNewDriver(p => ({ ...p, name: e.target.value }))} /></div>
-              <div><Label>Phone</Label><Input value={newDriver.phone} onChange={e => setNewDriver(p => ({ ...p, phone: e.target.value }))} /></div>
-              <div>
-                <Label>Carrier</Label>
-                <Select value={newDriver.carrierId || 'none'} onValueChange={v => setNewDriver(p => ({ ...p, carrierId: v === 'none' ? '' : v }))}>
-                  <SelectTrigger><SelectValue placeholder="Select carrier" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Carrier</SelectItem>
-                    {carriers.map(c => <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleAdd} className="w-full" disabled={!newDriver.name.trim()}>Add Driver</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button size="sm" onClick={openAdd}><Plus className="mr-1 h-4 w-4" />Add Driver</Button>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editDriver ? 'Edit Driver' : 'New Driver'}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Name *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
+            <div><Label>Phone</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} /></div>
+            <div>
+              <Label>Carrier *</Label>
+              <Select value={form.carrierId || undefined} onValueChange={v => setForm(p => ({ ...p, carrierId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select carrier" /></SelectTrigger>
+                <SelectContent>
+                  {carriers.map(c => <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleSave} className="w-full" disabled={!form.name.trim() || !form.carrierId}>
+              {editDriver ? 'Save Changes' : 'Add Driver'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-3">
         <div className="relative flex-1">
@@ -103,7 +128,7 @@ const Drivers = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Carrier</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-20"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,23 +138,28 @@ const Drivers = () => {
                   <TableCell className="text-sm">{d.phone || '—'}</TableCell>
                   <TableCell className="text-sm">{getCarrierName(d.carrierId)}</TableCell>
                   <TableCell>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={e => e.stopPropagation()}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete {d.name}?</AlertDialogTitle>
-                          <AlertDialogDescription>This will permanently delete this driver. This action cannot be undone.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDelete(d.id)}>Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(d)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={e => e.stopPropagation()}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {d.name}?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete this driver. This action cannot be undone.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDelete(d.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
