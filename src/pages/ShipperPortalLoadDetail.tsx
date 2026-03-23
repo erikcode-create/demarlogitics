@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, MapPin, Calendar, Truck, FileText, ClipboardList, Download, Eye } from 'lucide-react';
+import DriverTrackingMap from '@/components/shipper-portal/DriverTrackingMap';
+import { EQUIPMENT_LABEL } from '@/constants/locations';
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
@@ -110,7 +112,8 @@ const ShipperPortalLoadDetail = () => {
     return <ShipperPortalLayout><div className="text-center py-20"><p className="text-muted-foreground">Load not found.</p><Button variant="link" onClick={() => navigate('/shipper-portal/dashboard')}>Back</Button></div></ShipperPortalLayout>;
   }
 
-  const equipmentLabels: Record<string, string> = { dry_van: 'Dry Van', reefer: 'Reefer', flatbed: 'Flatbed', step_deck: 'Step Deck', conestoga: 'Conestoga', power_only: 'Power Only' };
+  const trackableStatuses = ['dispatched', 'rate_con_signed', 'at_pickup', 'picked_up', 'in_transit', 'at_delivery'];
+  const showTracking = load.carrier_id && trackableStatuses.includes(load.status);
 
   return (
     <ShipperPortalLayout shipperName={shipperName}>
@@ -147,13 +150,16 @@ const ShipperPortalLoadDetail = () => {
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Details</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">
-              <p className="flex items-center gap-1"><Truck className="h-3 w-3" />{equipmentLabels[load.equipment_type] || load.equipment_type}</p>
+              <p className="flex items-center gap-1"><Truck className="h-3 w-3" />{EQUIPMENT_LABEL[load.equipment_type] || load.equipment_type}</p>
               {load.weight > 0 && <p>{load.weight.toLocaleString()} lbs</p>}
               {carrierName && <p>Carrier: {carrierName}</p>}
               {load.pod_uploaded && <Badge variant="outline" className="text-green-600 border-green-300">POD Uploaded</Badge>}
             </CardContent>
           </Card>
         </div>
+
+        {/* Live Tracking Map */}
+        {showTracking && <DriverTrackingMap loadId={load.id} />}
 
         {/* Documents */}
         <Card>

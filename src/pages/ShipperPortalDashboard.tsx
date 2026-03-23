@@ -10,7 +10,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { FileText, Truck, CheckCircle, Clock, AlertTriangle, ArrowLeft, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText, Truck, CheckCircle, Clock, AlertTriangle, ArrowLeft, Download, Plus } from 'lucide-react';
+import ShipperLoadCreateForm from '@/components/shipper-portal/ShipperLoadCreateForm';
+import { EQUIPMENT_LABEL } from '@/constants/locations';
 
 interface ShipperContract {
   id: string;
@@ -62,15 +65,6 @@ const loadStatusColors: Record<string, string> = {
   paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
 };
 
-const equipmentLabels: Record<string, string> = {
-  dry_van: 'Dry Van',
-  reefer: 'Reefer',
-  flatbed: 'Flatbed',
-  step_deck: 'Step Deck',
-  conestoga: 'Conestoga',
-  power_only: 'Power Only',
-};
-
 const loadStatusLabels: Record<string, string> = {
   available: 'Available',
   booked: 'Booked',
@@ -91,6 +85,7 @@ const ShipperPortalDashboard = () => {
   const [tab, setTab] = useState('contracts');
 
   // Contract signing state
+  const [postLoadOpen, setPostLoadOpen] = useState(false);
   const [signingContract, setSigningContract] = useState<ShipperContract | null>(null);
   const [sigName, setSigName] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -345,8 +340,30 @@ const ShipperPortalDashboard = () => {
             </TabsContent>
 
             <TabsContent value="loads" className="mt-4 space-y-3">
+              <div className="flex justify-end">
+                <Button size="sm" onClick={() => setPostLoadOpen(true)}><Plus className="mr-1 h-4 w-4" />Post a Load</Button>
+              </div>
+
+              <Dialog open={postLoadOpen} onOpenChange={setPostLoadOpen}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Post a Load</DialogTitle></DialogHeader>
+                  <ShipperLoadCreateForm
+                    shipperId={shipperId}
+                    onSuccess={async () => {
+                      setPostLoadOpen(false);
+                      const { data } = await supabase
+                        .from('loads')
+                        .select('id, load_number, origin, destination, pickup_date, delivery_date, equipment_type, weight, status, reference_number, pod_uploaded, shipper_rate, carrier_id')
+                        .eq('shipper_id', shipperId)
+                        .order('created_at', { ascending: false });
+                      setLoads((data as ShipperLoad[]) || []);
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+
               {loads.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">No shipments yet.</CardContent></Card>
+                <Card><CardContent className="py-12 text-center text-muted-foreground">No shipments yet. Post your first load above.</CardContent></Card>
               ) : (
                 loads.map((load) => (
                   <Card key={load.id} className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate(`/shipper-portal/loads/${load.id}`)}>
@@ -374,7 +391,7 @@ const ShipperPortalDashboard = () => {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground uppercase font-semibold">Equipment / Weight</p>
-                          <p className="text-foreground">{equipmentLabels[load.equipment_type] || load.equipment_type} • {load.weight.toLocaleString()} lbs</p>
+                          <p className="text-foreground">{EQUIPMENT_LABEL[load.equipment_type] || load.equipment_type} • {load.weight.toLocaleString()} lbs</p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground uppercase font-semibold">Carrier</p>
