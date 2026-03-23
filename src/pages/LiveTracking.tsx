@@ -168,13 +168,13 @@ const LiveTracking = () => {
         <Badge variant="outline">{activeLoads.length} active loads</Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: 'calc(100vh - 180px)' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ minHeight: 500, height: 'calc(100vh - 180px)' }}>
         {/* Map */}
-        <div className="lg:col-span-2 rounded-lg overflow-hidden border">
+        <div className="lg:col-span-2 rounded-lg overflow-hidden border" style={{ minHeight: 400 }}>
           <MapContainer
             center={defaultCenter}
             zoom={4}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', width: '100%', minHeight: 400 }}
             scrollWheelZoom={true}
           >
             <TileLayer
