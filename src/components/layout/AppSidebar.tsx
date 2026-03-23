@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Truck, Users, Package, FileText, Receipt, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp, Settings } from 'lucide-react';
+import { LayoutDashboard, Building2, Truck, Users, Package, FileText, Receipt, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp, Settings, MapPin } from 'lucide-react';
 import demarLogo from '@/assets/demar-logo.png';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, Link } from 'react-router-dom';
@@ -17,6 +17,7 @@ const mainItems = [
   { title: 'Carriers', url: '/carriers', icon: Truck },
   { title: 'Drivers', url: '/drivers', icon: Users },
   { title: 'Loads', url: '/loads', icon: Package },
+  { title: 'Live Tracking', url: '/tracking', icon: MapPin },
   { title: 'Invoices', url: '/invoices', icon: Receipt },
   { title: 'Contracts', url: '/contracts', icon: FileText },
   { title: 'Alerts', url: '/alerts', icon: Bell },
