@@ -1,7 +1,7 @@
 import { LayoutDashboard, Building2, Truck, Package, FileText, Receipt, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp, Settings } from 'lucide-react';
 import demarLogo from '@/assets/demar-logo.png';
 import { NavLink } from '@/components/NavLink';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useMemo } from 'react';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -12,7 +12,7 @@ import { useAppContext } from '@/context/AppContext';
 import { generateAlerts } from '@/utils/alertEngine';
 
 const mainItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+  { title: 'Dashboard', url: '/sales/dashboard', icon: LayoutDashboard },
   { title: 'Shippers', url: '/shippers', icon: Building2 },
   { title: 'Carriers', url: '/carriers', icon: Truck },
   { title: 'Loads', url: '/loads', icon: Package },
@@ -26,7 +26,6 @@ const salesItems = [
   { title: 'Pipeline', url: '/sales/pipeline', icon: Kanban },
   { title: 'Tasks', url: '/sales/tasks', icon: CheckSquare },
   { title: 'Email Templates', url: '/sales/templates', icon: Mail },
-  { title: 'Sales Dashboard', url: '/sales/dashboard', icon: TrendingUp },
   { title: 'Performance', url: '/sales/performance', icon: BarChart3 },
 ];
 
@@ -42,9 +41,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
-<a href="/"><img src={demarLogo} alt="Demar Logistics" className="max-h-28 w-auto object-contain cursor-pointer" /></a>
+          <Link to="/sales/dashboard"><img src={demarLogo} alt="Demar Logistics" className="max-h-28 w-auto object-contain cursor-pointer" /></Link>
         ) : (
-          <a href="/"><img src={demarLogo} alt="Demar" className="max-h-20 w-auto object-contain cursor-pointer" /></a>
+          <Link to="/sales/dashboard"><img src={demarLogo} alt="Demar" className="max-h-20 w-auto object-contain cursor-pointer" /></Link>
         )}
       </SidebarHeader>
       <SidebarContent>
