@@ -65,7 +65,6 @@ const Drivers = () => {
             <div className="space-y-3">
               <div><Label>Name</Label><Input value={newDriver.name} onChange={e => setNewDriver(p => ({ ...p, name: e.target.value }))} /></div>
               <div><Label>Phone</Label><Input value={newDriver.phone} onChange={e => setNewDriver(p => ({ ...p, phone: e.target.value }))} /></div>
-              <div><Label>Email</Label><Input value={newDriver.email} onChange={e => setNewDriver(p => ({ ...p, email: e.target.value }))} /></div>
               <div>
                 <Label>Carrier</Label>
                 <Select value={newDriver.carrierId || 'none'} onValueChange={v => setNewDriver(p => ({ ...p, carrierId: v === 'none' ? '' : v }))}>
@@ -103,7 +102,6 @@ const Drivers = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead>Carrier</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
@@ -113,7 +111,6 @@ const Drivers = () => {
                 <TableRow key={d.id}>
                   <TableCell className="font-medium">{d.name}</TableCell>
                   <TableCell className="text-sm">{d.phone || '—'}</TableCell>
-                  <TableCell className="text-sm">{d.email || '—'}</TableCell>
                   <TableCell className="text-sm">{getCarrierName(d.carrierId)}</TableCell>
                   <TableCell>
                     <AlertDialog>
@@ -137,7 +134,7 @@ const Drivers = () => {
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No drivers found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No drivers found</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
