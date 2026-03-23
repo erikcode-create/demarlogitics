@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, MapPin, Truck, Clock, Navigation } from 'lucide-react';
+import { Search, MapPin, Truck, Clock, Navigation, AlertTriangle } from 'lucide-react';
 import { loadStatusLabels } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
@@ -166,6 +166,11 @@ const LiveTracking = () => {
       };
     });
 
+  // Loads with tracking issues
+  const noDriverPhone = activeLoads.filter(l => !l.driverPhone);
+  const noGps = activeLoads.filter(l => l.driverPhone && !drivers.has(l.id));
+  const issueCount = noDriverPhone.length + noGps.length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -178,9 +183,59 @@ const LiveTracking = () => {
             </span>
             {drivers.size} tracking
           </Badge>
+          {issueCount > 0 && (
+            <Badge variant="destructive" className="gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {issueCount} issue{issueCount !== 1 ? 's' : ''}
+            </Badge>
+          )}
         </div>
         <Badge variant="outline">{activeLoads.length} active loads</Badge>
       </div>
+
+      {/* Tracking Issues Banner */}
+      {issueCount > 0 && !dataLoading && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="p-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              Tracking Issues
+            </div>
+            {noDriverPhone.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">No driver phone assigned:</p>
+                <div className="flex flex-wrap gap-1">
+                  {noDriverPhone.map(l => (
+                    <button
+                      key={l.id}
+                      onClick={() => navigate(`/loads/${l.id}`)}
+                      className="text-xs px-2 py-0.5 rounded bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                    >
+                      #{l.referenceNumber} · {loadStatusLabels[l.status]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {noGps.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Driver assigned but no GPS signal:</p>
+                <div className="flex flex-wrap gap-1">
+                  {noGps.map(l => (
+                    <button
+                      key={l.id}
+                      onClick={() => navigate(`/loads/${l.id}`)}
+                      className="text-xs px-2 py-0.5 rounded bg-warning/10 text-warning hover:bg-warning/20 transition-colors"
+                    >
+                      #{l.referenceNumber} · {l.driverName || l.driverPhone}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ minHeight: 500, height: 'calc(100vh - 180px)' }}>
         {/* Map */}
