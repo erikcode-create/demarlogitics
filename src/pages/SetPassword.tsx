@@ -74,7 +74,7 @@ export default function SetPassword() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md border-border">
           <CardHeader className="text-center space-y-4">
-            <img src={demarLogo} alt="Demar Logistics" className="h-20 mx-auto" />
+            <img src={demarLogo} alt="DeMar Logistics" className="h-20 mx-auto" />
             <CardTitle className="text-2xl text-foreground">Invalid or Expired Link</CardTitle>
             <CardDescription className="text-muted-foreground">
               This invitation link is invalid or has expired. Please contact your admin for a new invite.
@@ -89,7 +89,7 @@ export default function SetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border">
         <CardHeader className="text-center space-y-4">
-          <img src={demarLogo} alt="Demar Logistics" className="h-20 mx-auto" />
+          <img src={demarLogo} alt="DeMar Logistics" className="h-20 mx-auto" />
           <CardTitle className="text-2xl text-foreground">Set Your Password</CardTitle>
           <CardDescription className="text-muted-foreground">
             Create a password to complete your account setup

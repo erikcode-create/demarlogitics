@@ -46,7 +46,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border">
         <CardHeader className="text-center space-y-4">
-          <img src={demarLogo} alt="Demar Logistics" className="h-20 mx-auto" />
+          <img src={demarLogo} alt="DeMar Logistics" className="h-20 mx-auto" />
           <CardTitle className="text-2xl text-foreground">Welcome Back</CardTitle>
           <CardDescription className="text-muted-foreground">
             {sent ? 'Check your email for the sign-in link' : 'Enter your email to sign in'}

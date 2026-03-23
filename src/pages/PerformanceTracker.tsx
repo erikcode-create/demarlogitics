@@ -18,7 +18,7 @@ const PerformanceTracker = () => {
 
   const repKPIs = useMemo(() => {
     const reps = [...new Set(outboundCalls.map(c => c.assignedSalesRep))];
-    if (reps.length === 0) reps.push('Mike Demar');
+    if (reps.length === 0) reps.push('Mike DeMar');
 
     return reps.map(rep => {
       const repCalls = outboundCalls.filter(c => c.assignedSalesRep === rep);

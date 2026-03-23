@@ -112,7 +112,7 @@ const regionDistances: Record<string, Record<string, number>> = {
 
 // ── Capability Statement Download ──
 function downloadCapabilityStatement() {
-  const html = `<!DOCTYPE html><html><head><title>Demar Logistics - Capability Statement</title>
+  const html = `<!DOCTYPE html><html><head><title>DeMar Logistics - Capability Statement</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;padding:40px 60px;max-width:900px;margin:0 auto}
 h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;color:#D97706;margin:28px 0 12px;border-bottom:2px solid #D97706;padding-bottom:4px}
 h3{font-size:14px;margin:12px 0 4px}p,li{font-size:13px;line-height:1.6;color:#333}ul{padding-left:20px;margin:6px 0}
@@ -127,7 +127,7 @@ h3{font-size:14px;margin:12px 0 4px}p,li{font-size:13px;line-height:1.6;color:#3
 <body>
 <div class="header"><div><h1>DEMAR LOGISTICS</h1><p>West Coast Freight Brokerage & Capacity Solutions</p></div><span class="badge">CAPABILITY STATEMENT</span></div>
 <h2>Company Overview</h2>
-<p>Demar Logistics is a specialized freight brokerage focused on West Coast truckload capacity across Nevada, California, Oregon, and Washington. We provide reliable, compliant carrier solutions for shippers requiring consistent coverage on high-demand lanes.</p>
+<p>DeMar Logistics is a specialized freight brokerage focused on West Coast truckload capacity across Nevada, California, Oregon, and Washington. We provide reliable, compliant carrier solutions for shippers requiring consistent coverage on high-demand lanes.</p>
 <div class="stats"><div class="stat"><strong>4</strong><span>States Covered</span></div><div class="stat"><strong>500+</strong><span>Vetted Carriers</span></div><div class="stat"><strong>98%</strong><span>On-Time Rate</span></div><div class="stat"><strong>24/7</strong><span>Support Available</span></div></div>
 <h2>Core Services</h2>
 <div class="grid">
@@ -147,7 +147,7 @@ h3{font-size:14px;margin:12px 0 4px}p,li{font-size:13px;line-height:1.6;color:#3
 <h2>Contact</h2>
 <p><strong>Phone:</strong> (775) 555-0100 &nbsp;|&nbsp; <strong>Email:</strong> capacity@demartransportation.com</p>
 <p><strong>Web:</strong> demartransportation.com</p>
-<div class="footer"><p>© ${new Date().getFullYear()} Demar Logistics. All rights reserved. This capability statement is confidential.</p></div>
+<div class="footer"><p>© ${new Date().getFullYear()} DeMar Logistics. All rights reserved. This capability statement is confidential.</p></div>
 </body></html>`;
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
@@ -196,7 +196,7 @@ function ChatWidget() {
           <div className="flex items-center justify-between p-4 border-b border-border bg-primary text-primary-foreground rounded-t-lg">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
-              <span className="font-semibold text-sm">Demar Capacity Team</span>
+              <span className="font-semibold text-sm">DeMar Capacity Team</span>
             </div>
             <button onClick={() => setOpen(false)} className="hover:opacity-80">
               <X className="h-4 w-4" />
@@ -413,12 +413,12 @@ export default function SalesLanding() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <img src={demarLogo} alt="Demar Logistics" className="h-10 w-auto" />
+          <img src={demarLogo} alt="DeMar Logistics" className="h-10 w-auto" />
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#services" className="hover:text-foreground transition-colors">Services</a>
             <a href="#case-studies" className="hover:text-foreground transition-colors">Results</a>
             <a href="#rate-calculator" className="hover:text-foreground transition-colors">Rate Calculator</a>
-            <a href="#why-demar" className="hover:text-foreground transition-colors">Why Demar</a>
+            <a href="#why-demar" className="hover:text-foreground transition-colors">Why DeMar</a>
             <Button onClick={scrollToForm} size="sm">Request a Quote</Button>
           </div>
           <Button onClick={scrollToForm} size="sm" className="md:hidden">Get Quote</Button>
@@ -583,10 +583,10 @@ export default function SalesLanding() {
         </div>
       </section>
 
-      {/* Why Demar */}
+      {/* Why DeMar */}
       <section id="why-demar" className="py-20 md:py-28 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Why Shippers Choose <span className="text-primary">Demar Logistics</span></h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Why Shippers Choose <span className="text-primary">DeMar Logistics</span></h2>
           <p className="text-muted-foreground text-center mb-14 max-w-2xl mx-auto">We're not just another broker. We're your West Coast capacity partner.</p>
           <div className="max-w-3xl mx-auto space-y-5">
             {[
@@ -717,7 +717,7 @@ export default function SalesLanding() {
               <CardContent className="p-10 text-center">
                 <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-6" />
                 <h3 className="text-2xl font-bold mb-3">Quote Request Received!</h3>
-                <p className="text-muted-foreground mb-6">A Demar Logistics capacity specialist will contact you within 2 hours with competitive rates for your lane.</p>
+                <p className="text-muted-foreground mb-6">A DeMar Logistics capacity specialist will contact you within 2 hours with competitive rates for your lane.</p>
                 <Button variant="outline" onClick={() => { setSubmitted(false); form.reset(); }}>Submit Another Request</Button>
               </CardContent>
             </Card>
@@ -783,7 +783,7 @@ export default function SalesLanding() {
       <section className="py-20 md:py-28 bg-gradient-to-br from-primary/10 via-background to-primary/5">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Secure Reliable West Coast Capacity Today.</h2>
-          <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">Stop losing loads to unreliable carriers. Partner with Demar Logistics for consistent, compliant West Coast coverage.</p>
+          <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">Stop losing loads to unreliable carriers. Partner with DeMar Logistics for consistent, compliant West Coast coverage.</p>
           <Button size="lg" onClick={scrollToForm} className="text-base px-10 py-6">
             Get a Rate Now <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
@@ -794,7 +794,7 @@ export default function SalesLanding() {
       <footer className="border-t border-border py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-sm font-semibold"><span className="text-primary">DEMAR</span> LOGISTICS</span>
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Demar Logistics. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} DeMar Logistics. All rights reserved.</p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <a href="/sales/dashboard" className="hover:text-foreground transition-colors">CRM Login</a>
           </div>
