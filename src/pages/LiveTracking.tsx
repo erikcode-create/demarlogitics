@@ -1,22 +1,14 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { useEffect, useState, useRef, useMemo, Component, lazy, Suspense } from 'react';
+import type { ReactNode } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, MapPin, Truck, Clock, Navigation } from 'lucide-react';
 import { loadStatusLabels } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
-
-const truckIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 36],
-  popupAnchor: [0, -36],
-});
 
 interface TrackedDriver {
   load_id: string;
@@ -39,19 +31,33 @@ const statusColors: Record<string, string> = {
   at_delivery: 'bg-lime-500/20 text-lime-400',
 };
 
-function FitBounds({ positions }: { positions: [number, number][] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (positions.length === 0) return;
-    if (positions.length === 1) {
-      map.setView(positions[0], 10);
-    } else {
-      const bounds = L.latLngBounds(positions.map(p => L.latLng(p[0], p[1])));
-      map.fitBounds(bounds, { padding: [40, 40] });
+// Error boundary to catch Leaflet crashes
+class MapErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: '' };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-full bg-muted/20 rounded-lg border p-8">
+          <div className="text-center space-y-2">
+            <MapPin className="h-8 w-8 text-muted-foreground mx-auto" />
+            <p className="text-sm text-muted-foreground">Map failed to load. Try refreshing the page.</p>
+            <p className="text-xs text-muted-foreground/60">{this.state.error}</p>
+          </div>
+        </div>
+      );
     }
-  }, [positions, map]);
-  return null;
+    return this.props.children;
+  }
 }
+
+// Lazy-loaded map component to avoid Leaflet crashing at module level
+const TrackingMap = lazy(() => import('@/components/tracking/TrackingMap'));
 
 const LiveTracking = () => {
   const { loads, shippers, carriers, loading: appLoading } = useAppContext();
@@ -62,11 +68,10 @@ const LiveTracking = () => {
   const [selectedLoadId, setSelectedLoadId] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Active loads = booked through at_delivery
-  const activeStatuses = ['booked', 'dispatched', 'rate_con_signed', 'at_pickup', 'picked_up', 'in_transit', 'at_delivery'];
+  const activeStatuses = useMemo(() => ['booked', 'dispatched', 'rate_con_signed', 'at_pickup', 'picked_up', 'in_transit', 'at_delivery'], []);
   const activeLoads = useMemo(
     () => loads.filter(l => activeStatuses.includes(l.status)),
-    [loads]
+    [loads, activeStatuses]
   );
 
   useEffect(() => {
@@ -88,7 +93,6 @@ const LiveTracking = () => {
 
     fetchAll();
 
-    // Subscribe to all driver location changes
     const channel = supabase
       .channel('all-driver-locations')
       .on(
@@ -140,17 +144,27 @@ const LiveTracking = () => {
     );
   });
 
-  const trackedPositions: [number, number][] = [];
-  for (const load of filteredLoads) {
-    const d = drivers.get(load.id);
-    if (d) trackedPositions.push([d.latitude, d.longitude]);
-  }
-
-  const defaultCenter: [number, number] = [39.8283, -98.5795]; // Center of US
-
-  const handleLoadClick = (loadId: string) => {
-    setSelectedLoadId(loadId === selectedLoadId ? null : loadId);
-  };
+  // Build marker data to pass to the lazy map
+  const markers = filteredLoads
+    .filter(load => drivers.has(load.id))
+    .map(load => {
+      const d = drivers.get(load.id)!;
+      const shipper = shipperMap.get(load.shipperId);
+      const carrier = load.carrierId ? carrierMap.get(load.carrierId) : null;
+      return {
+        loadId: load.id,
+        lat: d.latitude,
+        lng: d.longitude,
+        speed: d.speed,
+        timestamp: d.timestamp,
+        referenceNumber: load.referenceNumber,
+        origin: load.origin,
+        destination: load.destination,
+        shipperName: shipper?.company || '',
+        carrierName: carrier?.company || '',
+        driverName: load.driverName || '',
+      };
+    });
 
   return (
     <div className="space-y-4">
@@ -171,47 +185,21 @@ const LiveTracking = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ minHeight: 500, height: 'calc(100vh - 180px)' }}>
         {/* Map */}
         <div className="lg:col-span-2 rounded-lg overflow-hidden border" style={{ minHeight: 400 }}>
-          <MapContainer
-            center={defaultCenter}
-            zoom={4}
-            style={{ height: '100%', width: '100%', minHeight: 400 }}
-            scrollWheelZoom={true}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {filteredLoads.map(load => {
-              const d = drivers.get(load.id);
-              if (!d) return null;
-              const shipper = shipperMap.get(load.shipperId);
-              const carrier = load.carrierId ? carrierMap.get(load.carrierId) : null;
-              const speedMph = d.speed ? Math.round(d.speed * 2.237) : null;
-              const lastUpdate = new Date(d.timestamp);
-
-              return (
-                <Marker
-                  key={load.id}
-                  position={[d.latitude, d.longitude]}
-                  icon={truckIcon}
-                  eventHandlers={{ click: () => setSelectedLoadId(load.id) }}
-                >
-                  <Popup>
-                    <div className="text-xs space-y-1 min-w-[180px]">
-                      <div className="font-bold text-sm">#{load.referenceNumber}</div>
-                      <div>{load.origin} → {load.destination}</div>
-                      {shipper && <div>Shipper: {shipper.company}</div>}
-                      {carrier && <div>Carrier: {carrier.company}</div>}
-                      {load.driverName && <div>Driver: {load.driverName}</div>}
-                      {speedMph !== null && <div>Speed: {speedMph} mph</div>}
-                      <div>Updated: {lastUpdate.toLocaleTimeString()}</div>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-            {trackedPositions.length > 0 && <FitBounds positions={trackedPositions} />}
-          </MapContainer>
+          <MapErrorBoundary>
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-full min-h-[400px] bg-muted/10">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                  <p className="text-sm text-muted-foreground">Loading map...</p>
+                </div>
+              </div>
+            }>
+              <TrackingMap
+                markers={markers}
+                onMarkerClick={(loadId) => setSelectedLoadId(loadId)}
+              />
+            </Suspense>
+          </MapErrorBoundary>
         </div>
 
         {/* Load List Sidebar */}
@@ -243,7 +231,7 @@ const LiveTracking = () => {
                   <Card
                     key={load.id}
                     className={`cursor-pointer transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                    onClick={() => handleLoadClick(load.id)}
+                    onClick={() => setSelectedLoadId(load.id === selectedLoadId ? null : load.id)}
                   >
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-center justify-between">

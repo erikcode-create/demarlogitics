@@ -30,7 +30,8 @@ import PerformanceTracker from "./pages/PerformanceTracker";
 import Invoices from "./pages/Invoices";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import NotFound from "./pages/NotFound";
-import LiveTracking from "./pages/LiveTracking";
+import { lazy, Suspense } from "react";
+const LiveTracking = lazy(() => import("./pages/LiveTracking"));
 import Settings from "./pages/Settings";
 import CarrierPortalLogin from "./pages/CarrierPortalLogin";
 import CarrierPortalDashboard from "./pages/CarrierPortalDashboard";
@@ -86,7 +87,7 @@ function ProtectedRoutes() {
           <Route path="/contracts/new" element={<ContractNew />} />
           <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
           <Route path="/contracts/:id" element={<ContractDetail />} />
-          <Route path="/tracking" element={<LiveTracking />} />
+          <Route path="/tracking" element={<Suspense fallback={<LoadingScreen />}><LiveTracking /></Suspense>} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/sales/calls" element={<OutboundCalls />} />
           <Route path="/sales/pipeline" element={<SalesPipeline />} />
