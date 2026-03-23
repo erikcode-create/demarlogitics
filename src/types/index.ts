@@ -99,6 +99,15 @@ export interface Carrier {
   createdAt: string;
 }
 
+export interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  carrierId: string | null;
+  createdAt: string;
+}
+
 export interface Load {
   id: string;
   loadNumber: string;

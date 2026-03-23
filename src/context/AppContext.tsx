@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Load, Contract, OutboundCall, SalesTask, EmailTemplate, StageChangeLog, SalesStage, Invoice } from '@/types';
+import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Driver, Load, Contract, OutboundCall, SalesTask, EmailTemplate, StageChangeLog, SalesStage, Invoice } from '@/types';
 import { generateCadenceTasks } from '@/utils/cadenceEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { rowsToFrontend, frontendToRow } from '@/utils/supabaseHelpers';
@@ -18,6 +18,8 @@ interface AppContextType {
   setActivities: React.Dispatch<React.SetStateAction<Activity[]>>;
   carriers: Carrier[];
   setCarriers: React.Dispatch<React.SetStateAction<Carrier[]>>;
+  drivers: Driver[];
+  setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
   loads: Load[];
   setLoads: React.Dispatch<React.SetStateAction<Load[]>>;
   contracts: Contract[];
@@ -101,6 +103,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [followUps, setFollowUpsRaw] = useState<FollowUp[]>([]);
   const [activities, setActivitiesRaw] = useState<Activity[]>([]);
   const [carriers, setCarriersRaw] = useState<Carrier[]>([]);
+  const [drivers, setDriversRaw] = useState<Driver[]>([]);
   const [loads, setLoadsRaw] = useState<Load[]>([]);
   const [contracts, setContractsRaw] = useState<Contract[]>([]);
   const [outboundCalls, setOutboundCallsRaw] = useState<OutboundCall[]>([]);
@@ -141,6 +144,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const setCarriers = useCallback(makeSynced<Carrier>('carriers', setCarriersRaw), []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setDrivers = useCallback(makeSynced<Driver>('drivers', setDriversRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const setLoads = useCallback(makeSynced<Load>('loads', setLoadsRaw), []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const setContracts = useCallback(makeSynced<Contract>('contracts', setContractsRaw), []);
@@ -165,6 +170,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         { table: 'follow_ups', setter: setFollowUpsRaw },
         { table: 'activities', setter: setActivitiesRaw },
         { table: 'carriers', setter: setCarriersRaw },
+        { table: 'drivers', setter: setDriversRaw },
         { table: 'loads', setter: setLoadsRaw },
         { table: 'contracts', setter: setContractsRaw },
         { table: 'outbound_calls', setter: setOutboundCallsRaw },
@@ -249,6 +255,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       followUps, setFollowUps,
       activities, setActivities,
       carriers, setCarriers,
+      drivers, setDrivers,
       loads, setLoads,
       contracts, setContracts,
       outboundCalls, setOutboundCalls,

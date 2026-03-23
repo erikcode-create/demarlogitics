@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Shippers from "./pages/Shippers";
 import ShipperDetail from "./pages/ShipperDetail";
 import Carriers from "./pages/Carriers";
+import Drivers from "./pages/Drivers";
 import CarrierDetail from "./pages/CarrierDetail";
 import Loads from "./pages/Loads";
 import LoadDetail from "./pages/LoadDetail";
@@ -75,6 +76,7 @@ function ProtectedRoutes() {
           <Route path="/shippers/:id" element={<ShipperDetail />} />
           <Route path="/carriers" element={<Carriers />} />
           <Route path="/carriers/:id" element={<CarrierDetail />} />
+          <Route path="/drivers" element={<Drivers />} />
           <Route path="/loads" element={<Loads />} />
           <Route path="/loads/:id" element={<LoadDetail />} />
           <Route path="/invoices" element={<Invoices />} />
