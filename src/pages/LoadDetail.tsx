@@ -15,6 +15,7 @@ import RateConBuilder from '@/components/documents/RateConBuilder';
 import BolBuilder from '@/components/documents/BolBuilder';
 import DocumentViewer from '@/components/documents/DocumentViewer';
 import InvoiceBuilder from '@/components/invoices/InvoiceBuilder';
+import DispatchButton from '@/components/documents/DispatchButton';
 import { supabase } from '@/integrations/supabase/client';
 
 const statusColors: Record<string, string> = {
@@ -193,7 +194,7 @@ const LoadDetail = () => {
 
   const nextActions: { status: LoadStatus; label: string; icon: React.ReactNode }[] = [];
   if (load.status === 'available') nextActions.push({ status: 'booked', label: 'Mark Booked', icon: <Package className="h-4 w-4" /> });
-  if (load.status === 'booked') nextActions.push({ status: 'dispatched', label: 'Dispatch', icon: <Send className="h-4 w-4" /> });
+  // Dispatch is handled by DispatchButton component with driver selection
   if (load.status === 'dispatched') nextActions.push({ status: 'rate_con_signed', label: 'Rate Con Signed', icon: <FileCheck className="h-4 w-4" /> });
   if (load.status === 'rate_con_signed') nextActions.push({ status: 'at_pickup', label: 'At Pickup', icon: <MapPin className="h-4 w-4" /> });
   if (load.status === 'at_pickup') nextActions.push({ status: 'picked_up', label: 'Picked Up', icon: <Package className="h-4 w-4" /> });
@@ -224,6 +225,13 @@ const LoadDetail = () => {
           {load.referenceNumber && <p className="text-sm text-muted-foreground">Ref: {load.referenceNumber}</p>}
           <p className="text-sm text-muted-foreground">{load.origin} → {load.destination}</p>
         </div>
+        <DispatchButton
+          loadId={load.id}
+          loadNumber={load.loadNumber}
+          currentStatus={load.status}
+          carrierId={load.carrierId}
+          onStatusChange={(status) => { updateStatus(status as LoadStatus); }}
+        />
         {nextActions.map(a => (
           <Button key={a.status} variant="outline" size="sm" onClick={() => quickStatus(a.status, a.label)} className="gap-1.5">
             {a.icon}{a.label}

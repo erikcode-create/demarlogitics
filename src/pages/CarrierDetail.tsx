@@ -6,10 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye, Send, Download } from 'lucide-react';
+import { Phone, Mail, MapPin, FileCheck, FileX, AlertTriangle, CheckCircle, Clock, Upload, Trash2, Eye, Send, Download, Plus, Users } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { packetStatusLabels, equipmentTypeLabels } from '@/data/mockData';
-import { CarrierPacketStatus } from '@/types';
+import { CarrierPacketStatus, Driver } from '@/types';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
@@ -42,10 +46,34 @@ const getInsuranceStatus = (expiry: string) => {
 const CarrierDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { carriers, setCarriers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
+  const { carriers, setCarriers, drivers, setDrivers, activities, setActivities, loads, setLoads, deleteRecord } = useAppContext();
   const [sendingLink, setSendingLink] = useState(false);
   const [onboardingDocs, setOnboardingDocs] = useState<OnboardingDoc[]>([]);
   const [rateCons, setRateCons] = useState<RateConDoc[]>([]);
+  const [driverDialogOpen, setDriverDialogOpen] = useState(false);
+  const [newDriver, setNewDriver] = useState({ name: '', phone: '', email: '' });
+
+  const carrierDrivers = drivers.filter(d => d.carrierId === id);
+
+  const handleAddDriver = () => {
+    if (!newDriver.name.trim()) return;
+    const driver: Driver = {
+      id: crypto.randomUUID(),
+      name: newDriver.name.trim(),
+      phone: newDriver.phone.trim(),
+      email: newDriver.email.trim(),
+      carrierId: id || null,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setDrivers(prev => [...prev, driver]);
+    setDriverDialogOpen(false);
+    setNewDriver({ name: '', phone: '', email: '' });
+  };
+
+  const handleDeleteDriver = (driverId: string) => {
+    deleteRecord('drivers', driverId);
+    setDrivers(prev => prev.filter(d => d.id !== driverId));
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -237,14 +265,78 @@ const CarrierDetail = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="onboarding">
+      <Tabs defaultValue="drivers">
         <TabsList>
+          <TabsTrigger value="drivers">Drivers ({carrierDrivers.length})</TabsTrigger>
           <TabsTrigger value="ratecons">Rate Cons ({rateCons.length})</TabsTrigger>
           <TabsTrigger value="onboarding">Onboarding Docs ({onboardingDocs.length})</TabsTrigger>
           <TabsTrigger value="documents">Compliance</TabsTrigger>
           <TabsTrigger value="factoring">Factoring</TabsTrigger>
           <TabsTrigger value="activity">Activity ({carrierActivities.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="drivers">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2"><Users className="h-4 w-4" />Drivers</CardTitle>
+              <Dialog open={driverDialogOpen} onOpenChange={setDriverDialogOpen}>
+                <DialogTrigger asChild><Button size="sm"><Plus className="mr-1 h-4 w-4" />Add Driver</Button></DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Add Driver to {carrier.companyName}</DialogTitle></DialogHeader>
+                  <div className="space-y-3">
+                    <div><Label>Name</Label><Input value={newDriver.name} onChange={e => setNewDriver(p => ({ ...p, name: e.target.value }))} /></div>
+                    <div><Label>Phone</Label><Input value={newDriver.phone} onChange={e => setNewDriver(p => ({ ...p, phone: e.target.value }))} placeholder="+15551234567" /></div>
+                    <div><Label>Email</Label><Input value={newDriver.email} onChange={e => setNewDriver(p => ({ ...p, email: e.target.value }))} /></div>
+                    <Button onClick={handleAddDriver} className="w-full" disabled={!newDriver.name.trim()}>Add Driver</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {carrierDrivers.map(d => (
+                    <TableRow key={d.id}>
+                      <TableCell className="font-medium">{d.name}</TableCell>
+                      <TableCell className="text-sm">{d.phone || '—'}</TableCell>
+                      <TableCell className="text-sm">{d.email || '—'}</TableCell>
+                      <TableCell>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove {d.name}?</AlertDialogTitle>
+                              <AlertDialogDescription>This will delete this driver. This action cannot be undone.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDeleteDriver(d.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {carrierDrivers.length === 0 && (
+                    <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No drivers added yet</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="ratecons">
           <Card>

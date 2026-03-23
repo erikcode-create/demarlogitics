@@ -3,23 +3,42 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAppContext } from '@/context/AppContext';
 
 interface DispatchButtonProps {
   loadId: string;
   loadNumber: string;
   currentStatus: string;
+  carrierId: string | null;
   onStatusChange: (status: string) => void;
 }
 
-export default function DispatchButton({ loadId, loadNumber, currentStatus, onStatusChange }: DispatchButtonProps) {
+export default function DispatchButton({ loadId, loadNumber, currentStatus, carrierId, onStatusChange }: DispatchButtonProps) {
+  const { drivers } = useAppContext();
   const [open, setOpen] = useState(false);
   const [driverPhone, setDriverPhone] = useState('');
   const [driverName, setDriverName] = useState('');
   const [dispatching, setDispatching] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const carrierDrivers = drivers.filter(d => d.carrierId === carrierId);
+
+  const handleDriverSelect = (driverId: string) => {
+    if (driverId === 'manual') {
+      setDriverPhone('');
+      setDriverName('');
+      return;
+    }
+    const driver = drivers.find(d => d.id === driverId);
+    if (driver) {
+      setDriverPhone(driver.phone || '');
+      setDriverName(driver.name);
+    }
+  };
 
   // Only show for booked loads
   if (currentStatus !== 'booked') return null;
@@ -94,6 +113,20 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, onSt
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {carrierDrivers.length > 0 && (
+              <div>
+                <Label>Select Driver</Label>
+                <Select onValueChange={handleDriverSelect}>
+                  <SelectTrigger><SelectValue placeholder="Choose a driver..." /></SelectTrigger>
+                  <SelectContent>
+                    {carrierDrivers.map(d => (
+                      <SelectItem key={d.id} value={d.id}>{d.name} — {d.phone || 'no phone'}</SelectItem>
+                    ))}
+                    <SelectItem value="manual">Enter manually...</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Driver Phone *</Label>
               <Input
