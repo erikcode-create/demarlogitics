@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Download, Receipt, Smartphone } from 'lucide-react';
+import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Download, Receipt, Smartphone, Bell } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { sendPushToDriver } from '@/utils/pushNotifications';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { loadStatusLabels, equipmentTypeLabels, paymentStatusLabels } from '@/data/mockData';
@@ -293,13 +297,16 @@ const LoadDetail = () => {
               <span className="text-muted-foreground">Phone</span>
               <span className="font-medium">{load.driverPhone}</span>
             </div>
-            <a
-              href={`sms:${load.driverPhone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(`Download the DeMar Logistics driver app to track load ${load.loadNumber}:\nhttps://apps.apple.com/app/id6760852882\n\nAfter installing, open this link:\ndemarlogistics://track?load_id=${load.id}&phone=${encodeURIComponent(load.driverPhone)}`)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent transition-colors"
-            >
-              <Smartphone className="h-4 w-4" />
-              Text App Link to Driver
-            </a>
+            <div className="flex gap-2 flex-wrap">
+              <a
+                href={`sms:${load.driverPhone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(`Download the DeMar Logistics driver app to track load ${load.loadNumber}:\nhttps://apps.apple.com/app/id6760852882\n\nAfter installing, open this link:\ndemarlogistics://track?load_id=${load.id}&phone=${encodeURIComponent(load.driverPhone)}`)}`}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent transition-colors"
+              >
+                <Smartphone className="h-4 w-4" />
+                Text App Link
+              </a>
+              <SendNotificationButton driverPhone={load.driverPhone} loadNumber={load.loadNumber} />
+            </div>
           </CardContent>
         </Card>
       )}
@@ -610,5 +617,91 @@ const LoadDetail = () => {
     </div>
   );
 };
+
+function SendNotificationButton({ driverPhone, loadNumber }: { driverPhone: string; loadNumber: string }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const presets = [
+    { label: 'Status Update', title: 'Load Update', body: `Update on Load #${loadNumber} — please check the app for details.` },
+    { label: 'Upload BOL', title: 'BOL Needed', body: `Please upload your Bill of Lading photo for Load #${loadNumber}.` },
+    { label: 'Upload POD', title: 'POD Needed', body: `Please upload delivery photos and POD signature for Load #${loadNumber}.` },
+    { label: 'Call Dispatch', title: 'Call DeMar Dispatch', body: 'Please call DeMar dispatch at your earliest convenience.' },
+  ];
+
+  const handleSend = async () => {
+    if (!title.trim() || !body.trim()) {
+      toast.error('Please enter both a title and message.');
+      return;
+    }
+    setSending(true);
+    const result = await sendPushToDriver(driverPhone, title.trim(), body.trim(), { loadNumber });
+    setSending(false);
+
+    if (result.sent > 0) {
+      toast.success('Notification sent to driver.');
+      setOpen(false);
+      setTitle('');
+      setBody('');
+    } else if (result.errors.length > 0) {
+      toast.error(result.errors[0]);
+    } else {
+      toast.error('Failed to send notification.');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <Bell className="h-4 w-4" />
+          Push Notification
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Send Push Notification</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-1.5">
+            {presets.map((p) => (
+              <Button
+                key={p.label}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => { setTitle(p.title); setBody(p.body); }}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <Input
+              placeholder="Notification title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <Textarea
+              placeholder="Message body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">To: {driverPhone}</span>
+            <Button onClick={handleSend} disabled={sending} className="gap-1.5">
+              <Send className="h-4 w-4" />
+              {sending ? 'Sending...' : 'Send'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default LoadDetail;
