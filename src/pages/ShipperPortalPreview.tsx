@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShipperPortalLayout } from '@/components/layout/ShipperPortalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Truck, CheckCircle, Download, ArrowLeft } from 'lucide-react';
+import { FileText, Truck, CheckCircle, Download, ArrowLeft, MapPin } from 'lucide-react';
+
+const DriverTrackingMap = lazy(() => import('@/components/shipper-portal/DriverTrackingMap'));
 
 interface ShipperContract {
   id: string;
@@ -35,6 +37,8 @@ interface ShipperLoad {
   pod_uploaded: boolean;
   shipper_rate: number;
   carrier_id: string | null;
+  driver_phone: string | null;
+  driver_name: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -73,6 +77,7 @@ const ShipperPortalPreview = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('contracts');
   const [viewingContract, setViewingContract] = useState<ShipperContract | null>(null);
+  const [selectedTrackingLoadId, setSelectedTrackingLoadId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!shipperId) return;
@@ -95,7 +100,7 @@ const ShipperPortalPreview = () => {
 
       const { data: loadData } = await supabase
         .from('loads')
-        .select('id, load_number, origin, destination, pickup_date, delivery_date, equipment_type, weight, status, reference_number, pod_uploaded, shipper_rate, carrier_id')
+        .select('id, load_number, origin, destination, pickup_date, delivery_date, equipment_type, weight, status, reference_number, pod_uploaded, shipper_rate, carrier_id, driver_phone, driver_name')
         .eq('shipper_id', shipperId)
         .order('created_at', { ascending: false });
       setLoads((loadData as ShipperLoad[]) || []);
@@ -206,6 +211,9 @@ const ShipperPortalPreview = () => {
             <TabsList>
               <TabsTrigger value="contracts">Contracts ({contracts.length})</TabsTrigger>
               <TabsTrigger value="loads">Shipments ({loads.length})</TabsTrigger>
+              <TabsTrigger value="tracking" className="gap-1">
+                <MapPin className="h-3 w-3" /> Tracking
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="contracts" className="mt-4 space-y-3">
@@ -278,6 +286,56 @@ const ShipperPortalPreview = () => {
                   </Card>
                 ))
               )}
+            </TabsContent>
+
+            <TabsContent value="tracking" className="mt-4 space-y-4">
+              {(() => {
+                const trackableStatuses = ['dispatched', 'rate_con_signed', 'at_pickup', 'picked_up', 'in_transit', 'at_delivery'];
+                const trackableLoads = loads.filter(l => trackableStatuses.includes(l.status) && l.carrier_id);
+                if (trackableLoads.length === 0) {
+                  return <Card><CardContent className="py-12 text-center text-muted-foreground">No active shipments to track.</CardContent></Card>;
+                }
+                const activeLoad = selectedTrackingLoadId
+                  ? trackableLoads.find(l => l.id === selectedTrackingLoadId) || trackableLoads[0]
+                  : trackableLoads[0];
+                return (
+                  <>
+                    {trackableLoads.length > 1 && (
+                      <div className="flex flex-wrap gap-2">
+                        {trackableLoads.map(l => (
+                          <Button
+                            key={l.id}
+                            variant={activeLoad.id === l.id ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setSelectedTrackingLoadId(l.id)}
+                          >
+                            #{l.load_number} — {l.origin} → {l.destination}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="font-medium">Load #{activeLoad.load_number}</p>
+                            <p className="text-sm text-muted-foreground">{activeLoad.origin} → {activeLoad.destination}</p>
+                          </div>
+                          <Badge className={loadStatusColors[activeLoad.status] || 'bg-muted text-muted-foreground'}>
+                            {loadStatusLabels[activeLoad.status] || activeLoad.status}
+                          </Badge>
+                        </div>
+                        {activeLoad.driver_name && (
+                          <p className="text-sm text-muted-foreground mb-3">Driver: {activeLoad.driver_name}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                    <Suspense fallback={<Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Loading map...</p></CardContent></Card>}>
+                      <DriverTrackingMap loadId={activeLoad.id} />
+                    </Suspense>
+                  </>
+                );
+              })()}
             </TabsContent>
           </Tabs>
         </div>
