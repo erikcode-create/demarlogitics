@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, MapPin, Truck, Clock, Navigation, AlertTriangle } from 'lucide-react';
+import { Search, MapPin, Truck, Clock, AlertTriangle } from 'lucide-react';
 import { loadStatusLabels } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
@@ -280,7 +280,6 @@ const LiveTracking = () => {
                 const shipper = shipperMap.get(load.shipperId);
                 const carrier = load.carrierId ? carrierMap.get(load.carrierId) : null;
                 const isSelected = selectedLoadId === load.id;
-                const speedMph = d?.speed ? Math.round(d.speed * 2.237) : null;
 
                 return (
                   <Card
@@ -322,21 +321,13 @@ const LiveTracking = () => {
                       )}
 
                       {d ? (
-                        <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center text-xs">
                           <span className="flex items-center gap-1 text-green-400">
                             <span className="relative flex h-1.5 w-1.5">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
                             </span>
                             GPS Active
-                          </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            {speedMph !== null && (
-                              <>
-                                <Navigation className="h-3 w-3" />
-                                {speedMph} mph
-                              </>
-                            )}
                           </span>
                         </div>
                       ) : (

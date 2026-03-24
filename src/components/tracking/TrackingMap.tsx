@@ -69,7 +69,6 @@ export default function TrackingMap({ markers, onMarkerClick }: TrackingMapProps
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {markers.map(m => {
-        const speedMph = m.speed ? Math.round(m.speed * 2.237) : null;
         const lastUpdate = new Date(m.timestamp);
         return (
           <Marker
@@ -85,7 +84,6 @@ export default function TrackingMap({ markers, onMarkerClick }: TrackingMapProps
                 {m.shipperName && <div>Shipper: {m.shipperName}</div>}
                 {m.carrierName && <div>Carrier: {m.carrierName}</div>}
                 {m.driverName && <div>Driver: {m.driverName}</div>}
-                {speedMph !== null && <div>Speed: {speedMph} mph</div>}
                 <div>Updated: {lastUpdate.toLocaleTimeString()}</div>
               </div>
             </Popup>
