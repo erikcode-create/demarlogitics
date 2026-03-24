@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShipperPortalLayout } from '@/components/layout/ShipperPortalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, MapPin, Calendar, Truck, FileText, ClipboardList, Download, Eye } from 'lucide-react';
-import DriverTrackingMap from '@/components/shipper-portal/DriverTrackingMap';
+
+const DriverTrackingMap = lazy(() => import('@/components/shipper-portal/DriverTrackingMap'));
 import { EQUIPMENT_LABEL } from '@/constants/locations';
 
 const statusColors: Record<string, string> = {
@@ -159,7 +160,11 @@ const ShipperPortalLoadDetail = () => {
         </div>
 
         {/* Live Tracking Map */}
-        {showTracking && <DriverTrackingMap loadId={load.id} />}
+        {showTracking && (
+          <Suspense fallback={<Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">Loading map...</p></CardContent></Card>}>
+            <DriverTrackingMap loadId={load.id} />
+          </Suspense>
+        )}
 
         {/* Documents */}
         <Card>

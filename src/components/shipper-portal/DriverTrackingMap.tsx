@@ -4,12 +4,22 @@ import L from 'leaflet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 
-// Custom truck icon
-const truckIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 36],
-  popupAnchor: [0, -36],
+const truckSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="40" height="40">
+  <rect x="2" y="18" width="40" height="24" rx="3" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="42" y="24" width="18" height="18" rx="2" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="44" y="26" width="10" height="8" rx="1" fill="#60a5fa"/>
+  <circle cx="16" cy="46" r="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="16" cy="46" r="3" fill="#f59e0b"/>
+  <circle cx="50" cy="46" r="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="50" cy="46" r="3" fill="#f59e0b"/>
+</svg>`;
+
+const truckIcon = new L.DivIcon({
+  html: truckSvg,
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
+  className: '',
 });
 
 interface DriverLocation {
@@ -114,7 +124,6 @@ export default function DriverTrackingMap({ loadId }: DriverTrackingMapProps) {
 
   const center: [number, number] = [location.latitude, location.longitude];
   const lastUpdate = new Date(location.timestamp);
-  const speedMph = location.speed ? Math.round(location.speed * 2.237) : null;
 
   return (
     <Card>
@@ -135,17 +144,13 @@ export default function DriverTrackingMap({ loadId }: DriverTrackingMapProps) {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <Marker position={center} icon={truckIcon}>
-              <Popup>
-                Driver Location<br />
-                {speedMph !== null && `Speed: ${speedMph} mph`}
-              </Popup>
+              <Popup>Driver Location</Popup>
             </Marker>
             <MapUpdater center={center} />
           </MapContainer>
         </div>
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Last update: {lastUpdate.toLocaleTimeString()}</span>
-          {speedMph !== null && <span>{speedMph} mph</span>}
+        <div className="text-xs text-muted-foreground">
+          Last update: {lastUpdate.toLocaleTimeString()}
         </div>
       </CardContent>
     </Card>
