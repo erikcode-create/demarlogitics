@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Copy, Check } from 'lucide-react';
+import { Send, Copy, Check, MessageSquare, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/context/AppContext';
@@ -149,11 +149,17 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
                 <Label>Driver Deep Link</Label>
                 <div className="flex items-center gap-2 mt-1">
                   <Input value={deepLink} readOnly className="text-xs font-mono" />
-                  <Button variant="outline" size="icon" onClick={copyLink} className="shrink-0">
+                  <Button variant="outline" size="icon" onClick={copyLink} className="shrink-0" title="Copy link">
                     {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Send this link to the driver to open the load in the DeMar Driver app.</p>
+                <a
+                  href={`sms:${driverPhone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(`Download the DeMar Logistics driver app and open this link to get started:\n${deepLink}`)}`}
+                  className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-primary hover:underline"
+                >
+                  <Smartphone className="h-4 w-4" />
+                  Text Link to Driver
+                </a>
               </div>
             )}
 
