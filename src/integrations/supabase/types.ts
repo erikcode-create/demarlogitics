@@ -530,6 +530,12 @@ export type Database = {
           shipper_rate: number
           status: string
           weight: number
+          pickup_lat: number | null
+          pickup_lng: number | null
+          pickup_radius_m: number | null
+          delivery_lat: number | null
+          delivery_lng: number | null
+          delivery_radius_m: number | null
         }
         Insert: {
           carrier_id?: string | null
@@ -553,6 +559,12 @@ export type Database = {
           payment_status?: string
           picked_up_at?: string | null
           pickup_date?: string
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_radius_m?: number | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          delivery_radius_m?: number | null
           pod_submitted_at?: string | null
           pod_uploaded?: boolean
           rate_con_signed_at?: string | null
@@ -584,6 +596,12 @@ export type Database = {
           payment_status?: string
           picked_up_at?: string | null
           pickup_date?: string
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_radius_m?: number | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          delivery_radius_m?: number | null
           pod_submitted_at?: string | null
           pod_uploaded?: boolean
           rate_con_signed_at?: string | null

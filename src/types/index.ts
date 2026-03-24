@@ -138,6 +138,12 @@ export interface Load {
   deliveredAt?: string;
   podSubmittedAt?: string;
   completedAt?: string;
+  pickupLat?: number;
+  pickupLng?: number;
+  pickupRadiusM?: number;
+  deliveryLat?: number;
+  deliveryLng?: number;
+  deliveryRadiusM?: number;
 }
 
 export interface LoadDocument {

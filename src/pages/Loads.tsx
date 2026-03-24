@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { useDraft } from '@/hooks/useDraft';
 import { useNavigate } from 'react-router-dom';
@@ -10,11 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Pencil, Trash2, Copy, FileEdit, X } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Copy, FileEdit, X, MapPin } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
 import { TableLoader } from '@/components/ui/page-loader';
+import { geocodeBoth } from '@/utils/geocoding';
+
+const GeofenceMap = lazy(() => import('@/components/loads/GeofenceMap'));
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
@@ -34,6 +37,12 @@ const statusColors: Record<string, string> = {
 const emptyForm = {
   shipperId: '', origin: '', destination: '', pickupDate: '', deliveryDate: '',
   shipperRate: '', weight: '', equipmentType: 'dry_van' as EquipmentType,
+  pickupLat: undefined as number | undefined,
+  pickupLng: undefined as number | undefined,
+  pickupRadiusM: 800,
+  deliveryLat: undefined as number | undefined,
+  deliveryLng: undefined as number | undefined,
+  deliveryRadiusM: 800,
 };
 
 const Loads = () => {
@@ -101,11 +110,50 @@ const Loads = () => {
       shipperRate: String(load.shipperRate),
       weight: String(load.weight),
       equipmentType: load.equipmentType,
+      pickupLat: load.pickupLat,
+      pickupLng: load.pickupLng,
+      pickupRadiusM: load.pickupRadiusM ?? 800,
+      deliveryLat: load.deliveryLat,
+      deliveryLng: load.deliveryLng,
+      deliveryRadiusM: load.deliveryRadiusM ?? 800,
     });
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const [geocoding, setGeocoding] = useState(false);
+
+  const handleSave = async () => {
+    const geofenceData = {
+      pickupLat: formData.pickupLat,
+      pickupLng: formData.pickupLng,
+      pickupRadiusM: formData.pickupRadiusM,
+      deliveryLat: formData.deliveryLat,
+      deliveryLng: formData.deliveryLng,
+      deliveryRadiusM: formData.deliveryRadiusM,
+    };
+
+    // Auto-geocode if addresses exist but no coordinates yet
+    const needsPickupGeocode = formData.origin && !formData.pickupLat;
+    const needsDeliveryGeocode = formData.destination && !formData.deliveryLat;
+
+    if (needsPickupGeocode || needsDeliveryGeocode) {
+      setGeocoding(true);
+      const { pickup, delivery } = await geocodeBoth(formData.origin, formData.destination);
+      setGeocoding(false);
+      if (pickup) {
+        geofenceData.pickupLat = pickup.lat;
+        geofenceData.pickupLng = pickup.lng;
+      } else if (needsPickupGeocode) {
+        toast.warning('Could not geocode origin — set geofence manually on load detail');
+      }
+      if (delivery) {
+        geofenceData.deliveryLat = delivery.lat;
+        geofenceData.deliveryLng = delivery.lng;
+      } else if (needsDeliveryGeocode) {
+        toast.warning('Could not geocode destination — set geofence manually on load detail');
+      }
+    }
+
     if (editingLoad) {
       setLoads(prev => prev.map(l => l.id === editingLoad.id ? {
         ...l,
@@ -117,6 +165,7 @@ const Loads = () => {
         shipperRate: Number(formData.shipperRate),
         weight: Number(formData.weight),
         equipmentType: formData.equipmentType,
+        ...geofenceData,
       } : l));
     } else {
       const loadNum = generateLoadNumber();
@@ -128,6 +177,7 @@ const Loads = () => {
         equipmentType: formData.equipmentType, status: 'available', podUploaded: false,
         referenceNumber: generateRefNumber(), invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
         notes: '', createdAt: new Date().toISOString().split('T')[0],
+        ...geofenceData,
       };
       setLoads(prev => [...prev, load]);
     }
@@ -137,9 +187,20 @@ const Loads = () => {
     toast.success(editingLoad ? 'Load updated' : 'Load created');
   };
 
-  const handleBulkCreate = () => {
+  const handleBulkCreate = async () => {
     const count = Number(bulkCount);
     if (!formData.shipperId || !formData.origin || count < 1) return;
+
+    // Geocode once for all loads (same origin/destination)
+    setGeocoding(true);
+    const { pickup, delivery } = await geocodeBoth(formData.origin, formData.destination);
+    setGeocoding(false);
+
+    const geofenceData = {
+      pickupLat: pickup?.lat, pickupLng: pickup?.lng, pickupRadiusM: 800,
+      deliveryLat: delivery?.lat, deliveryLng: delivery?.lng, deliveryRadiusM: 800,
+    };
+
     const existingRefs = new Set(loads.map(l => l.referenceNumber));
     const existingLoadNums = new Set(loads.map(l => l.loadNumber));
     const newLoads: Load[] = [];
@@ -158,6 +219,7 @@ const Loads = () => {
         equipmentType: formData.equipmentType, status: 'available', podUploaded: false,
         referenceNumber: ref, invoiceNumber: '', invoiceDate: '', invoiceAmount: 0, paymentStatus: 'pending',
         notes: '', createdAt: new Date().toISOString().split('T')[0],
+        ...geofenceData,
       });
     }
     setLoads(prev => [...prev, ...newLoads]);
@@ -237,8 +299,26 @@ const Loads = () => {
                 <SelectContent>{Object.entries(equipmentTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <Button onClick={handleSave} className="w-full" disabled={!formData.shipperId || !formData.origin}>
-              {editingLoad ? 'Save Changes' : 'Create Load'}
+            {/* Geofence Map */}
+            {(formData.pickupLat || formData.deliveryLat) && (
+              <div className="space-y-1">
+                <Label className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />Geofence Zones</Label>
+                <Suspense fallback={<div className="h-[300px] rounded-lg bg-muted animate-pulse" />}>
+                  <GeofenceMap
+                    pickupLat={formData.pickupLat}
+                    pickupLng={formData.pickupLng}
+                    pickupRadiusM={formData.pickupRadiusM}
+                    deliveryLat={formData.deliveryLat}
+                    deliveryLng={formData.deliveryLng}
+                    deliveryRadiusM={formData.deliveryRadiusM}
+                    onPickupRadiusChange={(r) => setFormData(p => ({ ...p, pickupRadiusM: r }))}
+                    onDeliveryRadiusChange={(r) => setFormData(p => ({ ...p, deliveryRadiusM: r }))}
+                  />
+                </Suspense>
+              </div>
+            )}
+            <Button onClick={handleSave} className="w-full" disabled={!formData.shipperId || !formData.origin || geocoding}>
+              {geocoding ? 'Geocoding addresses...' : editingLoad ? 'Save Changes' : 'Create Load'}
             </Button>
           </div>
         </DialogContent>

@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,9 @@ import DocumentViewer from '@/components/documents/DocumentViewer';
 import InvoiceBuilder from '@/components/invoices/InvoiceBuilder';
 import DispatchButton from '@/components/documents/DispatchButton';
 import { supabase } from '@/integrations/supabase/client';
+import { geocodeBoth } from '@/utils/geocoding';
+
+const GeofenceMap = lazy(() => import('@/components/loads/GeofenceMap'));
 
 const statusColors: Record<string, string> = {
   available: 'bg-muted text-muted-foreground',
@@ -300,6 +303,53 @@ const LoadDetail = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Geofence Zones */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4" />Geofence Zones</CardTitle>
+          {!load.pickupLat && !load.deliveryLat && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={async () => {
+                toast.info('Geocoding addresses...');
+                const { pickup, delivery } = await geocodeBoth(load.origin, load.destination);
+                const updates: Partial<typeof load> = {};
+                if (pickup) { updates.pickupLat = pickup.lat; updates.pickupLng = pickup.lng; updates.pickupRadiusM = 800; }
+                if (delivery) { updates.deliveryLat = delivery.lat; updates.deliveryLng = delivery.lng; updates.deliveryRadiusM = 800; }
+                if (Object.keys(updates).length > 0) {
+                  setLoads(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
+                  toast.success('Geofences created');
+                } else {
+                  toast.error('Could not geocode addresses');
+                }
+              }}
+            >
+              <MapPin className="h-3.5 w-3.5" />Set Geofences
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {(load.pickupLat || load.deliveryLat) ? (
+            <Suspense fallback={<div className="h-[300px] rounded-lg bg-muted animate-pulse" />}>
+              <GeofenceMap
+                pickupLat={load.pickupLat}
+                pickupLng={load.pickupLng}
+                pickupRadiusM={load.pickupRadiusM ?? 800}
+                deliveryLat={load.deliveryLat}
+                deliveryLng={load.deliveryLng}
+                deliveryRadiusM={load.deliveryRadiusM ?? 800}
+                onPickupRadiusChange={(r) => setLoads(prev => prev.map(l => l.id === id ? { ...l, pickupRadiusM: r } : l))}
+                onDeliveryRadiusChange={(r) => setLoads(prev => prev.map(l => l.id === id ? { ...l, deliveryRadiusM: r } : l))}
+              />
+            </Suspense>
+          ) : (
+            <p className="text-sm text-muted-foreground">No geofence coordinates set. Click "Set Geofences" to geocode the origin and destination addresses.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
