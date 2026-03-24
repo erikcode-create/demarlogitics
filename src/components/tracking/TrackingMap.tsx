@@ -2,11 +2,22 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-const truckIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 36],
-  popupAnchor: [0, -36],
+const truckSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="40" height="40">
+  <rect x="2" y="18" width="40" height="24" rx="3" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="42" y="24" width="18" height="18" rx="2" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="44" y="26" width="10" height="8" rx="1" fill="#60a5fa"/>
+  <circle cx="16" cy="46" r="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="16" cy="46" r="3" fill="#f59e0b"/>
+  <circle cx="50" cy="46" r="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="50" cy="46" r="3" fill="#f59e0b"/>
+</svg>`;
+
+const truckIcon = new L.DivIcon({
+  html: truckSvg,
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
+  className: '',
 });
 
 export interface MapMarker {
