@@ -42,6 +42,8 @@ import ShipperPortalDashboard from "./pages/ShipperPortalDashboard";
 import ShipperPortalPreview from "./pages/ShipperPortalPreview";
 import ShipperPortalLoadDetail from "./pages/ShipperPortalLoadDetail";
 import CarrierPortalLoadDetail from "./pages/CarrierPortalLoadDetail";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +139,8 @@ const App = () => (
             <Route path="/shipper-portal/dashboard" element={<ShipperPortalDashboard />} />
             <Route path="/shipper-portal/loads/:loadId" element={<ShipperPortalLoadDetail />} />
             <Route path="/shipper-portal/preview/:shipperId" element={<ShipperPortalPreview />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
