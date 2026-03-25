@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Trash2, Pencil, Smartphone, Apple } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, Smartphone, Apple, Wifi, WifiOff, Users } from 'lucide-react';
 import { Driver } from '@/types';
 import { TableLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
@@ -21,19 +21,26 @@ const Drivers = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDriver, setEditDriver] = useState<Driver | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', carrierId: '' });
-  const [deviceMap, setDeviceMap] = useState<Record<string, string>>({});
+  const [deviceMap, setDeviceMap] = useState<Record<string, { platform: string; updatedAt: string }>>({});
+  const [unlinkedDevices, setUnlinkedDevices] = useState<{ phone: string; platform: string; updatedAt: string }[]>([]);
 
   useEffect(() => {
     supabase
       .from('driver_push_tokens')
-      .select('driver_phone, platform')
+      .select('driver_phone, platform, updated_at')
       .then(({ data }) => {
         if (!data) return;
-        const map: Record<string, string> = {};
+        const map: Record<string, { platform: string; updatedAt: string }> = {};
+        const knownPhones = new Set(drivers.map(d => d.phone).filter(Boolean));
+        const unlinked: { phone: string; platform: string; updatedAt: string }[] = [];
         for (const row of data) {
-          map[row.driver_phone] = row.platform;
+          map[row.driver_phone] = { platform: row.platform, updatedAt: row.updated_at };
+          if (!knownPhones.has(row.driver_phone)) {
+            unlinked.push({ phone: row.driver_phone, platform: row.platform, updatedAt: row.updated_at });
+          }
         }
         setDeviceMap(map);
+        setUnlinkedDevices(unlinked);
       });
   }, [drivers]);
 
@@ -93,12 +100,75 @@ const Drivers = () => {
   const getCarrierName = (carrierId: string | null) =>
     carrierId ? carriers.find(c => c.id === carrierId)?.companyName || '—' : '—';
 
+  const activeCount = Object.keys(deviceMap).length;
+  const totalDrivers = drivers.length;
+
+  const timeAgo = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Drivers</h1>
         <Button size="sm" onClick={openAdd}><Plus className="mr-1 h-4 w-4" />Add Driver</Button>
       </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <Users className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-2xl font-bold">{totalDrivers}</p>
+              <p className="text-xs text-muted-foreground">Total Drivers</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <Wifi className="h-5 w-5 text-green-500" />
+            <div>
+              <p className="text-2xl font-bold text-green-500">{activeCount}</p>
+              <p className="text-xs text-muted-foreground">App Installed</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <WifiOff className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-2xl font-bold">{totalDrivers - activeCount + unlinkedDevices.length > 0 ? unlinkedDevices.length : 0}</p>
+              <p className="text-xs text-muted-foreground">Unlinked Devices</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {unlinkedDevices.length > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-amber-500 mb-2">Unlinked Devices — app installed but not matched to a driver</p>
+            <div className="space-y-1">
+              {unlinkedDevices.map(d => (
+                <div key={d.phone} className="flex items-center gap-3 text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500">
+                    {d.platform === 'ios' ? <><Apple className="h-3 w-3" /> iPhone</> : <><Smartphone className="h-3 w-3" /> Android</>}
+                  </span>
+                  <span className="font-mono">{d.phone}</span>
+                  <span className="text-muted-foreground">Last active: {timeAgo(d.updatedAt)}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -156,13 +226,16 @@ const Drivers = () => {
                   <TableCell className="text-sm">{getCarrierName(d.carrierId)}</TableCell>
                   <TableCell className="text-sm">
                     {d.phone && deviceMap[d.phone] ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500">
-                        {deviceMap[d.phone] === 'ios' ? (
-                          <><Apple className="h-3 w-3" /> iPhone</>
-                        ) : (
-                          <><Smartphone className="h-3 w-3" /> Android</>
-                        )}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 w-fit">
+                          {deviceMap[d.phone].platform === 'ios' ? (
+                            <><Apple className="h-3 w-3" /> iPhone</>
+                          ) : (
+                            <><Smartphone className="h-3 w-3" /> Android</>
+                          )}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground pl-2">Active {timeAgo(deviceMap[d.phone].updatedAt)}</span>
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">No app</span>
                     )}
