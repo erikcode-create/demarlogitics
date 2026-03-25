@@ -37,3 +37,5 @@ android/local.properties
 # Signing keys - NEVER commit these
 *.jks
 *.keystore
+
+.vercel

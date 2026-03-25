@@ -8,6 +8,7 @@ import { Send, Copy, Check, MessageSquare, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/context/AppContext';
+import { sendPushToDriver } from '@/utils/pushNotifications';
 
 interface DispatchButtonProps {
   loadId: string;
@@ -82,9 +83,23 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
       actor: 'broker',
     });
 
+    // Auto-send push notification to driver (free via Expo)
+    const pushResult = await sendPushToDriver(
+      driverPhone.trim(),
+      'New Load Assigned',
+      `Load ${loadNumber} has been dispatched to you. Tap to view details.`,
+      { load_id: loadId, type: 'dispatch' }
+    );
+
     onStatusChange('dispatched');
     setOpen(false);
-    toast.success(`Load ${loadNumber} dispatched to ${driverName || driverPhone}`);
+
+    if (pushResult.sent > 0) {
+      toast.success(`Load ${loadNumber} dispatched to ${driverName || driverPhone} — push notification sent`);
+    } else {
+      toast.success(`Load ${loadNumber} dispatched to ${driverName || driverPhone}`);
+      toast.info('Driver has not opened the app yet — send them the deep link');
+    }
     setDispatching(false);
   };
 

@@ -197,8 +197,8 @@ const Loads = () => {
     setGeocoding(false);
 
     const geofenceData = {
-      pickupLat: pickup?.lat, pickupLng: pickup?.lng, pickupRadiusM: 800,
-      deliveryLat: delivery?.lat, deliveryLng: delivery?.lng, deliveryRadiusM: 800,
+      pickupLat: pickup?.lat, pickupLng: pickup?.lng, pickupRadiusM: 161,
+      deliveryLat: delivery?.lat, deliveryLng: delivery?.lng, deliveryRadiusM: 161,
     };
 
     const existingRefs = new Set(loads.map(l => l.referenceNumber));

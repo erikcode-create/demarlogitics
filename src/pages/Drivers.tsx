@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Trash2, Pencil } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, Smartphone, Apple } from 'lucide-react';
 import { Driver } from '@/types';
 import { TableLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
@@ -20,6 +21,21 @@ const Drivers = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDriver, setEditDriver] = useState<Driver | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', carrierId: '' });
+  const [deviceMap, setDeviceMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase
+      .from('driver_push_tokens')
+      .select('driver_phone, platform')
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, string> = {};
+        for (const row of data) {
+          map[row.driver_phone] = row.platform;
+        }
+        setDeviceMap(map);
+      });
+  }, [drivers]);
 
   if (loading) return <TableLoader />;
 
@@ -128,6 +144,7 @@ const Drivers = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Carrier</TableHead>
+                <TableHead>Device</TableHead>
                 <TableHead className="w-20"></TableHead>
               </TableRow>
             </TableHeader>
@@ -137,6 +154,19 @@ const Drivers = () => {
                   <TableCell className="font-medium">{d.name}</TableCell>
                   <TableCell className="text-sm">{d.phone || '—'}</TableCell>
                   <TableCell className="text-sm">{getCarrierName(d.carrierId)}</TableCell>
+                  <TableCell className="text-sm">
+                    {d.phone && deviceMap[d.phone] ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500">
+                        {deviceMap[d.phone] === 'ios' ? (
+                          <><Apple className="h-3 w-3" /> iPhone</>
+                        ) : (
+                          <><Smartphone className="h-3 w-3" /> Android</>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No app</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(d)}>
@@ -164,7 +194,7 @@ const Drivers = () => {
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No drivers found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No drivers found</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
