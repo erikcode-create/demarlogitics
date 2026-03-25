@@ -1,6 +1,13 @@
 name: Build Android TWA (Google Play Store)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
   workflow_dispatch:
     inputs:
       version_code:
@@ -27,10 +34,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Set version variables
+        id: version
+        run: |
+          echo "code=${{ github.event.inputs.version_code || '1' }}" >> $GITHUB_OUTPUT
+          echo "name=${{ github.event.inputs.version_name || '1.0.0' }}" >> $GITHUB_OUTPUT
+
       - name: Update version in build.gradle
         run: |
-          sed -i "s/versionCode 1/versionCode ${{ github.event.inputs.version_code }}/" android/app/build.gradle
-          sed -i 's/versionName "1.0.0"/versionName "${{ github.event.inputs.version_name }}"/' android/app/build.gradle
+          sed -i "s/versionCode 1/versionCode ${{ steps.version.outputs.code }}/" android/app/build.gradle
+          sed -i 's/versionName "1.0.0"/versionName "${{ steps.version.outputs.name }}"/' android/app/build.gradle
 
       - name: Build Release AAB
         working-directory: android
@@ -46,14 +59,14 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: demar-logistics-${{ github.event.inputs.version_name }}-aab
+          name: demar-logistics-${{ steps.version.outputs.name }}-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 90
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: demar-logistics-${{ github.event.inputs.version_name }}-apk
+          name: demar-logistics-${{ steps.version.outputs.name }}-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 90
 
@@ -61,7 +74,7 @@ jobs:
         run: |
           echo "## Android Build Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ github.event.inputs.version_name }} (${{ github.event.inputs.version_code }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.name }} (${{ steps.version.outputs.code }})" >> $GITHUB_STEP_SUMMARY
           echo "- **Package**: com.demartransportation.logistics" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
