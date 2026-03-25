@@ -50,6 +50,7 @@ export default function Contracts() {
     { value: 'shipper_agreement', label: `Shipper (${contracts.filter(c => c.type === 'shipper_agreement').length})` },
     { value: 'carrier_agreement', label: `Carrier (${contracts.filter(c => c.type === 'carrier_agreement').length})` },
     { value: 'rate_confirmation', label: `Rate Conf (${contracts.filter(c => c.type === 'rate_confirmation').length})` },
+    { value: 'stop_loss_lane', label: `Stop-Loss (${contracts.filter(c => c.type === 'stop_loss_lane').length})` },
   ];
 
   return (

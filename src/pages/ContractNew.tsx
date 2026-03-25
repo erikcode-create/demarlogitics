@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { generateShipperAgreement, generateCarrierAgreement, generateRateConfirmation } from '@/utils/contractTemplates';
+import { generateShipperAgreement, generateCarrierAgreement, generateRateConfirmation, generateStopLossLaneAgreement } from '@/utils/contractTemplates';
 
 type Step = 'type' | 'entity' | 'review';
 
@@ -22,7 +22,7 @@ export default function ContractNew() {
   const { shippers, carriers, loads, contracts, setContracts } = useAppContext();
   const { toast } = useToast();
 
-  const defaultWizard = { step: 'type' as Step, contractType: '' as ContractType | '', entityId: '', loadId: '', signerName: '' };
+  const defaultWizard = { step: 'type' as Step, contractType: '' as ContractType | '', entityId: '', loadId: '', signerName: '', laneOrigin: '', laneDestination: '', floorRate: '', ceilingRate: '' };
   const { data: wizardDraft, setData: setWizardDraft, hasDraft: hasWizardDraft, clearDraft: clearWizardDraft } = useDraft({
     key: 'contract:new',
     defaultValue: defaultWizard,
@@ -34,6 +34,10 @@ export default function ContractNew() {
   const [loadId, setLoadIdRaw] = useState(wizardDraft.loadId);
   const [agreed, setAgreed] = useState(false);
   const [signerName, setSignerNameRaw] = useState(wizardDraft.signerName);
+  const [laneOrigin, setLaneOriginRaw] = useState(wizardDraft.laneOrigin || '');
+  const [laneDestination, setLaneDestinationRaw] = useState(wizardDraft.laneDestination || '');
+  const [floorRate, setFloorRateRaw] = useState(wizardDraft.floorRate || '');
+  const [ceilingRate, setCeilingRateRaw] = useState(wizardDraft.ceilingRate || '');
 
   // Sync to draft
   const setStep = (s: Step) => { setStepRaw(s); setWizardDraft(p => ({ ...p, step: s })); };
@@ -41,6 +45,10 @@ export default function ContractNew() {
   const setEntityId = (id: string) => { setEntityIdRaw(id); setWizardDraft(p => ({ ...p, entityId: id })); };
   const setLoadId = (id: string) => { setLoadIdRaw(id); setWizardDraft(p => ({ ...p, loadId: id })); };
   const setSignerName = (name: string) => { setSignerNameRaw(name); setWizardDraft(p => ({ ...p, signerName: name })); };
+  const setLaneOrigin = (v: string) => { setLaneOriginRaw(v); setWizardDraft(p => ({ ...p, laneOrigin: v })); };
+  const setLaneDestination = (v: string) => { setLaneDestinationRaw(v); setWizardDraft(p => ({ ...p, laneDestination: v })); };
+  const setFloorRate = (v: string) => { setFloorRateRaw(v); setWizardDraft(p => ({ ...p, floorRate: v })); };
+  const setCeilingRate = (v: string) => { setCeilingRateRaw(v); setWizardDraft(p => ({ ...p, ceilingRate: v })); };
 
   // Handle editing a draft
   const draftId = searchParams.get('draft');
@@ -55,8 +63,8 @@ export default function ContractNew() {
     }
   });
 
-  const entityType = contractType === 'shipper_agreement' ? 'shipper' : 'carrier';
-  const entities = contractType === 'shipper_agreement' ? shippers : carriers;
+  const entityType = (contractType === 'shipper_agreement' || contractType === 'stop_loss_lane') ? 'shipper' : 'carrier';
+  const entities = (contractType === 'shipper_agreement' || contractType === 'stop_loss_lane') ? shippers : carriers;
   const bookedLoads = useMemo(() =>
     loads.filter(l => l.carrierId && (l.status === 'booked' || l.status === 'in_transit')),
     [loads]
@@ -78,8 +86,14 @@ export default function ContractNew() {
       const carrier = load ? carriers.find(c => c.id === load.carrierId) : null;
       return load && shipper && carrier ? generateRateConfirmation(load, shipper, carrier) : '';
     }
+    if (contractType === 'stop_loss_lane') {
+      const shipper = shippers.find(s => s.id === entityId);
+      const floor = parseFloat(floorRate) || 0;
+      const ceiling = parseFloat(ceilingRate) || 0;
+      return shipper && laneOrigin && laneDestination ? generateStopLossLaneAgreement(shipper, laneOrigin, laneDestination, floor, ceiling) : '';
+    }
     return '';
-  }, [contractType, entityId, loadId, shippers, carriers, loads]);
+  }, [contractType, entityId, loadId, shippers, carriers, loads, laneOrigin, laneDestination, floorRate, ceilingRate]);
 
   const entityName = useMemo(() => {
     if (entityType === 'shipper') return shippers.find(s => s.id === entityId)?.companyName ?? '';
@@ -91,14 +105,18 @@ export default function ContractNew() {
       const load = loads.find(l => l.id === loadId);
       return load ? `Rate Confirmation — ${load.loadNumber}` : '';
     }
+    if (contractType === 'stop_loss_lane') {
+      return entityName ? `Stop-Loss Lane — ${laneOrigin} → ${laneDestination} — ${entityName}` : '';
+    }
     const typeLabel = contractType === 'shipper_agreement' ? 'Shipper Agreement' : 'Carrier Agreement';
     return entityName ? `${typeLabel} — ${entityName}` : '';
-  }, [contractType, entityName, loadId, loads]);
+  }, [contractType, entityName, loadId, loads, laneOrigin, laneDestination]);
 
   const canProceed = () => {
     if (step === 'type') return !!contractType;
     if (step === 'entity') {
       if (contractType === 'rate_confirmation') return !!loadId;
+      if (contractType === 'stop_loss_lane') return !!entityId && !!laneOrigin.trim() && !!laneDestination.trim() && parseFloat(floorRate) > 0 && parseFloat(ceilingRate) > 0;
       return !!entityId;
     }
     return agreed && signerName.trim().length >= 2;
@@ -123,6 +141,13 @@ export default function ContractNew() {
       signedAt: new Date().toISOString(),
       createdAt: draft?.createdAt ?? new Date().toISOString().split('T')[0],
       expiresAt: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
+      ...(contractType === 'stop_loss_lane' && {
+        laneOrigin,
+        laneDestination,
+        floorRate: parseFloat(floorRate) || 0,
+        ceilingRate: parseFloat(ceilingRate) || 0,
+        marginPercent: 10,
+      }),
     };
 
     if (draft) {
@@ -183,6 +208,7 @@ export default function ContractNew() {
               ['shipper_agreement', 'Shipper Agreement', 'Standard freight brokerage agreement with a shipper'],
               ['carrier_agreement', 'Carrier Agreement', 'Carrier-broker transportation agreement'],
               ['rate_confirmation', 'Rate Confirmation', 'Load-specific rate confirmation for a booked load'],
+              ['stop_loss_lane', 'Stop-Loss Lane Contract', 'Guaranteed 10% margin pricing per lane with floor/ceiling rates'],
             ] as const).map(([value, label, desc]) => (
               <div
                 key={value}
@@ -224,6 +250,26 @@ export default function ContractNew() {
                   ))}
                 </SelectContent>
               </Select>
+            ) : contractType === 'stop_loss_lane' ? (
+              <div className="space-y-4">
+                <Select value={entityId} onValueChange={setEntityId}>
+                  <SelectTrigger><SelectValue placeholder="Select a shipper..." /></SelectTrigger>
+                  <SelectContent>
+                    {shippers.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.companyName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Lane Origin *</Label><Input placeholder="e.g. Chicago, IL" value={laneOrigin} onChange={e => setLaneOrigin(e.target.value)} /></div>
+                  <div><Label>Lane Destination *</Label><Input placeholder="e.g. Dallas, TX" value={laneDestination} onChange={e => setLaneDestination(e.target.value)} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Floor Rate (Min) *</Label><Input type="number" placeholder="1,500" value={floorRate} onChange={e => setFloorRate(e.target.value)} /></div>
+                  <div><Label>Ceiling Rate (Max) *</Label><Input type="number" placeholder="2,500" value={ceilingRate} onChange={e => setCeilingRate(e.target.value)} /></div>
+                </div>
+                <p className="text-xs text-muted-foreground">Shipper pays Carrier Rate + 10%, clamped between floor and ceiling. Carrier rate confirmations are visible in the Shipper Portal as proof.</p>
+              </div>
             ) : (
               <Select value={entityId} onValueChange={setEntityId}>
                 <SelectTrigger><SelectValue placeholder={`Select a ${entityType}...`} /></SelectTrigger>

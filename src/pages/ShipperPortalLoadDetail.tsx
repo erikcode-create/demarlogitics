@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, MapPin, Calendar, Truck, FileText, ClipboardList, Download, Eye } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Truck, FileText, ClipboardList, Download, Eye, CheckCircle2, FileCheck } from 'lucide-react';
 
 const DriverTrackingMap = lazy(() => import('@/components/shipper-portal/DriverTrackingMap'));
 import { EQUIPMENT_LABEL } from '@/constants/locations';
@@ -76,12 +76,12 @@ const ShipperPortalLoadDetail = () => {
         setCarrierName(carrier?.company_name || '');
       }
 
-      // Fetch carrier documents for this load (BOLs only - no rate cons for shippers)
+      // Fetch carrier documents for this load (BOLs and Rate Cons for transparency)
       const { data: carrierDocs } = await supabase
         .from('carrier_documents')
         .select('id, type, status, signed_by_name, signed_at, created_at, document_data')
         .eq('load_id', loadId!)
-        .eq('type', 'bol')
+        .in('type', ['bol', 'rate_con'])
         .order('created_at', { ascending: false });
       setDocuments(carrierDocs || []);
 
@@ -127,9 +127,18 @@ const ShipperPortalLoadDetail = () => {
             <h2 className="text-xl font-bold text-foreground">Load #{load.load_number}</h2>
             <p className="text-sm text-muted-foreground">{load.reference_number && `Ref: ${load.reference_number} • `}{load.origin} → {load.destination}</p>
           </div>
-          <Badge className={statusColors[load.status] || 'bg-muted text-muted-foreground'}>
-            {statusLabels[load.status] || load.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {load.pod_uploaded && (load.status === 'delivered' || load.status === 'pod_submitted') && (
+              <Badge className="bg-green-600 text-white gap-1">
+                <CheckCircle2 className="h-3 w-3" /> Delivered
+              </Badge>
+            )}
+            {!(load.pod_uploaded && (load.status === 'delivered' || load.status === 'pod_submitted')) && (
+              <Badge className={statusColors[load.status] || 'bg-muted text-muted-foreground'}>
+                {statusLabels[load.status] || load.status}
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Load Info - no carrier rates shown */}
@@ -174,20 +183,61 @@ const ShipperPortalLoadDetail = () => {
               <p className="text-sm text-muted-foreground">No documents for this load yet.</p>
             ) : (
               <div className="space-y-3">
-                {documents.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                    <div className="flex items-center gap-3">
-                      <ClipboardList className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-sm font-medium">Bill of Lading</p>
-                        <p className="text-xs text-muted-foreground">{new Date(doc.created_at).toLocaleDateString()}</p>
+                {documents.map(doc => {
+                  if (doc.type === 'rate_con') {
+                    const carrierRate = doc.document_data?.carrierRate;
+                    const parsedRate = carrierRate ? parseFloat(String(carrierRate).replace(/,/g, '')) : null;
+                    return (
+                      <div key={doc.id} className="rounded-lg border border-border p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <FileCheck className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="text-sm font-medium">Rate Confirmation</p>
+                              <p className="text-xs text-muted-foreground">{new Date(doc.created_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <Badge variant={doc.status === 'signed' ? 'default' : 'outline'} className={doc.status === 'signed' ? 'bg-green-600' : ''}>
+                            {doc.status === 'signed' ? 'Signed' : 'Sent'}
+                          </Badge>
+                        </div>
+                        {parsedRate && (
+                          <div className="bg-muted/50 rounded p-2 text-xs space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Carrier Rate</span>
+                              <span className="font-medium">${parsedRate.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Broker Fee (10%)</span>
+                              <span className="font-medium">${(parsedRate * 0.10).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="flex justify-between border-t border-border pt-1">
+                              <span className="font-medium">Your Rate</span>
+                              <span className="font-bold">${(parsedRate * 1.10).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                          </div>
+                        )}
+                        {doc.status === 'signed' && doc.signed_by_name && (
+                          <p className="text-xs text-muted-foreground">Signed by {doc.signed_by_name} on {new Date(doc.signed_at).toLocaleDateString()}</p>
+                        )}
                       </div>
+                    );
+                  }
+                  return (
+                    <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="flex items-center gap-3">
+                        <ClipboardList className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-sm font-medium">Bill of Lading</p>
+                          <p className="text-xs text-muted-foreground">{new Date(doc.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <Badge variant={doc.status === 'signed' ? 'default' : 'outline'}>
+                        {doc.status === 'signed' ? 'Signed' : 'Pending'}
+                      </Badge>
                     </div>
-                    <Badge variant={doc.status === 'signed' ? 'default' : 'outline'}>
-                      {doc.status === 'signed' ? 'Signed' : 'Pending'}
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
                 {loadDocs.map(doc => (
                   <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border p-3">
                     <div className="flex items-center gap-3">

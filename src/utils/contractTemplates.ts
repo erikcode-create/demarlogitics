@@ -1,5 +1,49 @@
 import { Shipper, Carrier, Load } from '@/types';
 
+export function generateStopLossLaneAgreement(
+  shipper: Shipper,
+  laneOrigin: string,
+  laneDestination: string,
+  floorRate: number,
+  ceilingRate: number,
+  marginPercent: number = 10
+): string {
+  return `STOP-LOSS LANE PRICING AGREEMENT
+
+PARTIES:
+This Agreement is entered into between DEMAR Logistics ("Broker") and ${shipper.companyName} ("Shipper"), located at ${shipper.address}, ${shipper.city}, ${shipper.state} ${shipper.zip}.
+
+LANE:
+• Origin: ${laneOrigin}
+• Destination: ${laneDestination}
+
+PRICING MODEL:
+Broker operates on a transparent ${marginPercent}% margin model. For each shipment on this lane:
+
+• Broker will secure a carrier at the best available market rate ("Carrier Rate")
+• Shipper will be invoiced at: Carrier Rate + ${marginPercent}% Broker Fee
+• Floor Rate (minimum): $${floorRate.toLocaleString()} per load
+• Ceiling Rate (maximum): $${ceilingRate.toLocaleString()} per load
+
+If Carrier Rate + ${marginPercent}% falls below the Floor Rate, Shipper pays the Floor Rate.
+If Carrier Rate + ${marginPercent}% exceeds the Ceiling Rate, Shipper pays the Ceiling Rate.
+
+TRANSPARENCY:
+• Each invoice will itemize: Carrier Cost, Broker Fee (${marginPercent}%), and Total
+• Shipper may view the carrier's signed Rate Confirmation in the Shipper Portal as proof of the Carrier Rate
+• Proof of Delivery documents are available in the Shipper Portal upon delivery
+
+PAYMENT TERMS:
+• Payment Terms: ${shipper.paymentTerms}
+• Invoices are due per agreed terms from date of delivery
+• Late payments subject to 1.5% monthly interest
+
+TERM:
+This agreement is effective for one (1) year from the date of signing and auto-renews unless terminated with 30 days written notice.
+
+CONTACT: ${shipper.phone} | ${shipper.email}`;
+}
+
 export function generateShipperAgreement(shipper: Shipper): string {
   return `FREIGHT BROKERAGE AGREEMENT — SHIPPER
 

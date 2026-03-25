@@ -20,7 +20,7 @@ interface InvoiceBuilderProps {
 }
 
 export default function InvoiceBuilder({ open, onOpenChange, preSelectedShipperId, preSelectedLoadIds }: InvoiceBuilderProps) {
-  const { shippers, loads, invoices, setInvoices, setLoads } = useAppContext();
+  const { shippers, loads, invoices, setInvoices, setLoads, contracts } = useAppContext();
   const [shipperId, setShipperId] = useState(preSelectedShipperId || '');
   const [selectedLoadIds, setSelectedLoadIds] = useState<string[]>(preSelectedLoadIds || []);
   const [amount, setAmount] = useState('');
@@ -43,6 +43,18 @@ export default function InvoiceBuilder({ open, onOpenChange, preSelectedShipperI
     return loads
       .filter(l => selectedLoadIds.includes(l.id))
       .reduce((sum, l) => sum + l.shipperRate, 0);
+  }, [selectedLoadIds, loads]);
+
+  // Check if this shipper has an active stop-loss lane contract
+  const hasStopLossContract = useMemo(() => {
+    if (!shipperId) return false;
+    return contracts.some(c => c.type === 'stop_loss_lane' && c.entityId === shipperId && c.status === 'signed');
+  }, [shipperId, contracts]);
+
+  const totalCarrierCost = useMemo(() => {
+    return loads
+      .filter(l => selectedLoadIds.includes(l.id))
+      .reduce((sum, l) => sum + l.carrierRate, 0);
   }, [selectedLoadIds, loads]);
 
   // Set default amount when loads change
@@ -149,12 +161,13 @@ export default function InvoiceBuilder({ open, onOpenChange, preSelectedShipperI
         createdAt: new Date().toISOString(),
       };
 
-      // Generate PDF
+      // Generate PDF — show transparency breakdown if shipper has a stop-loss contract
       const doc = generateInvoicePdf({
         invoice,
         shipper,
         loads: selectedLoads,
         podImages,
+        showTransparency: hasStopLossContract,
       });
 
       // Save PDF to Supabase Storage
@@ -269,11 +282,24 @@ export default function InvoiceBuilder({ open, onOpenChange, preSelectedShipperI
           </div>
 
           {selectedLoadIds.length > 0 && (
-            <div className="bg-muted/50 rounded-lg p-3 text-sm">
+            <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{selectedLoadIds.length} load{selectedLoadIds.length > 1 ? 's' : ''} selected</span>
                 <span className="font-bold">${(Number(amount) || totalRate).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
               </div>
+              {hasStopLossContract && totalCarrierCost > 0 && (
+                <>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Carrier Cost</span>
+                    <span>${totalCarrierCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>DeMar Fee (10%)</span>
+                    <span>${(totalRate - totalCarrierCost).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <p className="text-xs text-green-600 pt-1">Transparent pricing — breakdown will appear on invoice PDF</p>
+                </>
+              )}
             </div>
           )}
         </div>

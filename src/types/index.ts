@@ -8,7 +8,7 @@ export type EquipmentType = 'dry_van' | 'reefer' | 'flatbed' | 'step_deck' | 'co
 export type ActivityType = 'call' | 'email' | 'note' | 'meeting';
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
-export type ContractType = 'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation';
+export type ContractType = 'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation' | 'stop_loss_lane';
 export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired';
 
 export type CallOutcome = 'no_answer' | 'left_voicemail' | 'gatekeeper' | 'spoke_not_interested' | 'spoke_send_info' | 'spoke_quote_requested';
@@ -183,6 +183,11 @@ export interface Contract {
   signedAt: string;
   createdAt: string;
   expiresAt: string;
+  laneOrigin?: string;
+  laneDestination?: string;
+  floorRate?: number;
+  ceilingRate?: number;
+  marginPercent?: number;
 }
 
 export interface OutboundCall {

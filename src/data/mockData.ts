@@ -86,6 +86,7 @@ export const contractTypeLabels: Record<ContractType, string> = {
   shipper_agreement: 'Shipper Agreement',
   carrier_agreement: 'Carrier Agreement',
   rate_confirmation: 'Rate Confirmation',
+  stop_loss_lane: 'Stop-Loss Lane Contract',
 };
 
 export const contractStatusLabels: Record<ContractStatus, string> = {
