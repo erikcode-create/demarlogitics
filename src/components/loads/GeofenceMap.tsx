@@ -46,7 +46,7 @@ export default function GeofenceMap({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg overflow-hidden border border-border" style={{ height: 300 }}>
+      <div className="rounded-lg overflow-hidden border border-border relative z-0" style={{ height: 300 }}>
         <MapContainer center={center} zoom={10} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
