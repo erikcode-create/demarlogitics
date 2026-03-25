@@ -27,18 +27,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Decode Keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
-
       - name: Update version in build.gradle
         run: |
           sed -i "s/versionCode 1/versionCode ${{ github.event.inputs.version_code }}/" android/app/build.gradle
           sed -i 's/versionName "1.0.0"/versionName "${{ github.event.inputs.version_name }}"/' android/app/build.gradle
-
-      - name: Update signing config with secrets
-        run: |
-          sed -i 's/storePassword "demarlogistics2024"/storePassword "'"${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"'"/' android/app/build.gradle
-          sed -i 's/keyPassword "demarlogistics2024"/keyPassword "'"${{ secrets.ANDROID_KEY_PASSWORD }}"'"/' android/app/build.gradle
 
       - name: Build Release AAB
         working-directory: android
