@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.demartransportation.logistics'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.demartransportation.logistics"
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+
+        // TWA host and asset statements
+        manifestPlaceholders = [
+            hostName: "logistics.demartransportation.com",
+            defaultUrl: "https://logistics.demartransportation.com",
+            launcherName: "DeMar Logistics",
+            assetStatements: '[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": { "namespace": "web", "site": "https://logistics.demartransportation.com" } }]'
+        ]
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../../keystore.jks")
+            storePassword "demarlogistics2024"
+            keyAlias "demar-logistics"
+            keyPassword "demarlogistics2024"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

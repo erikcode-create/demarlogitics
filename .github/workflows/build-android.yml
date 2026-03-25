@@ -24,48 +24,45 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Bubblewrap CLI
-        run: npm install -g @nicepkg/nicewrap || npm install -g @nicepkg/nicewrap@latest
-
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Update TWA manifest version
-        run: |
-          node -e "
-            const fs = require('fs');
-            const manifest = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
-            manifest.appVersionCode = parseInt('${{ github.event.inputs.version_code }}');
-            manifest.appVersionName = '${{ github.event.inputs.version_name }}';
-            fs.writeFileSync('twa-manifest.json', JSON.stringify(manifest, null, 2));
-          "
 
       - name: Decode Keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
 
-      - name: Build TWA with Bubblewrap
+      - name: Update version in build.gradle
         run: |
-          mkdir -p twa-build && cd twa-build
-          npx @nicepkg/nicewrap init --manifest ../twa-manifest.json
-          npx @nicepkg/nicewrap build \
-            --signingKeyPath ../keystore.jks \
-            --signingKeyAlias demar-logistics
-        env:
-          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          sed -i "s/versionCode 1/versionCode ${{ github.event.inputs.version_code }}/" android/app/build.gradle
+          sed -i 's/versionName "1.0.0"/versionName "${{ github.event.inputs.version_name }}"/' android/app/build.gradle
+
+      - name: Update signing config with secrets
+        run: |
+          sed -i 's/storePassword "demarlogistics2024"/storePassword "'"${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"'"/' android/app/build.gradle
+          sed -i 's/keyPassword "demarlogistics2024"/keyPassword "'"${{ secrets.ANDROID_KEY_PASSWORD }}"'"/' android/app/build.gradle
+
+      - name: Build Release AAB
+        working-directory: android
+        run: |
+          chmod +x gradlew 2>/dev/null || gradle wrapper --gradle-version 8.5
+          chmod +x gradlew
+          ./gradlew bundleRelease
+
+      - name: Build Release APK
+        working-directory: android
+        run: ./gradlew assembleRelease
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: demar-logistics-${{ github.event.inputs.version_name }}
-          path: |
-            twa-build/app-release-bundle.aab
-            twa-build/app-release-signed.apk
+          name: demar-logistics-${{ github.event.inputs.version_name }}-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 90
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: demar-logistics-${{ github.event.inputs.version_name }}-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 90
 
       - name: Build summary
@@ -74,4 +71,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ github.event.inputs.version_name }} (${{ github.event.inputs.version_code }})" >> $GITHUB_STEP_SUMMARY
           echo "- **Package**: com.demartransportation.logistics" >> $GITHUB_STEP_SUMMARY
-          echo "- Download the AAB from the Artifacts section to upload to Google Play Console" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the AAB from the Artifacts section below" >> $GITHUB_STEP_SUMMARY
+          echo "2. Go to Google Play Console > Internal Testing" >> $GITHUB_STEP_SUMMARY
+          echo "3. Create a new release and upload the .aab file" >> $GITHUB_STEP_SUMMARY
+          echo "4. Add release notes and roll out to internal testers" >> $GITHUB_STEP_SUMMARY
