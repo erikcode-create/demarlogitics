@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.demartransportation.logistics",
+      "sha256_cert_fingerprints": [
+        "68:18:40:FB:A0:F3:8D:43:62:D9:BB:2E:B5:8C:03:71:32:40:C0:01:34:EE:9B:52:35:22:BA:52:8B:4C:C1:2D"
+      ]
+    }
+  }
+]
