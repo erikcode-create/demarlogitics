@@ -1,5 +1,4 @@
 import { LayoutDashboard, Building2, Truck, Users, Package, FileText, Receipt, Bell, Phone, Kanban, CheckSquare, Mail, BarChart3, TrendingUp, Settings, MapPin } from 'lucide-react';
-import demarLogo from '@/assets/demar-logo.png';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, Link } from 'react-router-dom';
 import { useMemo } from 'react';
@@ -44,14 +43,20 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border px-3 py-3">
         {!collapsed ? (
           <Link to="/sales/dashboard" className="flex items-center gap-2.5">
-            <img src={demarLogo} alt="DeMar Logistics" className="h-10 w-10 object-contain rounded" />
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-sm flex-shrink-0">
+              <span className="text-xl font-black text-white leading-none" style={{ fontFamily: 'system-ui' }}>D</span>
+            </div>
             <div className="flex flex-col">
               <span className="text-base font-bold text-sidebar-foreground tracking-tight leading-tight">DeMar</span>
               <span className="text-[10px] font-medium text-sidebar-primary uppercase tracking-widest">Logistics</span>
             </div>
           </Link>
         ) : (
-          <Link to="/sales/dashboard"><img src={demarLogo} alt="DeMar" className="h-8 w-8 object-contain rounded" /></Link>
+          <Link to="/sales/dashboard">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-sm">
+              <span className="text-lg font-black text-white leading-none" style={{ fontFamily: 'system-ui' }}>D</span>
+            </div>
+          </Link>
         )}
       </SidebarHeader>
       <SidebarContent>
