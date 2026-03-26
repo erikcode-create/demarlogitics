@@ -6,12 +6,11 @@
   "context": {
     "lastMatchedPatterns": [
       "mem-1",
-      "mem-3",
-      "mem-2"
+      "mem-3"
     ]
   },
   "metrics": {
-    "edits": 22,
+    "edits": 25,
     "commands": 0,
     "tasks": 0,
     "errors": 0
