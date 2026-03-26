@@ -15,10 +15,9 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    // Fetch all push tokens
     const { data: tokens, error: fetchErr } = await supabase
       .from('driver_push_tokens')
-      .select('id, driver_phone, expo_push_token, platform, is_active')
+      .select('id, driver_phone, expo_push_token, platform')
 
     if (fetchErr || !tokens?.length) {
       return new Response(JSON.stringify({ checked: 0, error: fetchErr?.message }), {
@@ -26,9 +25,8 @@ Deno.serve(async (req) => {
       })
     }
 
-    const results: { phone: string; valid: boolean; error?: string }[] = []
+    const results: { phone: string; status: string; action: string }[] = []
 
-    // Validate each token against Expo push API
     for (const token of tokens) {
       try {
         const resp = await fetch('https://exp.host/--/api/v2/push/send', {
@@ -39,7 +37,6 @@ Deno.serve(async (req) => {
             title: '',
             body: '',
             data: { _validate: true },
-            _displayInForeground: false,
           }),
         })
 
@@ -47,27 +44,20 @@ Deno.serve(async (req) => {
         const status = result?.data?.status
         const errorDetail = result?.data?.details?.error
 
-        // Token is only valid if Expo returns 'ok'
-        // DeviceNotRegistered = app uninstalled or token expired
-        // InvalidCredentials = APNs/FCM creds not configured, can't reach device
-        const isValid = status === 'ok'
+        if (status === 'error' && errorDetail === 'DeviceNotRegistered') {
+          // App was uninstalled — delete the stale record
+          await supabase
+            .from('driver_push_tokens')
+            .delete()
+            .eq('id', token.id)
 
-        results.push({
-          phone: token.driver_phone,
-          valid: isValid,
-          error: status === 'error' ? errorDetail : undefined,
-        })
-
-        // Update the record
-        await supabase
-          .from('driver_push_tokens')
-          .update({
-            is_active: isValid,
-            last_validated: new Date().toISOString(),
-          })
-          .eq('id', token.id)
+          results.push({ phone: token.driver_phone, status: 'DeviceNotRegistered', action: 'deleted' })
+        } else {
+          // Token is valid OR has a config issue (InvalidCredentials) — keep it
+          results.push({ phone: token.driver_phone, status: errorDetail || 'ok', action: 'kept' })
+        }
       } catch (err) {
-        results.push({ phone: token.driver_phone, valid: false, error: String(err) })
+        results.push({ phone: token.driver_phone, status: String(err), action: 'error' })
       }
     }
 
