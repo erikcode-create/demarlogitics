@@ -31,11 +31,13 @@ const Drivers = () => {
       .then(({ data }) => {
         if (!data) return;
         const map: Record<string, { platform: string; updatedAt: string }> = {};
-        const knownPhones = new Set(drivers.map(d => d.phone).filter(Boolean));
+        const normalize = (p: string) => (p || '').replace(/\D/g, '');
+        const knownPhones = new Set(drivers.map(d => normalize(d.phone)).filter(Boolean));
         const unlinked: { phone: string; platform: string; updatedAt: string }[] = [];
         for (const row of data) {
-          map[row.driver_phone] = { platform: row.platform, updatedAt: row.updated_at };
-          if (!knownPhones.has(row.driver_phone)) {
+          const digits = normalize(row.driver_phone);
+          map[digits] = { platform: row.platform, updatedAt: row.updated_at };
+          if (!knownPhones.has(digits)) {
             unlinked.push({ phone: row.driver_phone, platform: row.platform, updatedAt: row.updated_at });
           }
         }
@@ -225,16 +227,16 @@ const Drivers = () => {
                   <TableCell className="text-sm">{d.phone || '—'}</TableCell>
                   <TableCell className="text-sm">{getCarrierName(d.carrierId)}</TableCell>
                   <TableCell className="text-sm">
-                    {d.phone && deviceMap[d.phone] ? (
+                    {d.phone && deviceMap[(d.phone || '').replace(/\D/g, '')] ? (
                       <div className="flex flex-col gap-0.5">
                         <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 w-fit">
-                          {deviceMap[d.phone].platform === 'ios' ? (
+                          {deviceMap[(d.phone || '').replace(/\D/g, '')].platform === 'ios' ? (
                             <><Apple className="h-3 w-3" /> iPhone</>
                           ) : (
                             <><Smartphone className="h-3 w-3" /> Android</>
                           )}
                         </span>
-                        <span className="text-[10px] text-muted-foreground pl-2">Active {timeAgo(deviceMap[d.phone].updatedAt)}</span>
+                        <span className="text-[10px] text-muted-foreground pl-2">Active {timeAgo(deviceMap[(d.phone || '').replace(/\D/g, '')].updatedAt)}</span>
                       </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">No app</span>
