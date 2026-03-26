@@ -39,3 +39,4 @@ android/local.properties
 *.keystore
 
 .vercel
+.env*.local

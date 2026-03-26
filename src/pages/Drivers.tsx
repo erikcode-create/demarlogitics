@@ -21,24 +21,24 @@ const Drivers = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDriver, setEditDriver] = useState<Driver | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', carrierId: '' });
-  const [deviceMap, setDeviceMap] = useState<Record<string, { platform: string; updatedAt: string }>>({});
-  const [unlinkedDevices, setUnlinkedDevices] = useState<{ phone: string; platform: string; updatedAt: string }[]>([]);
+  const [deviceMap, setDeviceMap] = useState<Record<string, { platform: string; updatedAt: string; isActive: boolean; lastValidated: string | null }>>({});
+  const [unlinkedDevices, setUnlinkedDevices] = useState<{ phone: string; platform: string; updatedAt: string; isActive: boolean }[]>([]);
 
   useEffect(() => {
     supabase
       .from('driver_push_tokens')
-      .select('driver_phone, platform, updated_at')
+      .select('driver_phone, platform, updated_at, is_active, last_validated')
       .then(({ data }) => {
         if (!data) return;
-        const map: Record<string, { platform: string; updatedAt: string }> = {};
+        const map: Record<string, { platform: string; updatedAt: string; isActive: boolean; lastValidated: string | null }> = {};
         const normalize = (p: string) => (p || '').replace(/\D/g, '');
         const knownPhones = new Set(drivers.map(d => normalize(d.phone)).filter(Boolean));
-        const unlinked: { phone: string; platform: string; updatedAt: string }[] = [];
+        const unlinked: { phone: string; platform: string; updatedAt: string; isActive: boolean }[] = [];
         for (const row of data) {
           const digits = normalize(row.driver_phone);
-          map[digits] = { platform: row.platform, updatedAt: row.updated_at };
+          map[digits] = { platform: row.platform, updatedAt: row.updated_at, isActive: row.is_active !== false, lastValidated: row.last_validated };
           if (!knownPhones.has(digits)) {
-            unlinked.push({ phone: row.driver_phone, platform: row.platform, updatedAt: row.updated_at });
+            unlinked.push({ phone: row.driver_phone, platform: row.platform, updatedAt: row.updated_at, isActive: row.is_active !== false });
           }
         }
         setDeviceMap(map);
@@ -102,7 +102,7 @@ const Drivers = () => {
   const getCarrierName = (carrierId: string | null) =>
     carrierId ? carriers.find(c => c.id === carrierId)?.companyName || '—' : '—';
 
-  const activeCount = Object.keys(deviceMap).length;
+  const activeCount = Object.values(deviceMap).filter(d => d.isActive).length;
   const totalDrivers = drivers.length;
 
   const timeAgo = (iso: string) => {
@@ -160,11 +160,11 @@ const Drivers = () => {
             <div className="space-y-1">
               {unlinkedDevices.map(d => (
                 <div key={d.phone} className="flex items-center gap-3 text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500">
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${d.isActive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                     {d.platform === 'ios' ? <><Apple className="h-3 w-3" /> iPhone</> : <><Smartphone className="h-3 w-3" /> Android</>}
                   </span>
                   <span className="font-mono">{d.phone}</span>
-                  <span className="text-muted-foreground">Last active: {timeAgo(d.updatedAt)}</span>
+                  <span className="text-muted-foreground">{d.isActive ? `Active ${timeAgo(d.updatedAt)}` : `Inactive — last seen ${timeAgo(d.updatedAt)}`}</span>
                 </div>
               ))}
             </div>
@@ -227,18 +227,24 @@ const Drivers = () => {
                   <TableCell className="text-sm">{d.phone || '—'}</TableCell>
                   <TableCell className="text-sm">{getCarrierName(d.carrierId)}</TableCell>
                   <TableCell className="text-sm">
-                    {d.phone && deviceMap[(d.phone || '').replace(/\D/g, '')] ? (
-                      <div className="flex flex-col gap-0.5">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 w-fit">
-                          {deviceMap[(d.phone || '').replace(/\D/g, '')].platform === 'ios' ? (
-                            <><Apple className="h-3 w-3" /> iPhone</>
-                          ) : (
-                            <><Smartphone className="h-3 w-3" /> Android</>
-                          )}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground pl-2">Active {timeAgo(deviceMap[(d.phone || '').replace(/\D/g, '')].updatedAt)}</span>
-                      </div>
-                    ) : (
+                    {d.phone && deviceMap[(d.phone || '').replace(/\D/g, '')] ? (() => {
+                      const dev = deviceMap[(d.phone || '').replace(/\D/g, '')];
+                      const colorClass = dev.isActive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500';
+                      return (
+                        <div className="flex flex-col gap-0.5">
+                          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${colorClass} w-fit`}>
+                            {dev.platform === 'ios' ? (
+                              <><Apple className="h-3 w-3" /> iPhone</>
+                            ) : (
+                              <><Smartphone className="h-3 w-3" /> Android</>
+                            )}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground pl-2">
+                            {dev.isActive ? `Active ${timeAgo(dev.updatedAt)}` : `Inactive — last seen ${timeAgo(dev.updatedAt)}`}
+                          </span>
+                        </div>
+                      );
+                    })() : (
                       <span className="text-xs text-muted-foreground">No app</span>
                     )}
                   </TableCell>

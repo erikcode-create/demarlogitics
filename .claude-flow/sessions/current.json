@@ -1,0 +1,19 @@
+{
+  "id": "session-1774481753485",
+  "startedAt": "2026-03-25T23:35:53.485Z",
+  "platform": "darwin",
+  "cwd": "/Users/erik/Library/CloudStorage/OneDrive-demarconsultinggroup.com/Claude/DeMar Transportation/DeMar Logistics/demarlogitics",
+  "context": {
+    "lastMatchedPatterns": [
+      "mem-1",
+      "mem-3",
+      "mem-2"
+    ]
+  },
+  "metrics": {
+    "edits": 22,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  }
+}
