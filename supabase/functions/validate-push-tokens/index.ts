@@ -5,6 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// If a token hasn't been refreshed in 7 days, the app is likely uninstalled.
+// The app re-registers its push token every time it opens, so an active user
+// will always have a recent updated_at timestamp.
+const STALE_THRESHOLD_DAYS = 7
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -17,7 +22,7 @@ Deno.serve(async (req) => {
 
     const { data: tokens, error: fetchErr } = await supabase
       .from('driver_push_tokens')
-      .select('id, driver_phone, expo_push_token, platform')
+      .select('id, driver_phone, expo_push_token, platform, updated_at')
 
     if (fetchErr || !tokens?.length) {
       return new Response(JSON.stringify({ checked: 0, error: fetchErr?.message }), {
@@ -25,9 +30,15 @@ Deno.serve(async (req) => {
       })
     }
 
-    const results: { phone: string; status: string; action: string }[] = []
+    const now = Date.now()
+    const staleMs = STALE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000
+    const results: { phone: string; status: string; action: string; age_hours: number }[] = []
 
     for (const token of tokens) {
+      const ageMs = now - new Date(token.updated_at).getTime()
+      const ageHours = Math.round(ageMs / 3600000)
+
+      // Method 1: Check with Expo API if token is dead
       try {
         const resp = await fetch('https://exp.host/--/api/v2/push/send', {
           method: 'POST',
@@ -41,23 +52,24 @@ Deno.serve(async (req) => {
         })
 
         const result = await resp.json()
-        const status = result?.data?.status
         const errorDetail = result?.data?.details?.error
 
-        if (status === 'error' && errorDetail === 'DeviceNotRegistered') {
-          // App was uninstalled — delete the stale record
-          await supabase
-            .from('driver_push_tokens')
-            .delete()
-            .eq('id', token.id)
-
-          results.push({ phone: token.driver_phone, status: 'DeviceNotRegistered', action: 'deleted' })
-        } else {
-          // Token is valid OR has a config issue (InvalidCredentials) — keep it
-          results.push({ phone: token.driver_phone, status: errorDetail || 'ok', action: 'kept' })
+        if (errorDetail === 'DeviceNotRegistered') {
+          await supabase.from('driver_push_tokens').delete().eq('id', token.id)
+          results.push({ phone: token.driver_phone, status: 'DeviceNotRegistered', action: 'deleted', age_hours: ageHours })
+          continue
         }
-      } catch (err) {
-        results.push({ phone: token.driver_phone, status: String(err), action: 'error' })
+      } catch {
+        // Network error checking Expo — fall through to age check
+      }
+
+      // Method 2: If token is older than threshold, app likely uninstalled
+      // The driver app re-registers the token every time it opens
+      if (ageMs > staleMs) {
+        await supabase.from('driver_push_tokens').delete().eq('id', token.id)
+        results.push({ phone: token.driver_phone, status: 'stale', action: 'deleted', age_hours: ageHours })
+      } else {
+        results.push({ phone: token.driver_phone, status: 'fresh', action: 'kept', age_hours: ageHours })
       }
     }
 
