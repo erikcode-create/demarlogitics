@@ -32,6 +32,8 @@ import InvoiceDetail from "./pages/InvoiceDetail";
 import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
 const LiveTracking = lazy(() => import("./pages/LiveTracking"));
+const Locations = lazy(() => import("./pages/Locations"));
+const LocationDetail = lazy(() => import("./pages/LocationDetail"));
 import Settings from "./pages/Settings";
 import CarrierPortalLogin from "./pages/CarrierPortalLogin";
 import CarrierPortalDashboard from "./pages/CarrierPortalDashboard";
@@ -89,6 +91,8 @@ function ProtectedRoutes() {
           <Route path="/contracts/new" element={<ContractNew />} />
           <Route path="/contracts/bulk-create" element={<ContractBulkCreate />} />
           <Route path="/contracts/:id" element={<ContractDetail />} />
+          <Route path="/locations" element={<Suspense fallback={<LoadingScreen />}><Locations /></Suspense>} />
+          <Route path="/locations/:id" element={<Suspense fallback={<LoadingScreen />}><LocationDetail /></Suspense>} />
           <Route path="/tracking" element={<Suspense fallback={<LoadingScreen />}><LiveTracking /></Suspense>} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/sales/calls" element={<OutboundCalls />} />

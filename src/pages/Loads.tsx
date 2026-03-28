@@ -16,6 +16,8 @@ import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
 import { TableLoader } from '@/components/ui/page-loader';
 import { geocodeBoth } from '@/utils/geocoding';
+import LocationPicker from '@/components/locations/LocationPicker';
+import { SavedLocation, GeofenceType } from '@/types';
 
 const GeofenceMap = lazy(() => import('@/components/loads/GeofenceMap'));
 
@@ -43,6 +45,12 @@ const emptyForm = {
   deliveryLat: undefined as number | undefined,
   deliveryLng: undefined as number | undefined,
   deliveryRadiusM: 800,
+  pickupLocationId: undefined as string | undefined,
+  deliveryLocationId: undefined as string | undefined,
+  pickupGeofenceType: 'circle' as GeofenceType,
+  pickupGeofencePolygon: null as [number, number][] | null,
+  deliveryGeofenceType: 'circle' as GeofenceType,
+  deliveryGeofencePolygon: null as [number, number][] | null,
 };
 
 const Loads = () => {
@@ -123,13 +131,19 @@ const Loads = () => {
   const [geocoding, setGeocoding] = useState(false);
 
   const handleSave = async () => {
-    const geofenceData = {
+    const geofenceData: Record<string, any> = {
       pickupLat: formData.pickupLat,
       pickupLng: formData.pickupLng,
       pickupRadiusM: formData.pickupRadiusM,
       deliveryLat: formData.deliveryLat,
       deliveryLng: formData.deliveryLng,
       deliveryRadiusM: formData.deliveryRadiusM,
+      pickupLocationId: formData.pickupLocationId,
+      deliveryLocationId: formData.deliveryLocationId,
+      pickupGeofenceType: formData.pickupGeofenceType,
+      pickupGeofencePolygon: formData.pickupGeofencePolygon,
+      deliveryGeofenceType: formData.deliveryGeofenceType,
+      deliveryGeofencePolygon: formData.deliveryGeofencePolygon,
     };
 
     // Auto-geocode if addresses exist but no coordinates yet
@@ -281,8 +295,44 @@ const Loads = () => {
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div><Label>Origin</Label><Input value={formData.origin} onChange={e => setFormData(p => ({ ...p, origin: e.target.value }))} /></div>
-              <div><Label>Destination</Label><Input value={formData.destination} onChange={e => setFormData(p => ({ ...p, destination: e.target.value }))} /></div>
+              <div>
+                <Label>Origin</Label>
+                <LocationPicker
+                  value={formData.pickupLocationId}
+                  placeholder="Pick origin location"
+                  onSelect={(loc: SavedLocation) => setFormData(p => ({
+                    ...p,
+                    origin: [loc.address, loc.city, loc.state].filter(Boolean).join(', '),
+                    pickupLocationId: loc.id,
+                    pickupLat: loc.lat ?? undefined,
+                    pickupLng: loc.lng ?? undefined,
+                    pickupRadiusM: loc.geofenceRadiusM,
+                    pickupGeofenceType: loc.geofenceType,
+                    pickupGeofencePolygon: loc.geofencePolygon,
+                  }))}
+                  onClear={() => setFormData(p => ({ ...p, pickupLocationId: undefined }))}
+                />
+                <Input className="mt-1" value={formData.origin} onChange={e => setFormData(p => ({ ...p, origin: e.target.value }))} placeholder="Or type address" />
+              </div>
+              <div>
+                <Label>Destination</Label>
+                <LocationPicker
+                  value={formData.deliveryLocationId}
+                  placeholder="Pick delivery location"
+                  onSelect={(loc: SavedLocation) => setFormData(p => ({
+                    ...p,
+                    destination: [loc.address, loc.city, loc.state].filter(Boolean).join(', '),
+                    deliveryLocationId: loc.id,
+                    deliveryLat: loc.lat ?? undefined,
+                    deliveryLng: loc.lng ?? undefined,
+                    deliveryRadiusM: loc.geofenceRadiusM,
+                    deliveryGeofenceType: loc.geofenceType,
+                    deliveryGeofencePolygon: loc.geofencePolygon,
+                  }))}
+                  onClear={() => setFormData(p => ({ ...p, deliveryLocationId: undefined }))}
+                />
+                <Input className="mt-1" value={formData.destination} onChange={e => setFormData(p => ({ ...p, destination: e.target.value }))} placeholder="Or type address" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div><Label>Pickup Date</Label><Input type="date" value={formData.pickupDate} onChange={e => setFormData(p => ({ ...p, pickupDate: e.target.value }))} /></div>
@@ -308,9 +358,13 @@ const Loads = () => {
                     pickupLat={formData.pickupLat}
                     pickupLng={formData.pickupLng}
                     pickupRadiusM={formData.pickupRadiusM}
+                    pickupGeofenceType={formData.pickupGeofenceType}
+                    pickupGeofencePolygon={formData.pickupGeofencePolygon}
                     deliveryLat={formData.deliveryLat}
                     deliveryLng={formData.deliveryLng}
                     deliveryRadiusM={formData.deliveryRadiusM}
+                    deliveryGeofenceType={formData.deliveryGeofenceType}
+                    deliveryGeofencePolygon={formData.deliveryGeofencePolygon}
                     onPickupRadiusChange={(r) => setFormData(p => ({ ...p, pickupRadiusM: r }))}
                     onDeliveryRadiusChange={(r) => setFormData(p => ({ ...p, deliveryRadiusM: r }))}
                   />

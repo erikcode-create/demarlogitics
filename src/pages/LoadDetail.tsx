@@ -345,9 +345,13 @@ const LoadDetail = () => {
                 pickupLat={load.pickupLat}
                 pickupLng={load.pickupLng}
                 pickupRadiusM={load.pickupRadiusM ?? 800}
+                pickupGeofenceType={load.pickupGeofenceType}
+                pickupGeofencePolygon={load.pickupGeofencePolygon}
                 deliveryLat={load.deliveryLat}
                 deliveryLng={load.deliveryLng}
                 deliveryRadiusM={load.deliveryRadiusM ?? 800}
+                deliveryGeofenceType={load.deliveryGeofenceType}
+                deliveryGeofencePolygon={load.deliveryGeofencePolygon}
                 onPickupRadiusChange={(r) => setLoads(prev => prev.map(l => l.id === id ? { ...l, pickupRadiusM: r } : l))}
                 onDeliveryRadiusChange={(r) => setLoads(prev => prev.map(l => l.id === id ? { ...l, deliveryRadiusM: r } : l))}
               />

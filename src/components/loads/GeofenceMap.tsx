@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, Polygon, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { GeofenceType } from '@/types';
 import 'leaflet/dist/leaflet.css';
 
 interface GeofenceMapProps {
   pickupLat?: number;
   pickupLng?: number;
   pickupRadiusM: number;
+  pickupGeofenceType?: GeofenceType;
+  pickupGeofencePolygon?: [number, number][] | null;
   deliveryLat?: number;
   deliveryLng?: number;
   deliveryRadiusM: number;
+  deliveryGeofenceType?: GeofenceType;
+  deliveryGeofencePolygon?: [number, number][] | null;
   onPickupRadiusChange: (radius: number) => void;
   onDeliveryRadiusChange: (radius: number) => void;
 }
@@ -31,7 +36,9 @@ const metersToMiles = (m: number) => (m / 1609.34).toFixed(2);
 
 export default function GeofenceMap({
   pickupLat, pickupLng, pickupRadiusM,
+  pickupGeofenceType, pickupGeofencePolygon,
   deliveryLat, deliveryLng, deliveryRadiusM,
+  deliveryGeofenceType, deliveryGeofencePolygon,
   onPickupRadiusChange, onDeliveryRadiusChange,
 }: GeofenceMapProps) {
   const positions: [number, number][] = [];
@@ -56,26 +63,40 @@ export default function GeofenceMap({
 
           {pickupLat != null && pickupLng != null && (
             <>
-              <Circle
-                center={[pickupLat, pickupLng]}
-                radius={pickupRadiusM}
-                pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.15, weight: 2 }}
-              />
+              {pickupGeofenceType === 'polygon' && pickupGeofencePolygon?.length ? (
+                <Polygon
+                  positions={pickupGeofencePolygon}
+                  pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.15, weight: 2 }}
+                />
+              ) : (
+                <Circle
+                  center={[pickupLat, pickupLng]}
+                  radius={pickupRadiusM}
+                  pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.15, weight: 2 }}
+                />
+              )}
               <Marker position={[pickupLat, pickupLng]}>
-                <Popup>Pickup Geofence ({metersToMiles(pickupRadiusM)} mi)</Popup>
+                <Popup>Pickup Geofence{pickupGeofenceType !== 'polygon' ? ` (${metersToMiles(pickupRadiusM)} mi)` : ' (polygon)'}</Popup>
               </Marker>
             </>
           )}
 
           {deliveryLat != null && deliveryLng != null && (
             <>
-              <Circle
-                center={[deliveryLat, deliveryLng]}
-                radius={deliveryRadiusM}
-                pathOptions={{ color: '#22c55e', fillColor: '#22c55e', fillOpacity: 0.15, weight: 2 }}
-              />
+              {deliveryGeofenceType === 'polygon' && deliveryGeofencePolygon?.length ? (
+                <Polygon
+                  positions={deliveryGeofencePolygon}
+                  pathOptions={{ color: '#22c55e', fillColor: '#22c55e', fillOpacity: 0.15, weight: 2 }}
+                />
+              ) : (
+                <Circle
+                  center={[deliveryLat, deliveryLng]}
+                  radius={deliveryRadiusM}
+                  pathOptions={{ color: '#22c55e', fillColor: '#22c55e', fillOpacity: 0.15, weight: 2 }}
+                />
+              )}
               <Marker position={[deliveryLat, deliveryLng]}>
-                <Popup>Delivery Geofence ({metersToMiles(deliveryRadiusM)} mi)</Popup>
+                <Popup>Delivery Geofence{deliveryGeofenceType !== 'polygon' ? ` (${metersToMiles(deliveryRadiusM)} mi)` : ' (polygon)'}</Popup>
               </Marker>
             </>
           )}
@@ -83,7 +104,7 @@ export default function GeofenceMap({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {pickupLat != null && pickupLng != null && (
+        {pickupLat != null && pickupLng != null && pickupGeofenceType !== 'polygon' && (
           <div className="space-y-2">
             <Label className="text-amber-400">Pickup Radius: {metersToMiles(pickupRadiusM)} mi</Label>
             <Slider
@@ -95,7 +116,7 @@ export default function GeofenceMap({
             />
           </div>
         )}
-        {deliveryLat != null && deliveryLng != null && (
+        {deliveryLat != null && deliveryLng != null && deliveryGeofenceType !== 'polygon' && (
           <div className="space-y-2">
             <Label className="text-green-400">Delivery Radius: {metersToMiles(deliveryRadiusM)} mi</Label>
             <Slider

@@ -8,6 +8,7 @@ export type EquipmentType = 'dry_van' | 'reefer' | 'flatbed' | 'step_deck' | 'co
 export type ActivityType = 'call' | 'email' | 'note' | 'meeting';
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+export type GeofenceType = 'circle' | 'polygon';
 export type ContractType = 'shipper_agreement' | 'carrier_agreement' | 'rate_confirmation' | 'stop_loss_lane';
 export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired';
 
@@ -144,6 +145,12 @@ export interface Load {
   deliveryLat?: number;
   deliveryLng?: number;
   deliveryRadiusM?: number;
+  pickupLocationId?: string;
+  deliveryLocationId?: string;
+  pickupGeofenceType?: GeofenceType;
+  pickupGeofencePolygon?: [number, number][] | null;
+  deliveryGeofenceType?: GeofenceType;
+  deliveryGeofencePolygon?: [number, number][] | null;
 }
 
 export interface LoadDocument {
@@ -242,6 +249,21 @@ export interface Invoice {
   pdfPath: string;
   createdAt: string;
   paidAt?: string;
+}
+
+export interface SavedLocation {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  lat: number | null;
+  lng: number | null;
+  geofenceType: GeofenceType;
+  geofenceRadiusM: number;
+  geofencePolygon: [number, number][] | null;
+  notes: string;
+  createdAt: string;
 }
 
 export interface StageChangeLog {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Driver, Load, Contract, OutboundCall, SalesTask, EmailTemplate, StageChangeLog, SalesStage, Invoice } from '@/types';
+import { Shipper, Contact, Lane, FollowUp, Activity, Carrier, Driver, Load, Contract, OutboundCall, SalesTask, EmailTemplate, StageChangeLog, SalesStage, Invoice, SavedLocation } from '@/types';
 import { generateCadenceTasks } from '@/utils/cadenceEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { rowsToFrontend, frontendToRow } from '@/utils/supabaseHelpers';
@@ -32,6 +32,8 @@ interface AppContextType {
   setEmailTemplates: React.Dispatch<React.SetStateAction<EmailTemplate[]>>;
   invoices: Invoice[];
   setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
+  locations: SavedLocation[];
+  setLocations: React.Dispatch<React.SetStateAction<SavedLocation[]>>;
   stageChangeLogs: StageChangeLog[];
   setStageChangeLogs: React.Dispatch<React.SetStateAction<StageChangeLog[]>>;
   logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
@@ -110,6 +112,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [salesTasks, setSalesTasksRaw] = useState<SalesTask[]>([]);
   const [emailTemplates, setEmailTemplatesRaw] = useState<EmailTemplate[]>([]);
   const [invoices, setInvoicesRaw] = useState<Invoice[]>([]);
+  const [locations, setLocationsRaw] = useState<SavedLocation[]>([]);
   const [stageChangeLogs, setStageChangeLogsRaw] = useState<StageChangeLog[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -158,6 +161,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const setInvoices = useCallback(makeSynced<Invoice>('invoices', setInvoicesRaw), []);
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  const setLocations = useCallback(makeSynced<SavedLocation>('locations', setLocationsRaw), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const setStageChangeLogs = useCallback(makeSynced<StageChangeLog>('stage_change_logs', setStageChangeLogsRaw), []);
 
   // Load all data from Supabase on mount
@@ -177,6 +182,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         { table: 'sales_tasks', setter: setSalesTasksRaw },
         { table: 'email_templates', setter: setEmailTemplatesRaw },
         { table: 'invoices', setter: setInvoicesRaw },
+        { table: 'locations', setter: setLocationsRaw },
         { table: 'stage_change_logs', setter: setStageChangeLogsRaw },
       ];
 
@@ -262,6 +268,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       salesTasks, setSalesTasks,
       emailTemplates, setEmailTemplates,
       invoices, setInvoices,
+      locations, setLocations,
       stageChangeLogs, setStageChangeLogs,
       logStageChange,
       triggerCadence,

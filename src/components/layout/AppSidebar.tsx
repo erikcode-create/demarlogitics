@@ -16,6 +16,7 @@ const mainItems = [
   { title: 'Carriers', url: '/carriers', icon: Truck },
   { title: 'Drivers', url: '/drivers', icon: Users },
   { title: 'Loads', url: '/loads', icon: Package },
+  { title: 'Locations', url: '/locations', icon: MapPin },
   { title: 'Live Tracking', url: '/tracking', icon: MapPin },
   { title: 'Invoices', url: '/invoices', icon: Receipt },
   { title: 'Contracts', url: '/contracts', icon: FileText },
