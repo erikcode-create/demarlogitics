@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { DollarSign, Download, CheckCircle, Send, Calendar, Building2, Package } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DollarSign, Download, CheckCircle, Send, Calendar, Building2, Package, Trash2 } from 'lucide-react';
 import { invoiceStatusLabels } from '@/data/mockData';
 import { InvoiceStatus } from '@/types';
 import { toast } from 'sonner';
@@ -22,7 +23,7 @@ const statusColors: Record<InvoiceStatus, string> = {
 const InvoiceDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { invoices, setInvoices, shippers, loads, setLoads } = useAppContext();
+  const { invoices, setInvoices, shippers, loads, setLoads, deleteRecord } = useAppContext();
   const [downloading, setDownloading] = useState(false);
 
   const invoice = invoices.find(i => i.id === id);
@@ -148,6 +149,33 @@ const InvoiceDetail = () => {
             Mark Overdue
           </Button>
         )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+              <Trash2 className="mr-1 h-4 w-4" />Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {invoice.invoiceNumber}?</AlertDialogTitle>
+              <AlertDialogDescription>This will permanently delete this invoice. This action cannot be undone.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  deleteRecord('invoices', invoice.id);
+                  setInvoices(prev => prev.filter(i => i.id !== invoice.id));
+                  toast.success('Invoice deleted');
+                  navigate('/invoices');
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Summary Cards */}
