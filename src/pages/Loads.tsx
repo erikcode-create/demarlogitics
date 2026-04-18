@@ -18,6 +18,7 @@ import { TableLoader } from '@/components/ui/page-loader';
 import { geocodeBoth } from '@/utils/geocoding';
 import LocationPicker from '@/components/locations/LocationPicker';
 import { SavedLocation, GeofenceType } from '@/types';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 const GeofenceMap = lazy(() => import('@/components/loads/GeofenceMap'));
 
@@ -67,6 +68,7 @@ const Loads = () => {
     defaultValue: emptyForm,
   });
   const [bulkCount, setBulkCount] = useState('4');
+  const [geocoding, setGeocoding] = useState(false);
 
   if (loading) return <TableLoader />;
 
@@ -89,6 +91,7 @@ const Loads = () => {
   };
 
   const filtered = loads.filter(l => {
+    if (!isVisibleLoad(l)) return false;
     const shipper = shippers.find(s => s.id === l.shipperId);
     const matchSearch = l.loadNumber.toLowerCase().includes(search.toLowerCase()) ||
       (l.referenceNumber && l.referenceNumber.toLowerCase().includes(search.toLowerCase())) ||
@@ -127,8 +130,6 @@ const Loads = () => {
     });
     setDialogOpen(true);
   };
-
-  const [geocoding, setGeocoding] = useState(false);
 
   const handleSave = async () => {
     const geofenceData: Record<string, any> = {
@@ -432,7 +433,7 @@ const Loads = () => {
           <DialogHeader>
             <DialogTitle>Delete Load</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete <span className="font-semibold">{deleteTarget?.loadNumber}</span>? This action cannot be undone.
+              Delete <span className="font-semibold">{deleteTarget?.loadNumber}</span> from the active board? The load will stay in the database for records.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

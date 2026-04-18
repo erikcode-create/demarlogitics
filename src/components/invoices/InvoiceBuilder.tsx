@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Invoice } from '@/types';
 import { generateInvoicePdf } from './InvoicePdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 interface InvoiceBuilderProps {
   open: boolean;
@@ -33,6 +34,7 @@ export default function InvoiceBuilder({ open, onOpenChange, preSelectedShipperI
     if (!shipperId) return [];
     const invoicedLoadIds = new Set(invoices.flatMap(i => i.loadIds));
     return loads.filter(l =>
+      isVisibleLoad(l) &&
       l.shipperId === shipperId &&
       ['pod_submitted', 'delivered', 'invoiced'].includes(l.status) &&
       !invoicedLoadIds.has(l.id)

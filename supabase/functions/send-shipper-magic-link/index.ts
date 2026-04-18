@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    const siteUrl = req.headers.get('origin') || 'https://demarlogitics.lovable.app'
+    const siteUrl = req.headers.get('origin') || 'https://logistics.demartransportation.com'
     const redirectTo = `${siteUrl}/shipper-portal/dashboard`
 
     // Generate magic link

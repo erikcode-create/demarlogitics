@@ -46,10 +46,11 @@ import ShipperPortalLoadDetail from "./pages/ShipperPortalLoadDetail";
 import CarrierPortalLoadDetail from "./pages/CarrierPortalLoadDetail";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 
 const queryClient = new QueryClient();
 
-const isPreviewMode = window.location.hostname.includes('preview') || window.location.hostname.includes('lovableproject.com') || window.location.hostname === 'localhost';
+const isPreviewMode = window.location.hostname === 'localhost';
 
 function LoadingScreen() {
   return (
@@ -121,33 +122,35 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Sonner richColors position="top-right" />
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <AppProvider>
-                  <SalesLanding />
-                </AppProvider>
-              }
-            />
-            <Route path="/auth" element={<AuthGate />} />
-            <Route path="/set-password" element={<SetPassword />} />
-            <Route path="/portal" element={<CarrierPortalLogin />} />
-            <Route path="/portal/documents" element={<CarrierPortalDashboard />} />
-            <Route path="/portal/documents/:id" element={<CarrierPortalDocument />} />
-            <Route path="/portal/loads/:loadId" element={<CarrierPortalLoadDetail />} />
-            <Route path="/portal/preview/:carrierId" element={<CarrierPortalPreview />} />
-            <Route path="/shipper-portal" element={<ShipperPortalLogin />} />
-            <Route path="/shipper-portal/dashboard" element={<ShipperPortalDashboard />} />
-            <Route path="/shipper-portal/loads/:loadId" element={<ShipperPortalLoadDetail />} />
-            <Route path="/shipper-portal/preview/:shipperId" element={<ShipperPortalPreview />} />
-            <Route path="/terms" element={<TermsAndConditions />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
-          </Routes>
-        </BrowserRouter>
+        <AppErrorBoundary>
+          <Sonner richColors position="top-right" />
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <AppProvider>
+                    <SalesLanding />
+                  </AppProvider>
+                }
+              />
+              <Route path="/auth" element={<AuthGate />} />
+              <Route path="/set-password" element={<SetPassword />} />
+              <Route path="/portal" element={<CarrierPortalLogin />} />
+              <Route path="/portal/documents" element={<CarrierPortalDashboard />} />
+              <Route path="/portal/documents/:id" element={<CarrierPortalDocument />} />
+              <Route path="/portal/loads/:loadId" element={<CarrierPortalLoadDetail />} />
+              <Route path="/portal/preview/:carrierId" element={<CarrierPortalPreview />} />
+              <Route path="/shipper-portal" element={<ShipperPortalLogin />} />
+              <Route path="/shipper-portal/dashboard" element={<ShipperPortalDashboard />} />
+              <Route path="/shipper-portal/loads/:loadId" element={<ShipperPortalLoadDetail />} />
+              <Route path="/shipper-portal/preview/:shipperId" element={<ShipperPortalPreview />} />
+              <Route path="/terms" element={<TermsAndConditions />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/*" element={<ProtectedRoutes />} />
+            </Routes>
+          </BrowserRouter>
+        </AppErrorBoundary>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

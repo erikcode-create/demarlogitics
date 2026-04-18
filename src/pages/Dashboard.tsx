@@ -10,11 +10,13 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { loadStatusLabels } from '@/data/mockData';
 import { generateAlerts } from '@/utils/alertEngine';
 import { addDays, isAfter, isBefore, subDays } from 'date-fns';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 const Dashboard = () => {
   const { loads, shippers, carriers, activities, followUps, contracts, loading } = useAppContext();
   const navigate = useNavigate();
-  const alerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
+  const visibleLoads = useMemo(() => loads.filter(isVisibleLoad), [loads]);
+  const alerts = useMemo(() => generateAlerts(carriers, followUps, visibleLoads, contracts), [carriers, followUps, visibleLoads, contracts]);
 
   if (loading) return <PageLoader />;
   const criticalCount = alerts.filter(a => a.severity === 'critical').length;
@@ -22,21 +24,21 @@ const Dashboard = () => {
   const infoCount = alerts.filter(a => a.severity === 'info').length;
 
   // Revenue metrics
-  const totalRevenue = loads.filter(l => ['delivered', 'invoiced', 'paid'].includes(l.status)).reduce((sum, l) => sum + l.shipperRate, 0);
-  const totalCost = loads.filter(l => ['delivered', 'invoiced', 'paid'].includes(l.status)).reduce((sum, l) => sum + l.carrierRate, 0);
+  const totalRevenue = visibleLoads.filter(l => ['delivered', 'invoiced', 'paid'].includes(l.status)).reduce((sum, l) => sum + l.shipperRate, 0);
+  const totalCost = visibleLoads.filter(l => ['delivered', 'invoiced', 'paid'].includes(l.status)).reduce((sum, l) => sum + l.carrierRate, 0);
   const totalMargin = totalRevenue - totalCost;
   const marginPct = totalRevenue > 0 ? ((totalMargin / totalRevenue) * 100).toFixed(1) : '0';
-  const activeLoads = loads.filter(l => ['booked', 'in_transit'].includes(l.status)).length;
+  const activeLoads = visibleLoads.filter(l => ['booked', 'in_transit'].includes(l.status)).length;
 
   // Load pipeline
   const statusCounts = ['available', 'booked', 'in_transit', 'delivered', 'invoiced', 'paid'].map(s => ({
     name: loadStatusLabels[s],
-    count: loads.filter(l => l.status === s).length,
+    count: visibleLoads.filter(l => l.status === s).length,
   }));
 
   // AR/AP
-  const arTotal = loads.filter(l => l.status === 'invoiced').reduce((s, l) => s + l.invoiceAmount, 0);
-  const apTotal = loads.filter(l => ['delivered', 'invoiced'].includes(l.status)).reduce((s, l) => s + l.carrierRate, 0);
+  const arTotal = visibleLoads.filter(l => l.status === 'invoiced').reduce((s, l) => s + l.invoiceAmount, 0);
+  const apTotal = visibleLoads.filter(l => ['delivered', 'invoiced'].includes(l.status)).reduce((s, l) => s + l.carrierRate, 0);
 
   const pieColors = ['hsl(174, 60%, 45%)', 'hsl(199, 60%, 50%)', 'hsl(38, 92%, 50%)', 'hsl(142, 71%, 45%)', 'hsl(270, 60%, 50%)', 'hsl(0, 63%, 50%)'];
 

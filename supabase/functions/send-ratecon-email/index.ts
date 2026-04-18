@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     }
 
     // Determine redirect URL
-    const siteUrl = req.headers.get('origin') || 'https://demarlogitics.lovable.app'
+    const siteUrl = req.headers.get('origin') || 'https://logistics.demartransportation.com'
     const redirectTo = document_id
       ? `${siteUrl}/portal/documents/${document_id}`
       : `${siteUrl}/portal/documents`

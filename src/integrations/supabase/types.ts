@@ -505,6 +505,7 @@ export type Database = {
           carrier_rate: number
           completed_at: string | null
           created_at: string
+          deleted_at: string | null
           delivered_at: string | null
           delivery_date: string
           destination: string
@@ -542,6 +543,7 @@ export type Database = {
           carrier_rate?: number
           completed_at?: string | null
           created_at?: string
+          deleted_at?: string | null
           delivered_at?: string | null
           delivery_date?: string
           destination?: string
@@ -579,6 +581,7 @@ export type Database = {
           carrier_rate?: number
           completed_at?: string | null
           created_at?: string
+          deleted_at?: string | null
           delivered_at?: string | null
           delivery_date?: string
           destination?: string

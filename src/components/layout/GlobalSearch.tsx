@@ -11,6 +11,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Truck, Building2, Package, FileText, MapPin } from 'lucide-react';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ export function GlobalSearch() {
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Loads">
-          {loads.slice(0, 8).map((load) => (
+          {loads.filter(isVisibleLoad).slice(0, 8).map((load) => (
             <CommandItem
               key={load.id}
               value={`${load.loadNumber} ${load.referenceNumber} ${load.origin} ${load.destination}`}

@@ -9,6 +9,7 @@ import { Search, MapPin, Truck, Clock, AlertTriangle } from 'lucide-react';
 import { loadStatusLabels } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 interface TrackedDriver {
   load_id: string;
@@ -70,7 +71,7 @@ const LiveTracking = () => {
 
   const activeStatuses = useMemo(() => ['booked', 'dispatched', 'rate_con_signed', 'at_pickup', 'picked_up', 'in_transit', 'at_delivery'], []);
   const activeLoads = useMemo(
-    () => loads.filter(l => activeStatuses.includes(l.status)),
+    () => loads.filter(l => isVisibleLoad(l) && activeStatuses.includes(l.status)),
     [loads, activeStatuses]
   );
 

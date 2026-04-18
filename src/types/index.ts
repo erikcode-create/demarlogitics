@@ -151,6 +151,7 @@ export interface Load {
   pickupGeofencePolygon?: [number, number][] | null;
   deliveryGeofenceType?: GeofenceType;
   deliveryGeofencePolygon?: [number, number][] | null;
+  deletedAt?: string | null;
 }
 
 export interface LoadDocument {

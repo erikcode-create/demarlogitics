@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const origin = req.headers.get("origin") || "https://demarlogitics.lovable.app";
+    const origin = req.headers.get("origin") || "https://logistics.demartransportation.com";
 
     // Check if user already exists
     const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
