@@ -271,7 +271,6 @@ const LoadDetail = () => {
               loadNumber={load.loadNumber}
               currentStatus={load.status}
               carrierId={load.carrierId}
-              onStatusChange={(status) => { updateStatus(status as LoadStatus); }}
             />
             {nextActions.map(a => (
               <Button key={a.status} variant="outline" size="sm" onClick={() => quickStatus(a.status, a.label)} className="gap-1.5">

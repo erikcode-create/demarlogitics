@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --host 127.0.0.1 --port 4176",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:dispatch": "vitest run src/components/documents/DispatchButton.test.ts",
+    "typecheck": "tsc --noEmit",
+    "e2e:check-driver-load": "bash ./scripts/check-driver-load.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

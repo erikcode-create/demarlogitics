@@ -9,17 +9,17 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/context/AppContext';
 import { sendPushToDriver } from '@/utils/pushNotifications';
+import { applyDispatchToLoads } from './dispatchLoadState';
 
 interface DispatchButtonProps {
   loadId: string;
   loadNumber: string;
   currentStatus: string;
   carrierId: string | null;
-  onStatusChange: (status: string) => void;
 }
 
-export default function DispatchButton({ loadId, loadNumber, currentStatus, carrierId, onStatusChange }: DispatchButtonProps) {
-  const { drivers } = useAppContext();
+export default function DispatchButton({ loadId, loadNumber, currentStatus, carrierId }: DispatchButtonProps) {
+  const { drivers, setLoads } = useAppContext();
   const [open, setOpen] = useState(false);
   const [driverPhone, setDriverPhone] = useState('');
   const [driverName, setDriverName] = useState('');
@@ -55,15 +55,18 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
     }
 
     setDispatching(true);
+    const trimmedPhone = driverPhone.trim();
+    const trimmedName = driverName.trim();
+    const dispatchedAt = new Date().toISOString();
 
     // Update load with driver info and status
     const { error } = await supabase
       .from('loads')
       .update({
-        driver_phone: driverPhone.trim(),
-        driver_name: driverName.trim() || null,
+        driver_phone: trimmedPhone,
+        driver_name: trimmedName || null,
         status: 'dispatched',
-        dispatched_at: new Date().toISOString(),
+        dispatched_at: dispatchedAt,
       })
       .eq('id', loadId);
 
@@ -79,25 +82,25 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
       event_type: 'status_change',
       from_status: 'booked',
       to_status: 'dispatched',
-      description: `Dispatched to driver ${driverName || driverPhone}`,
+      description: `Dispatched to driver ${trimmedName || trimmedPhone}`,
       actor: 'broker',
     });
 
     // Auto-send push notification to driver (free via Expo)
     const pushResult = await sendPushToDriver(
-      driverPhone.trim(),
+      trimmedPhone,
       'New Load Assigned',
       `Load ${loadNumber} has been dispatched to you. Tap to view details.`,
       { load_id: loadId, type: 'dispatch' }
     );
 
-    onStatusChange('dispatched');
+    setLoads((prev) => applyDispatchToLoads(prev, loadId, trimmedPhone, trimmedName, dispatchedAt));
     setOpen(false);
 
     if (pushResult.sent > 0) {
-      toast.success(`Load ${loadNumber} dispatched to ${driverName || driverPhone} — push notification sent`);
+      toast.success(`Load ${loadNumber} dispatched to ${trimmedName || trimmedPhone} — push notification sent`);
     } else {
-      toast.success(`Load ${loadNumber} dispatched to ${driverName || driverPhone}`);
+      toast.success(`Load ${loadNumber} dispatched to ${trimmedName || trimmedPhone}`);
       toast.info('Driver has not opened the app yet — send them the deep link');
     }
     setDispatching(false);
