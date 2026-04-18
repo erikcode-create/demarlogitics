@@ -17,6 +17,8 @@ npm install
 npm run dev
 ```
 
+For the live broker-to-driver verification flow, read [docs/e2e-live-dispatch.md](./docs/e2e-live-dispatch.md) first.
+
 ## Build
 
 ```sh

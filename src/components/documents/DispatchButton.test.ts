@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { applyDispatchToLoads } from './dispatchLoadState';
 import type { Load } from '@/types';
+import { normalizePhone } from '@/utils/phone';
 
 describe('applyDispatchToLoads', () => {
   it('keeps the dispatched driver assignment in local load state', () => {
@@ -49,5 +50,15 @@ describe('applyDispatchToLoads', () => {
         dispatchedAt: '2026-04-18T19:55:00.000Z',
       }),
     ]);
+  });
+});
+
+describe('normalizePhone', () => {
+  it('strips punctuation from phone numbers', () => {
+    expect(normalizePhone('(928) 300-2384')).toBe('9283002384');
+  });
+
+  it('drops a leading US country code', () => {
+    expect(normalizePhone('+1 (928) 300-2384')).toBe('9283002384');
   });
 });

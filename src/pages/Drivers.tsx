@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Search, Plus, Trash2, Pencil, Smartphone, Apple, Wifi, WifiOff, Users, MapPin, MapPinOff } from 'lucide-react';
 import { Driver } from '@/types';
 import { TableLoader } from '@/components/ui/page-loader';
+import { normalizePhone } from '@/utils/phone';
 import { toast } from 'sonner';
 
 // A driver is "tracking" if we got a location ping within the last 3 minutes
@@ -30,8 +31,6 @@ const Drivers = () => {
   const [linkingPhone, setLinkingPhone] = useState('');
   const [inlineLinkForm, setInlineLinkForm] = useState({ name: '', carrierId: '' });
 
-  const normalize = (p: string) => (p || '').replace(/\D/g, '');
-
   // Fetch push tokens (= app installed)
   useEffect(() => {
     supabase
@@ -40,10 +39,10 @@ const Drivers = () => {
       .then(({ data }) => {
         if (!data) return;
         const map: Record<string, { platform: string; updatedAt: string }> = {};
-        const knownPhones = new Set(drivers.map(d => normalize(d.phone)).filter(Boolean));
+        const knownPhones = new Set(drivers.map(d => normalizePhone(d.phone)).filter(Boolean));
         const unlinked: { phone: string; platform: string; updatedAt: string }[] = [];
         for (const row of data) {
-          const digits = normalize(row.driver_phone);
+          const digits = normalizePhone(row.driver_phone);
           map[digits] = { platform: row.platform, updatedAt: row.updated_at };
           if (!knownPhones.has(digits)) {
             unlinked.push({ phone: row.driver_phone, platform: row.platform, updatedAt: row.updated_at });
@@ -65,7 +64,7 @@ const Drivers = () => {
           if (!data) return;
           const map: Record<string, { lastPing: string; loadId: string }> = {};
           for (const row of data) {
-            const digits = normalize(row.driver_phone);
+            const digits = normalizePhone(row.driver_phone);
             const existing = map[digits];
             // Keep the most recent ping per driver
             if (!existing || new Date(row.updated_at) > new Date(existing.lastPing)) {
@@ -162,7 +161,7 @@ const Drivers = () => {
     carrierId ? carriers.find(c => c.id === carrierId)?.companyName || '—' : '—';
 
   const isTracking = (phone: string) => {
-    const digits = normalize(phone);
+    const digits = normalizePhone(phone);
     const info = trackingMap[digits];
     if (!info) return false;
     return (Date.now() - new Date(info.lastPing).getTime()) < TRACKING_THRESHOLD_MS;
@@ -364,7 +363,7 @@ const Drivers = () => {
             </TableHeader>
             <TableBody>
               {filtered.map(d => {
-                const digits = normalize(d.phone || '');
+                const digits = normalizePhone(d.phone || '');
                 const device = digits ? deviceMap[digits] : null;
                 const tracking = digits ? isTracking(d.phone || '') : false;
                 const trackInfo = digits ? trackingMap[digits] : null;

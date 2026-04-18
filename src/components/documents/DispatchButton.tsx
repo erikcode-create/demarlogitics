@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppContext } from '@/context/AppContext';
 import { sendPushToDriver } from '@/utils/pushNotifications';
+import { normalizePhone } from '@/utils/phone';
 import { applyDispatchToLoads } from './dispatchLoadState';
 
 interface DispatchButtonProps {
@@ -36,7 +37,7 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
     }
     const driver = drivers.find(d => d.id === driverId);
     if (driver) {
-      setDriverPhone(driver.phone || '');
+      setDriverPhone(normalizePhone(driver.phone));
       setDriverName(driver.name);
     }
   };
@@ -44,18 +45,25 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
   // Only show for booked loads
   if (currentStatus !== 'booked') return null;
 
-  const deepLink = driverPhone
-    ? `demarlogistics://track?load_id=${loadId}&phone=${encodeURIComponent(driverPhone)}`
+  const normalizedPhone = normalizePhone(driverPhone);
+
+  const deepLink = normalizedPhone
+    ? `demarlogistics://track?load_id=${loadId}&phone=${encodeURIComponent(normalizedPhone)}`
     : '';
 
   const handleDispatch = async () => {
-    if (!driverPhone.trim()) {
+    if (!normalizedPhone) {
       toast.error('Driver phone is required');
       return;
     }
 
+    if (normalizedPhone.length !== 10) {
+      toast.error('Driver phone must be a valid 10-digit US number');
+      return;
+    }
+
     setDispatching(true);
-    const trimmedPhone = driverPhone.trim();
+    const trimmedPhone = normalizedPhone;
     const trimmedName = driverName.trim();
     const dispatchedAt = new Date().toISOString();
 
@@ -172,7 +180,7 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
                   </Button>
                 </div>
                 <a
-                  href={`sms:${driverPhone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(`Download the DeMar Logistics driver app and open this link to get started:\n${deepLink}`)}`}
+                  href={`sms:${normalizedPhone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(`Download the DeMar Logistics driver app and open this link to get started:\n${deepLink}`)}`}
                   className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-primary hover:underline"
                 >
                   <Smartphone className="h-4 w-4" />
@@ -181,7 +189,7 @@ export default function DispatchButton({ loadId, loadNumber, currentStatus, carr
               </div>
             )}
 
-            <Button onClick={handleDispatch} className="w-full" disabled={!driverPhone.trim() || dispatching}>
+            <Button onClick={handleDispatch} className="w-full" disabled={!normalizedPhone || dispatching}>
               {dispatching ? 'Dispatching...' : 'Dispatch Load'}
             </Button>
           </div>
