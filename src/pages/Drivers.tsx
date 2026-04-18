@@ -27,6 +27,8 @@ const Drivers = () => {
   const [deviceMap, setDeviceMap] = useState<Record<string, { platform: string; updatedAt: string }>>({});
   const [unlinkedDevices, setUnlinkedDevices] = useState<{ phone: string; platform: string; updatedAt: string }[]>([]);
   const [trackingMap, setTrackingMap] = useState<Record<string, { lastPing: string; loadId: string }>>({});
+  const [linkingPhone, setLinkingPhone] = useState('');
+  const [inlineLinkForm, setInlineLinkForm] = useState({ name: '', carrierId: '' });
 
   const normalize = (p: string) => (p || '').replace(/\D/g, '');
 
@@ -100,6 +102,11 @@ const Drivers = () => {
     setDialogOpen(true);
   };
 
+  const openInlineLink = (phone: string) => {
+    setLinkingPhone(phone);
+    setInlineLinkForm({ name: '', carrierId: '' });
+  };
+
   const handleSave = () => {
     if (!form.name.trim() || !form.carrierId) return;
 
@@ -131,6 +138,24 @@ const Drivers = () => {
     deleteRecord('drivers', id);
     setDrivers(prev => prev.filter(d => d.id !== id));
     toast.success(`${name || 'Driver'} deleted`);
+  };
+
+  const handleCreateFromDevice = () => {
+    if (!linkingPhone || !inlineLinkForm.name.trim() || !inlineLinkForm.carrierId) return;
+
+    const driver: Driver = {
+      id: crypto.randomUUID(),
+      name: inlineLinkForm.name.trim(),
+      phone: linkingPhone.trim(),
+      email: '',
+      carrierId: inlineLinkForm.carrierId,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setDrivers(prev => [...prev, driver]);
+    setLinkingPhone('');
+    setInlineLinkForm({ name: '', carrierId: '' });
+    toast.success('Driver linked to device');
   };
 
   const getCarrierName = (carrierId: string | null) =>
@@ -210,12 +235,77 @@ const Drivers = () => {
             <p className="text-sm font-medium text-amber-500 mb-2">Unlinked Devices — app installed but not matched to a driver</p>
             <div className="space-y-1">
               {unlinkedDevices.map(d => (
-                <div key={d.phone} className="flex items-center gap-3 text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500">
-                    {d.platform === 'ios' ? <><Apple className="h-3 w-3" /> iPhone</> : <><Smartphone className="h-3 w-3" /> Android</>}
-                  </span>
-                  <span className="font-mono">{d.phone}</span>
-                  <span className="text-muted-foreground">Registered {timeAgo(d.updatedAt)}</span>
+                <div key={d.phone} className="rounded-md border border-amber-500/20 bg-background/70 p-3">
+                  <div className="flex flex-col gap-2 text-sm md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500">
+                        {d.platform === 'ios' ? <><Apple className="h-3 w-3" /> iPhone</> : <><Smartphone className="h-3 w-3" /> Android</>}
+                      </span>
+                      <button
+                        type="button"
+                        className="font-mono text-left text-primary underline-offset-4 hover:underline"
+                        onClick={() => openInlineLink(d.phone)}
+                      >
+                        {d.phone}
+                      </button>
+                      <span className="text-muted-foreground">Registered {timeAgo(d.updatedAt)}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openInlineLink(d.phone)}
+                    >
+                      Add Driver to Carrier
+                    </Button>
+                  </div>
+
+                  {linkingPhone === d.phone && (
+                    <div className="mt-3 grid gap-3 rounded-md border bg-background p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] md:items-end">
+                      <div className="space-y-1">
+                        <Label htmlFor={`driver-name-${d.phone}`}>Driver Name</Label>
+                        <Input
+                          id={`driver-name-${d.phone}`}
+                          placeholder="Enter driver name"
+                          value={inlineLinkForm.name}
+                          onChange={e => setInlineLinkForm(prev => ({ ...prev, name: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Carrier</Label>
+                        <Select
+                          value={inlineLinkForm.carrierId || undefined}
+                          onValueChange={v => setInlineLinkForm(prev => ({ ...prev, carrierId: v }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select carrier" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {carriers.map(c => <SelectItem key={c.id} value={c.id}>{c.companyName}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleCreateFromDevice}
+                          disabled={!inlineLinkForm.name.trim() || !inlineLinkForm.carrierId}
+                        >
+                          Link Driver
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setLinkingPhone('');
+                            setInlineLinkForm({ name: '', carrierId: '' });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
