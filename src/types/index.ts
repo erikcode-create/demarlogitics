@@ -3,7 +3,7 @@ export type CarrierPacketStatus = 'not_started' | 'in_progress' | 'complete' | '
 export type LoadStatus = 'available' | 'booked' | 'dispatched' | 'rate_con_signed' | 'at_pickup' | 'picked_up' | 'in_transit' | 'at_delivery' | 'delivered' | 'pod_submitted' | 'invoiced' | 'paid';
 
 export type LoadDocumentType = 'rate_con_signed' | 'bol_photo' | 'delivery_photo' | 'pod_signature';
-export type LoadEventType = 'status_change' | 'document_uploaded' | 'note';
+export type LoadEventType = 'status_change' | 'document_uploaded' | 'note' | 'archived' | 'restored';
 export type EquipmentType = 'dry_van' | 'reefer' | 'flatbed' | 'step_deck' | 'conestoga' | 'power_only';
 export type ActivityType = 'call' | 'email' | 'note' | 'meeting';
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'overdue';
@@ -151,6 +151,9 @@ export interface Load {
   pickupGeofencePolygon?: [number, number][] | null;
   deliveryGeofenceType?: GeofenceType;
   deliveryGeofencePolygon?: [number, number][] | null;
+  archivedAt?: string | null;
+  archivedByUserId?: string | null;
+  archiveReason?: string | null;
   deletedAt?: string | null;
 }
 

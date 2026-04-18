@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { generateShipperAgreement, generateCarrierAgreement, generateRateConfirmation, generateStopLossLaneAgreement } from '@/utils/contractTemplates';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 type Step = 'type' | 'entity' | 'review';
 
@@ -66,7 +67,7 @@ export default function ContractNew() {
   const entityType = (contractType === 'shipper_agreement' || contractType === 'stop_loss_lane') ? 'shipper' : 'carrier';
   const entities = (contractType === 'shipper_agreement' || contractType === 'stop_loss_lane') ? shippers : carriers;
   const bookedLoads = useMemo(() =>
-    loads.filter(l => l.carrierId && (l.status === 'booked' || l.status === 'in_transit')),
+    loads.filter(l => isVisibleLoad(l) && l.carrierId && (l.status === 'booked' || l.status === 'in_transit')),
     [loads]
   );
 

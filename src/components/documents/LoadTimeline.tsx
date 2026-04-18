@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, ArrowRight, Upload, MessageSquare } from 'lucide-react';
+import { RefreshCw, ArrowRight, Upload, MessageSquare, Archive, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LoadEvent {
@@ -73,6 +73,8 @@ export default function LoadTimeline({ loadId }: LoadTimelineProps) {
       case 'status_change': return <ArrowRight className="h-3.5 w-3.5" />;
       case 'document_uploaded': return <Upload className="h-3.5 w-3.5" />;
       case 'note': return <MessageSquare className="h-3.5 w-3.5" />;
+      case 'archived': return <Archive className="h-3.5 w-3.5" />;
+      case 'restored': return <RotateCcw className="h-3.5 w-3.5" />;
       default: return <ArrowRight className="h-3.5 w-3.5" />;
     }
   };
@@ -80,6 +82,12 @@ export default function LoadTimeline({ loadId }: LoadTimelineProps) {
   const getEventDescription = (event: LoadEvent) => {
     if (event.event_type === 'status_change' && event.from_status && event.to_status) {
       return `${STATUS_LABELS[event.from_status] || event.from_status} → ${STATUS_LABELS[event.to_status] || event.to_status}`;
+    }
+    if (event.event_type === 'archived') {
+      return event.description || 'Load archived';
+    }
+    if (event.event_type === 'restored') {
+      return event.description || 'Load restored';
     }
     return event.description || 'Event';
   };

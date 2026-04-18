@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Pencil, Trash2, Copy, FileEdit, X, MapPin } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Search, Plus, Pencil, Archive, Copy, FileEdit, X, MapPin, RotateCcw } from 'lucide-react';
 import { loadStatusLabels, equipmentTypeLabels } from '@/data/mockData';
 import { Load, LoadStatus, EquipmentType } from '@/types';
 import { toast } from 'sonner';
@@ -18,7 +19,7 @@ import { TableLoader } from '@/components/ui/page-loader';
 import { geocodeBoth } from '@/utils/geocoding';
 import LocationPicker from '@/components/locations/LocationPicker';
 import { SavedLocation, GeofenceType } from '@/types';
-import { isVisibleLoad } from '@/utils/loadVisibility';
+import { isArchivedLoad, isVisibleLoad } from '@/utils/loadVisibility';
 
 const GeofenceMap = lazy(() => import('@/components/loads/GeofenceMap'));
 
@@ -55,20 +56,24 @@ const emptyForm = {
 };
 
 const Loads = () => {
-  const { loads, setLoads, shippers, carriers, deleteRecord, loading } = useAppContext();
+  const { loads, setLoads, shippers, carriers, archiveLoad, restoreLoad, loading } = useAppContext();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [archiveFilter, setArchiveFilter] = useState<'active' | 'archived' | 'all'>('active');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Load | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<Load | null>(null);
+  const [archiveReason, setArchiveReason] = useState('');
   const { data: formData, setData: setFormData, hasDraft, clearDraft, draftRestoredRef } = useDraft({
     key: 'load:new',
     defaultValue: emptyForm,
   });
   const [bulkCount, setBulkCount] = useState('4');
   const [geocoding, setGeocoding] = useState(false);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [restoringLoadId, setRestoringLoadId] = useState<string | null>(null);
 
   if (loading) return <TableLoader />;
 
@@ -91,7 +96,12 @@ const Loads = () => {
   };
 
   const filtered = loads.filter(l => {
-    if (!isVisibleLoad(l)) return false;
+    const matchesArchiveFilter = archiveFilter === 'all'
+      ? true
+      : archiveFilter === 'archived'
+        ? isArchivedLoad(l)
+        : isVisibleLoad(l);
+    if (!matchesArchiveFilter) return false;
     const shipper = shippers.find(s => s.id === l.shipperId);
     const matchSearch = l.loadNumber.toLowerCase().includes(search.toLowerCase()) ||
       (l.referenceNumber && l.referenceNumber.toLowerCase().includes(search.toLowerCase())) ||
@@ -244,17 +254,33 @@ const Loads = () => {
     toast.success(`${count} loads created successfully`);
   };
 
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    deleteRecord('loads', deleteTarget.id);
-    setLoads(prev => prev.filter(l => l.id !== deleteTarget.id));
-    setDeleteTarget(null);
-    toast.success('Load deleted');
+  const handleArchive = async () => {
+    if (!archiveTarget || !archiveReason.trim()) {
+      toast.error('Archive reason is required');
+      return;
+    }
+
+    setArchiveLoading(true);
+    const success = await archiveLoad(archiveTarget.id, archiveReason);
+    setArchiveLoading(false);
+
+    if (success) {
+      setArchiveTarget(null);
+      setArchiveReason('');
+    }
   };
 
-  const confirmDelete = (e: React.MouseEvent, load: Load) => {
+  const confirmArchive = (e: React.MouseEvent, load: Load) => {
     e.stopPropagation();
-    setDeleteTarget(load);
+    setArchiveTarget(load);
+    setArchiveReason(load.archiveReason ?? '');
+  };
+
+  const handleRestore = async (e: React.MouseEvent, load: Load) => {
+    e.stopPropagation();
+    setRestoringLoadId(load.id);
+    await restoreLoad(load.id);
+    setRestoringLoadId(null);
   };
 
   return (
@@ -428,17 +454,34 @@ const Loads = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <Dialog open={!!archiveTarget} onOpenChange={(open) => {
+        if (!open) {
+          setArchiveTarget(null);
+          setArchiveReason('');
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Load</DialogTitle>
+            <DialogTitle>Archive Load</DialogTitle>
             <DialogDescription>
-              Delete <span className="font-semibold">{deleteTarget?.loadNumber}</span> from the active board? The load will stay in the database for records.
+              Archive <span className="font-semibold">{archiveTarget?.loadNumber}</span> from active operations. The load stays in the database and can be restored later.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="archive-reason">Archive Reason</Label>
+            <Textarea
+              id="archive-reason"
+              value={archiveReason}
+              onChange={(e) => setArchiveReason(e.target.value)}
+              placeholder="Required. Explain why this load is being archived."
+              rows={4}
+            />
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" onClick={() => { setArchiveTarget(null); setArchiveReason(''); }}>Cancel</Button>
+            <Button variant="destructive" onClick={handleArchive} disabled={archiveLoading || !archiveReason.trim()}>
+              {archiveLoading ? 'Archiving...' : 'Archive'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -453,6 +496,14 @@ const Loads = () => {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             {Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={archiveFilter} onValueChange={(value: 'active' | 'archived' | 'all') => setArchiveFilter(value)}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Active Loads" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active Loads</SelectItem>
+            <SelectItem value="archived">Archived Loads</SelectItem>
+            <SelectItem value="all">All Loads</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -475,26 +526,40 @@ const Loads = () => {
             </TableHeader>
             <TableBody>
               {filtered.map(l => {
+                const archived = isArchivedLoad(l);
                 const shipper = shippers.find(s => s.id === l.shipperId);
                 const margin = l.carrierRate > 0 ? l.shipperRate - l.carrierRate : null;
                 const marginPct = margin !== null && l.shipperRate > 0 ? ((margin / l.shipperRate) * 100).toFixed(1) : null;
                 return (
                   <TableRow key={l.id} className="cursor-pointer hover:bg-accent/50" onClick={() => navigate(`/loads/${l.id}`)}>
-                    <TableCell className="font-medium">{l.loadNumber}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="space-y-1">
+                        <div>{l.loadNumber}</div>
+                        {archived && (
+                          <div className="text-xs text-muted-foreground" title={l.archiveReason || undefined}>
+                            Archived {l.archivedAt ?? l.deletedAt ? new Date(l.archivedAt ?? l.deletedAt ?? '').toLocaleDateString() : ''}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{l.referenceNumber || '—'}</TableCell>
                     <TableCell className="text-sm">{shipper?.companyName || '—'}</TableCell>
                     <TableCell className="text-sm">{l.origin} → {l.destination}</TableCell>
                     <TableCell className="text-sm">{l.pickupDate ? new Date(l.pickupDate).toLocaleDateString() : '—'}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Select value={l.status} onValueChange={(v: LoadStatus) => {
-                        setLoads(prev => prev.map(ld => ld.id === l.id ? { ...ld, status: v as LoadStatus } : ld));
-                        toast.success(`${l.loadNumber} → ${loadStatusLabels[v as LoadStatus]}`);
-                      }}>
-                        <SelectTrigger className="h-7 w-[120px] text-xs border-0 bg-transparent hover:bg-accent">
-                          <Badge className={statusColors[l.status]}>{loadStatusLabels[l.status]}</Badge>
-                        </SelectTrigger>
-                        <SelectContent>{Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
-                      </Select>
+                      {archived ? (
+                        <Badge variant="outline">Archived</Badge>
+                      ) : (
+                        <Select value={l.status} onValueChange={(v: LoadStatus) => {
+                          setLoads(prev => prev.map(ld => ld.id === l.id ? { ...ld, status: v as LoadStatus } : ld));
+                          toast.success(`${l.loadNumber} → ${loadStatusLabels[v as LoadStatus]}`);
+                        }}>
+                          <SelectTrigger className="h-7 w-[120px] text-xs border-0 bg-transparent hover:bg-accent">
+                            <Badge className={statusColors[l.status]}>{loadStatusLabels[l.status]}</Badge>
+                          </SelectTrigger>
+                          <SelectContent>{Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+                        </Select>
+                      )}
                     </TableCell>
                     <TableCell className="text-right font-medium">${l.shipperRate.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
@@ -506,19 +571,27 @@ const Loads = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => openEdit(e, l)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => confirmDelete(e, l)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {!archived ? (
+                          <>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => openEdit(e, l)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => confirmArchive(e, l)}>
+                              <Archive className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary" onClick={(e) => handleRestore(e, l)} disabled={restoringLoadId === l.id}>
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
                 );
               })}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No loads found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No loads found for this filter</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

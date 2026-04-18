@@ -501,6 +501,9 @@ export type Database = {
       }
       loads: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by_user_id: string | null
           carrier_id: string | null
           carrier_rate: number
           completed_at: string | null
@@ -539,6 +542,9 @@ export type Database = {
           delivery_radius_m: number | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by_user_id?: string | null
           carrier_id?: string | null
           carrier_rate?: number
           completed_at?: string | null
@@ -577,6 +583,9 @@ export type Database = {
           weight?: number
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by_user_id?: string | null
           carrier_id?: string | null
           carrier_rate?: number
           completed_at?: string | null

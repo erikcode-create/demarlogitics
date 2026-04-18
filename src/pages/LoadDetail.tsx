@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Download, Receipt, Smartphone, Bell } from 'lucide-react';
+import { MapPin, Calendar, Truck, Upload, FileCheck, DollarSign, FileText, RefreshCw, Trash2, Send, CheckCircle, TruckIcon, Package, Eye, Receipt, Smartphone, Bell, Archive, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,8 +20,10 @@ import BolBuilder from '@/components/documents/BolBuilder';
 import DocumentViewer from '@/components/documents/DocumentViewer';
 import InvoiceBuilder from '@/components/invoices/InvoiceBuilder';
 import DispatchButton from '@/components/documents/DispatchButton';
+import LoadTimeline from '@/components/documents/LoadTimeline';
 import { supabase } from '@/integrations/supabase/client';
 import { geocodeBoth } from '@/utils/geocoding';
+import { isArchivedLoad } from '@/utils/loadVisibility';
 
 const GeofenceMap = lazy(() => import('@/components/loads/GeofenceMap'));
 
@@ -43,7 +45,7 @@ const statusColors: Record<string, string> = {
 const LoadDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { loads, setLoads, shippers, carriers, invoices } = useAppContext();
+  const { loads, setLoads, shippers, carriers, invoices, archiveLoad, restoreLoad } = useAppContext();
   const [invoiceBuilderOpen, setInvoiceBuilderOpen] = useState(false);
 
   const [carrierDocs, setCarrierDocs] = useState<any[]>([]);
@@ -51,6 +53,10 @@ const LoadDetail = () => {
   const [docsLoading, setDocsLoading] = useState(false);
   const [podUploading, setPodUploading] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [archiveReason, setArchiveReason] = useState('');
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
 
   const load = loads.find(l => l.id === id);
 
@@ -177,6 +183,7 @@ const LoadDetail = () => {
 
   if (!load) return <div className="p-6">Load not found. <Button variant="link" onClick={() => navigate('/loads')}>Back</Button></div>;
 
+  const archived = isArchivedLoad(load);
   const shipper = shippers.find(s => s.id === load.shipperId);
   const carrier = load.carrierId ? carriers.find(c => c.id === load.carrierId) : null;
   const margin = load.carrierRate > 0 ? load.shipperRate - load.carrierRate : null;
@@ -197,6 +204,27 @@ const LoadDetail = () => {
   const quickStatus = (status: LoadStatus, label: string) => {
     updateStatus(status);
     toast.success(`${load.loadNumber} → ${label}`);
+  };
+
+  const handleArchive = async () => {
+    if (!archiveReason.trim()) {
+      toast.error('Archive reason is required');
+      return;
+    }
+
+    setArchiveLoading(true);
+    const success = await archiveLoad(load.id, archiveReason);
+    setArchiveLoading(false);
+
+    if (success) {
+      setArchiveDialogOpen(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    setRestoreLoading(true);
+    await restoreLoad(load.id);
+    setRestoreLoading(false);
   };
 
   const nextActions: { status: LoadStatus; label: string; icon: React.ReactNode }[] = [];
@@ -226,29 +254,73 @@ const LoadDetail = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="flex-1 space-y-2">
           <h1 className="text-2xl font-bold">{load.loadNumber}</h1>
           {load.referenceNumber && <p className="text-sm text-muted-foreground">Ref: {load.referenceNumber}</p>}
           <p className="text-sm text-muted-foreground">{load.origin} → {load.destination}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={statusColors[load.status]}>{loadStatusLabels[load.status]}</Badge>
+            {archived && <Badge variant="outline">Archived</Badge>}
+          </div>
         </div>
-        <DispatchButton
-          loadId={load.id}
-          loadNumber={load.loadNumber}
-          currentStatus={load.status}
-          carrierId={load.carrierId}
-          onStatusChange={(status) => { updateStatus(status as LoadStatus); }}
-        />
-        {nextActions.map(a => (
-          <Button key={a.status} variant="outline" size="sm" onClick={() => quickStatus(a.status, a.label)} className="gap-1.5">
-            {a.icon}{a.label}
+        {!archived ? (
+          <>
+            <DispatchButton
+              loadId={load.id}
+              loadNumber={load.loadNumber}
+              currentStatus={load.status}
+              carrierId={load.carrierId}
+              onStatusChange={(status) => { updateStatus(status as LoadStatus); }}
+            />
+            {nextActions.map(a => (
+              <Button key={a.status} variant="outline" size="sm" onClick={() => quickStatus(a.status, a.label)} className="gap-1.5">
+                {a.icon}{a.label}
+              </Button>
+            ))}
+            <Select value={load.status} onValueChange={(v: LoadStatus) => { updateStatus(v); toast.success(`Status → ${loadStatusLabels[v]}`); }}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>{Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button variant="outline" className="gap-1.5" onClick={() => { setArchiveReason(load.archiveReason ?? ''); setArchiveDialogOpen(true); }}>
+              <Archive className="h-4 w-4" />
+              Archive
+            </Button>
+          </>
+        ) : (
+          <Button variant="outline" className="gap-1.5" onClick={handleRestore} disabled={restoreLoading}>
+            <RotateCcw className="h-4 w-4" />
+            {restoreLoading ? 'Restoring...' : 'Restore Load'}
           </Button>
-        ))}
-        <Select value={load.status} onValueChange={(v: LoadStatus) => { updateStatus(v); toast.success(`Status → ${loadStatusLabels[v]}`); }}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>{Object.entries(loadStatusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
-        </Select>
+        )}
       </div>
+
+      {archived && (
+        <Card className="border-warning/40 bg-warning/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Archived Load</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              This load is out of active operations. Restore it to edit status, assign a carrier, generate documents, or upload PODs.
+            </p>
+            <div className="grid gap-2 md:grid-cols-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Archived At</p>
+                <p>{load.archivedAt ?? load.deletedAt ? new Date(load.archivedAt ?? load.deletedAt ?? '').toLocaleString() : 'Unknown'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Archived By</p>
+                <p>{load.archivedByUserId || 'Unknown'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Reason</p>
+                <p>{load.archiveReason || 'No reason recorded'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -315,7 +387,7 @@ const LoadDetail = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4" />Geofence Zones</CardTitle>
-          {!load.pickupLat && !load.deliveryLat && (
+          {!archived && !load.pickupLat && !load.deliveryLat && (
             <Button
               variant="outline"
               size="sm"
@@ -338,7 +410,7 @@ const LoadDetail = () => {
             </Button>
           )}
         </CardHeader>
-        <CardContent>
+          <CardContent>
           {(load.pickupLat || load.deliveryLat) ? (
             <Suspense fallback={<div className="h-[300px] rounded-lg bg-muted animate-pulse" />}>
               <GeofenceMap
@@ -357,7 +429,11 @@ const LoadDetail = () => {
               />
             </Suspense>
           ) : (
-            <p className="text-sm text-muted-foreground">No geofence coordinates set. Click "Set Geofences" to geocode the origin and destination addresses.</p>
+            <p className="text-sm text-muted-foreground">
+              {archived
+                ? 'No geofence coordinates are stored for this archived load.'
+                : 'No geofence coordinates set. Click "Set Geofences" to geocode the origin and destination addresses.'}
+            </p>
           )}
         </CardContent>
       </Card>
@@ -379,7 +455,7 @@ const LoadDetail = () => {
           <CardHeader><CardTitle className="text-sm">Carrier</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Select value={load.carrierId || ''} onValueChange={assignCarrier}>
+              <Select value={load.carrierId || ''} onValueChange={assignCarrier} disabled={archived}>
                 <SelectTrigger><SelectValue placeholder="Assign carrier" /></SelectTrigger>
                 <SelectContent>{carriers.map(c => <SelectItem key={c.id} value={c.id}>{c.companyName} ({c.mcNumber})</SelectItem>)}</SelectContent>
               </Select>
@@ -395,10 +471,14 @@ const LoadDetail = () => {
                   type="number"
                   value={load.carrierRate || ''}
                   onChange={e => updateCarrierRate(e.target.value)}
+                  disabled={archived}
                   className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   placeholder="Enter carrier rate"
                 />
               </div>
+              {archived && (
+                <p className="text-xs text-muted-foreground">Carrier assignment is read-only while the load is archived.</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -407,8 +487,14 @@ const LoadDetail = () => {
       <Card>
         <CardHeader><CardTitle className="text-sm">Documents</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <RateConBuilder load={load} shipper={shipper} carrier={carrier} />
-          <BolBuilder load={load} shipper={shipper} carrier={carrier} />
+          {archived ? (
+            <p className="text-sm text-muted-foreground">This load is archived. Restore it to generate or send new documents.</p>
+          ) : (
+            <>
+              <RateConBuilder load={load} shipper={shipper} carrier={carrier} />
+              <BolBuilder load={load} shipper={shipper} carrier={carrier} />
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -455,31 +541,33 @@ const LoadDetail = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        disabled={resending === doc.id}
+                        disabled={archived || resending === doc.id}
                         onClick={() => resendToCarrier(doc)}
                         title="Resend to carrier"
                       >
                         <Send className={`h-4 w-4 text-primary ${resending === doc.id ? 'animate-pulse' : ''}`} />
                       </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete this {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteCarrierDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      {!archived && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this {doc.type === 'rate_con' ? 'Rate Confirmation' : 'Bill of Lading'}. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteCarrierDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                 );
@@ -508,11 +596,11 @@ const LoadDetail = () => {
               variant="outline"
               size="sm"
               className="gap-1.5"
-              disabled={podUploading}
+              disabled={archived || podUploading}
               onClick={() => document.getElementById('pod-upload')?.click()}
             >
               <Upload className="h-3.5 w-3.5" />
-              {podUploading ? 'Uploading...' : 'Upload POD'}
+              {podUploading ? 'Uploading...' : archived ? 'Archived Load' : 'Upload POD'}
             </Button>
           </div>
         </CardHeader>
@@ -542,23 +630,25 @@ const LoadDetail = () => {
                     <Button variant="ghost" size="sm" onClick={() => viewUploadedDoc(doc)} className="gap-1">
                       <Eye className="h-3.5 w-3.5" />View
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                          <AlertDialogDescription>This will permanently delete this uploaded document.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteLoadDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {!archived && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete this uploaded document.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteLoadDoc(doc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </div>
               ))}
@@ -601,7 +691,7 @@ const LoadDetail = () => {
                   <span className="text-muted-foreground">Payment Status</span>
                   <Badge variant="outline">{paymentStatusLabels[load.paymentStatus]}</Badge>
                 </div>
-                {canInvoice && (
+                {canInvoice && !archived && (
                   <Button size="sm" className="w-full mt-2 gap-1" onClick={() => setInvoiceBuilderOpen(true)}>
                     <Receipt className="h-4 w-4" />Create Invoice
                   </Button>
@@ -611,6 +701,33 @@ const LoadDetail = () => {
           })()}
         </CardContent>
       </Card>
+
+      <LoadTimeline loadId={load.id} />
+
+      <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archive Load</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Archive <span className="font-medium">{load.loadNumber}</span> from active operations. The load stays in the database and can be restored later.
+            </p>
+            <Textarea
+              value={archiveReason}
+              onChange={(e) => setArchiveReason(e.target.value)}
+              placeholder="Required. Explain why this load is being archived."
+              rows={4}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setArchiveDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleArchive} disabled={archiveLoading || !archiveReason.trim()}>
+              {archiveLoading ? 'Archiving...' : 'Archive'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <InvoiceBuilder
         open={invoiceBuilderOpen}

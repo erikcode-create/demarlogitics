@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Check, ChevronDown, FileText, Layers } from 'lucide-react';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 type Step = 'select' | 'review' | 'sign';
 
@@ -31,7 +32,7 @@ export default function ContractBulkCreate() {
   );
 
   const eligibleLoads = useMemo(
-    () => loads.filter(l => (l.status === 'booked' || l.status === 'in_transit') && l.carrierId && !existingLoadIds.has(l.id)),
+    () => loads.filter(l => isVisibleLoad(l) && (l.status === 'booked' || l.status === 'in_transit') && l.carrierId && !existingLoadIds.has(l.id)),
     [loads, existingLoadIds]
   );
 

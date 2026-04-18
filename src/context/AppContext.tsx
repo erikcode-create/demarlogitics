@@ -4,6 +4,7 @@ import { generateCadenceTasks } from '@/utils/cadenceEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { rowsToFrontend, frontendToRow } from '@/utils/supabaseHelpers';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AppContextType {
   shippers: Shipper[];
@@ -39,6 +40,8 @@ interface AppContextType {
   logStageChange: (shipperId: string, fromStage: SalesStage, toStage: SalesStage, changedBy?: string) => void;
   triggerCadence: (shipperId: string) => void;
   deleteRecord: (table: string, id: string) => void;
+  archiveLoad: (loadId: string, reason: string) => Promise<boolean>;
+  restoreLoad: (loadId: string) => Promise<boolean>;
   loading: boolean;
 }
 
@@ -90,11 +93,7 @@ function syncToSupabase<T extends { id: string }>(
 }
 
 function deleteFromSupabase(table: string, id: string) {
-  const operation = table === 'loads'
-    ? db.from(table).update({ deleted_at: new Date().toISOString() }).eq('id', id)
-    : db.from(table).delete().eq('id', id);
-
-  operation.then(({ error }: any) => {
+  db.from(table).delete().eq('id', id).then(({ error }: any) => {
     if (error) {
       console.error(`Delete error (${table}):`, error);
       toast.error(`Failed to delete ${table.replace(/_/g, ' ')}`);
@@ -103,6 +102,7 @@ function deleteFromSupabase(table: string, id: string) {
 }
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [shippers, setShippersRaw] = useState<Shipper[]>([]);
   const [contacts, setContactsRaw] = useState<Contact[]>([]);
   const [lanes, setLanesRaw] = useState<Lane[]>([]);
@@ -253,9 +253,133 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSalesTasks(prev => [...prev, ...tasks]);
   }, [setSalesTasks]);
 
+  const logLoadEvent = useCallback(async (
+    loadId: string,
+    eventType: string,
+    options?: {
+      actor?: string | null;
+      description?: string | null;
+      metadata?: Record<string, unknown>;
+    }
+  ) => {
+    const { error } = await supabase.from('load_events').insert({
+      load_id: loadId,
+      event_type: eventType,
+      actor: options?.actor ?? null,
+      description: options?.description ?? null,
+      metadata: options?.metadata ?? {},
+    });
+
+    if (error) {
+      console.error(`Load event error (${eventType}):`, error);
+      toast.warning('Load updated, but timeline audit entry failed to save.');
+    }
+  }, []);
+
   const deleteRecord = useCallback((table: string, id: string) => {
     deleteFromSupabase(table, id);
   }, []);
+
+  const archiveLoad = useCallback(async (loadId: string, reason: string) => {
+    const load = loads.find((item) => item.id === loadId);
+    if (!load) {
+      toast.error('Load not found');
+      return false;
+    }
+
+    const archivedAt = new Date().toISOString();
+    const archivedByUserId = user?.id ?? null;
+    const actor = user?.email ?? user?.id ?? 'System';
+    const trimmedReason = reason.trim();
+
+    const { error } = await db.from('loads').update({
+      archived_at: archivedAt,
+      archived_by_user_id: archivedByUserId,
+      archive_reason: trimmedReason,
+      deleted_at: null,
+    }).eq('id', loadId);
+
+    if (error) {
+      console.error('Archive load error:', error);
+      toast.error('Failed to archive load');
+      return false;
+    }
+
+    setLoadsRaw((prev) => prev.map((item) => (
+      item.id === loadId
+        ? {
+            ...item,
+            archivedAt,
+            archivedByUserId,
+            archiveReason: trimmedReason,
+            deletedAt: null,
+          }
+        : item
+    )));
+
+    await logLoadEvent(loadId, 'archived', {
+      actor,
+      description: trimmedReason ? `Archived load. Reason: ${trimmedReason}` : 'Archived load.',
+      metadata: {
+        archive_reason: trimmedReason || null,
+        archived_by_user_id: archivedByUserId,
+        load_number: load.loadNumber,
+      },
+    });
+
+    toast.success(`Load ${load.loadNumber} archived`);
+    return true;
+  }, [loads, logLoadEvent, user]);
+
+  const restoreLoad = useCallback(async (loadId: string) => {
+    const load = loads.find((item) => item.id === loadId);
+    if (!load) {
+      toast.error('Load not found');
+      return false;
+    }
+
+    const actor = user?.email ?? user?.id ?? 'System';
+    const previousReason = load.archiveReason ?? null;
+
+    const { error } = await db.from('loads').update({
+      archived_at: null,
+      archived_by_user_id: null,
+      archive_reason: null,
+      deleted_at: null,
+    }).eq('id', loadId);
+
+    if (error) {
+      console.error('Restore load error:', error);
+      toast.error('Failed to restore load');
+      return false;
+    }
+
+    setLoadsRaw((prev) => prev.map((item) => (
+      item.id === loadId
+        ? {
+            ...item,
+            archivedAt: null,
+            archivedByUserId: null,
+            archiveReason: null,
+            deletedAt: null,
+          }
+        : item
+    )));
+
+    await logLoadEvent(loadId, 'restored', {
+      actor,
+      description: previousReason
+        ? `Restored load. Previous archive reason: ${previousReason}`
+        : 'Restored load.',
+      metadata: {
+        previous_archive_reason: previousReason,
+        load_number: load.loadNumber,
+      },
+    });
+
+    toast.success(`Load ${load.loadNumber} restored`);
+    return true;
+  }, [loads, logLoadEvent, user]);
 
   return (
     <AppContext.Provider value={{
@@ -277,6 +401,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       logStageChange,
       triggerCadence,
       deleteRecord,
+      archiveLoad,
+      restoreLoad,
       loading,
     }}>
       {children}

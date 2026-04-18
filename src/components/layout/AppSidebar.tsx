@@ -9,6 +9,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/context/AppContext';
 import { generateAlerts } from '@/utils/alertEngine';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 const mainItems = [
   { title: 'Dashboard', url: '/sales/dashboard', icon: LayoutDashboard },
@@ -36,7 +37,8 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { carriers, followUps, loads, contracts, salesTasks } = useAppContext();
-  const alertCount = useMemo(() => generateAlerts(carriers, followUps, loads, contracts).length, [carriers, followUps, loads, contracts]);
+  const visibleLoads = useMemo(() => loads.filter(isVisibleLoad), [loads]);
+  const alertCount = useMemo(() => generateAlerts(carriers, followUps, visibleLoads, contracts).length, [carriers, followUps, visibleLoads, contracts]);
   const openTasks = salesTasks.filter(t => !t.completed).length;
 
   return (

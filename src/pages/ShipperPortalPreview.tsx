@@ -39,6 +39,8 @@ interface ShipperLoad {
   carrier_id: string | null;
   driver_phone: string | null;
   driver_name: string | null;
+  archived_at?: string | null;
+  deleted_at?: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -100,8 +102,10 @@ const ShipperPortalPreview = () => {
 
       const { data: loadData } = await supabase
         .from('loads')
-        .select('id, load_number, origin, destination, pickup_date, delivery_date, equipment_type, weight, status, reference_number, pod_uploaded, shipper_rate, carrier_id, driver_phone, driver_name')
+        .select('id, load_number, origin, destination, pickup_date, delivery_date, equipment_type, weight, status, reference_number, pod_uploaded, shipper_rate, carrier_id, driver_phone, driver_name, archived_at, deleted_at')
         .eq('shipper_id', shipperId)
+        .is('archived_at', null)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
       setLoads((loadData as ShipperLoad[]) || []);
 

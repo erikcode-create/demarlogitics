@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, ShieldAlert, FileWarning, CalendarClock, DollarSign, FileText, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { isVisibleLoad } from '@/utils/loadVisibility';
 
 const tabConfig: { value: AlertType | 'all'; label: string; icon: React.ElementType }[] = [
   { value: 'all', label: 'All', icon: AlertTriangle },
@@ -34,8 +35,9 @@ const Alerts = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<AlertType | 'all'>('all');
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const visibleLoads = useMemo(() => loads.filter(isVisibleLoad), [loads]);
 
-  const allAlerts = useMemo(() => generateAlerts(carriers, followUps, loads, contracts), [carriers, followUps, loads, contracts]);
+  const allAlerts = useMemo(() => generateAlerts(carriers, followUps, visibleLoads, contracts), [carriers, followUps, visibleLoads, contracts]);
 
   const activeAlerts = allAlerts.filter(a => !dismissed.has(a.id));
   const filtered = activeTab === 'all' ? activeAlerts : activeAlerts.filter(a => a.type === activeTab);

@@ -57,6 +57,8 @@ export const loadEventTypeLabels: Record<LoadEventType, string> = {
   status_change: 'Status Change',
   document_uploaded: 'Document Uploaded',
   note: 'Note',
+  archived: 'Archived',
+  restored: 'Restored',
 };
 
 export const equipmentTypeLabels: Record<EquipmentType, string> = {
