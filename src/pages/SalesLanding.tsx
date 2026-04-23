@@ -796,7 +796,7 @@ export default function SalesLanding() {
           <span className="text-sm font-semibold"><span className="text-primary">DEMAR</span> LOGISTICS</span>
           <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} DeMar Logistics. All rights reserved.</p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <a href="/sales/dashboard" className="hover:text-foreground transition-colors">CRM Login</a>
+            <a href="/auth" className="hover:text-foreground transition-colors">CRM Login</a>
           </div>
         </div>
       </footer>
